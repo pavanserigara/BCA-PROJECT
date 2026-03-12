@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt_student->execute([$user_id, $roll_no, $course_id, $semester, $admission_date, $dob, $gender, $phone, $address, $parent_name, $parent_phone]);
 
         $pdo->commit();
-        $success_message = "Student registered successfully!";
+        $success_message = "Student '$full_name' registered successfully with Roll No: $roll_no!";
     } catch (PDOException $e) {
         $pdo->rollBack();
         $error_message = "Registration failed: " . $e->getMessage();
@@ -52,106 +52,204 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-<div class="max-w-5xl mx-auto">
-    <div class="flex items-center justify-between mb-10">
+<div class="max-w-7xl mx-auto pb-20">
+    <!-- Premium Header -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-8">
         <div>
-            <h2 class="text-3xl font-black text-slate-800 tracking-tight">Register Student</h2>
-            <p class="text-slate-500 font-medium">Create a new student profile and access credentials.</p>
+            <div class="flex items-center space-x-4 mb-6">
+                <a href="students-list.php"
+                    class="w-12 h-12 bg-slate-100 hover:bg-indigo-600 rounded-2xl flex items-center justify-center text-slate-400 hover:text-white transition-all group">
+                    <i class="fas fa-arrow-left text-sm group-hover:-translate-x-0.5 transition-transform"></i>
+                </a>
+                <div>
+                    <p class="text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em] italic leading-none">New
+                        Enrollment</p>
+                </div>
+            </div>
+            <h2 class="text-5xl font-black text-slate-800 tracking-tight leading-none italic">Student Registration</h2>
+            <p class="text-slate-400 font-medium tracking-tight mt-4 text-lg italic">Create a new student identity and
+                institutional access credentials.</p>
         </div>
-        <a href="students-list.php"
-            class="text-slate-500 hover:text-indigo-600 font-bold flex items-center space-x-2 transition-all">
-            <i class="fas fa-arrow-left"></i>
-            <span>Back to Directory</span>
-        </a>
+
+        <div class="flex items-center space-x-4">
+            <div class="bg-slate-900 px-8 py-5 rounded-[2.5rem] text-white shadow-2xl flex items-center space-x-6">
+                <div class="text-right">
+                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1 italic">
+                        Active Session</p>
+                    <p class="text-lg font-black text-white tracking-tight leading-none italic">
+                        <?php echo $settings['academic_year']; ?></p>
+                </div>
+                <div
+                    class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white font-black italic shadow-lg shadow-indigo-600/30 text-lg">
+                    +</div>
+            </div>
+        </div>
     </div>
 
     <?php if ($success_message): ?>
         <div
-            class="bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 p-6 rounded-2xl mb-8 flex items-center animate__animated animate__fadeInDown">
-            <i class="fas fa-check-circle text-2xl mr-4"></i>
+            class="bg-emerald-50 border border-emerald-200 text-emerald-700 p-8 rounded-[2.5rem] mb-12 flex items-center shadow-lg shadow-emerald-100/50 animate__animated animate__fadeInDown">
+            <div
+                class="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center text-white mr-6 shadow-lg shadow-emerald-200">
+                <i class="fas fa-check text-xl"></i>
+            </div>
             <div>
-                <p class="font-bold">Success!</p>
-                <p class="text-sm">
-                    <?php echo $success_message; ?>
-                </p>
+                <p class="font-black text-lg italic">Enrollment Confirmed!</p>
+                <p class="text-sm font-medium"><?php echo $success_message; ?></p>
             </div>
         </div>
     <?php endif; ?>
 
     <?php if ($error_message): ?>
         <div
-            class="bg-rose-50 border-l-4 border-rose-500 text-rose-700 p-6 rounded-2xl mb-8 flex items-center animate__animated animate__shakeX">
-            <i class="fas fa-exclamation-triangle text-2xl mr-4"></i>
+            class="bg-rose-50 border border-rose-200 text-rose-700 p-8 rounded-[2.5rem] mb-12 flex items-center shadow-lg shadow-rose-100/50 animate__animated animate__shakeX">
+            <div
+                class="w-14 h-14 bg-rose-500 rounded-2xl flex items-center justify-center text-white mr-6 shadow-lg shadow-rose-200">
+                <i class="fas fa-times text-xl"></i>
+            </div>
             <div>
-                <p class="font-bold">Error Occurred</p>
-                <p class="text-sm">
-                    <?php echo $error_message; ?>
-                </p>
+                <p class="font-black text-lg italic">Registration Error</p>
+                <p class="text-sm font-medium"><?php echo $error_message; ?></p>
             </div>
         </div>
     <?php endif; ?>
 
-    <form action="students-add.php" method="POST" class="space-y-8 pb-20">
-        <!-- Account Information -->
-        <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-indigo-100/50">
-            <div class="flex items-center space-x-4 mb-8">
-                <div class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
-                    <i class="fas fa-user-lock text-xl"></i>
+    <form action="students-add.php" method="POST" class="space-y-12" id="enrollmentForm">
+
+        <!-- Step Indicator -->
+        <div class="flex items-center justify-center gap-4 mb-8">
+            <div class="flex items-center space-x-3 cursor-pointer group" onclick="scrollToSection('section-auth')">
+                <div
+                    class="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center text-white font-black text-xs shadow-lg shadow-indigo-200">
+                    1</div>
+                <span
+                    class="text-[10px] font-black text-slate-800 uppercase tracking-widest hidden sm:block italic">Auth</span>
+            </div>
+            <div class="w-12 h-0.5 bg-indigo-200 rounded-full"></div>
+            <div class="flex items-center space-x-3 cursor-pointer group" onclick="scrollToSection('section-academic')">
+                <div
+                    class="w-10 h-10 bg-amber-500 rounded-2xl flex items-center justify-center text-white font-black text-xs shadow-lg shadow-amber-200">
+                    2</div>
+                <span
+                    class="text-[10px] font-black text-slate-800 uppercase tracking-widest hidden sm:block italic">Academic</span>
+            </div>
+            <div class="w-12 h-0.5 bg-amber-200 rounded-full"></div>
+            <div class="flex items-center space-x-3 cursor-pointer group" onclick="scrollToSection('section-personal')">
+                <div
+                    class="w-10 h-10 bg-rose-500 rounded-2xl flex items-center justify-center text-white font-black text-xs shadow-lg shadow-rose-200">
+                    3</div>
+                <span
+                    class="text-[10px] font-black text-slate-800 uppercase tracking-widest hidden sm:block italic">Personal</span>
+            </div>
+            <div class="w-12 h-0.5 bg-rose-200 rounded-full"></div>
+            <div class="flex items-center space-x-3 cursor-pointer group" onclick="scrollToSection('section-guardian')">
+                <div
+                    class="w-10 h-10 bg-emerald-500 rounded-2xl flex items-center justify-center text-white font-black text-xs shadow-lg shadow-emerald-200">
+                    4</div>
+                <span
+                    class="text-[10px] font-black text-slate-800 uppercase tracking-widest hidden sm:block italic">Guardian</span>
+            </div>
+        </div>
+
+        <!-- Section 1: Authentication Credentials -->
+        <div id="section-auth"
+            class="bg-white p-12 md:p-16 rounded-[4rem] shadow-sm border border-indigo-100/30 relative overflow-hidden group hover:shadow-2xl hover:shadow-indigo-50 transition-all duration-500">
+            <div
+                class="absolute top-0 right-0 w-40 h-40 bg-indigo-600/5 rounded-full -mr-20 -mt-20 group-hover:scale-150 transition-all duration-700">
+            </div>
+
+            <div class="flex items-center space-x-6 mb-12 relative z-10">
+                <div
+                    class="w-16 h-16 bg-indigo-600 rounded-[1.5rem] flex items-center justify-center text-white shadow-2xl shadow-indigo-200">
+                    <i class="fas fa-user-lock text-2xl"></i>
                 </div>
                 <div>
-                    <h3 class="text-xl font-bold text-slate-800 tracking-tight">Account Credentials</h3>
-                    <p class="text-sm text-slate-500">Authentication details for the student portal.</p>
+                    <h3 class="text-2xl font-black text-slate-800 tracking-tight italic uppercase">Authentication
+                        Credentials</h3>
+                    <p class="text-sm text-slate-400 font-medium italic mt-1">Institutional login identity and secure
+                        access parameters.</p>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-3" for="full_name">Full Name *</label>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10 relative z-10">
+                <div class="group/field">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 italic"
+                        for="full_name">
+                        <i class="fas fa-signature mr-2 text-indigo-400"></i>Full Legal Name *
+                    </label>
                     <input type="text" id="full_name" name="full_name" required placeholder="e.g. Rahul Sharma"
-                        class="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all outline-none font-medium">
+                        class="w-full px-8 py-5 bg-slate-50 border-2 border-transparent rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white focus:border-indigo-500/30 transition-all outline-none font-bold text-slate-800 text-base">
                 </div>
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-3" for="email">Email Address *</label>
+                <div class="group/field">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 italic"
+                        for="email">
+                        <i class="fas fa-at mr-2 text-indigo-400"></i>Email Address Profile *
+                    </label>
                     <input type="email" id="email" name="email" required placeholder="rahul@example.com"
-                        class="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all outline-none font-medium">
+                        class="w-full px-8 py-5 bg-slate-50 border-2 border-transparent rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white focus:border-indigo-500/30 transition-all outline-none font-bold text-slate-800 text-base">
                 </div>
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-3" for="username">Username *</label>
+                <div class="group/field">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 italic"
+                        for="username">
+                        <i class="fas fa-fingerprint mr-2 text-indigo-400"></i>Unique Username *
+                    </label>
                     <input type="text" id="username" name="username" required placeholder="rahul_2025"
-                        class="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all outline-none font-medium">
+                        class="w-full px-8 py-5 bg-slate-50 border-2 border-transparent rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white focus:border-indigo-500/30 transition-all outline-none font-bold text-slate-800 text-base">
                 </div>
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-3" for="password">Initial Password *</label>
-                    <input type="password" id="password" name="password" required placeholder="••••••••"
-                        class="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all outline-none font-medium">
+                <div class="group/field">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 italic"
+                        for="password">
+                        <i class="fas fa-shield-halved mr-2 text-indigo-400"></i>Initial Passphrase *
+                    </label>
+                    <div class="relative">
+                        <input type="password" id="password" name="password" required placeholder="Minimum 6 characters"
+                            class="w-full px-8 py-5 bg-slate-50 border-2 border-transparent rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white focus:border-indigo-500/30 transition-all outline-none font-bold text-slate-800 text-base pr-14">
+                        <button type="button" onclick="togglePwd()"
+                            class="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors">
+                            <i class="fas fa-eye" id="pwdToggle"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Academic Details -->
-        <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-indigo-100/50">
-            <div class="flex items-center space-x-4 mb-8">
-                <div class="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600">
-                    <i class="fas fa-graduation-cap text-xl"></i>
+        <!-- Section 2: Academic Records -->
+        <div id="section-academic"
+            class="bg-white p-12 md:p-16 rounded-[4rem] shadow-sm border border-amber-100/30 relative overflow-hidden group hover:shadow-2xl hover:shadow-amber-50 transition-all duration-500">
+            <div
+                class="absolute top-0 right-0 w-40 h-40 bg-amber-500/5 rounded-full -mr-20 -mt-20 group-hover:scale-150 transition-all duration-700">
+            </div>
+
+            <div class="flex items-center space-x-6 mb-12 relative z-10">
+                <div
+                    class="w-16 h-16 bg-amber-500 rounded-[1.5rem] flex items-center justify-center text-white shadow-2xl shadow-amber-200">
+                    <i class="fas fa-graduation-cap text-2xl"></i>
                 </div>
                 <div>
-                    <h3 class="text-xl font-bold text-slate-800 tracking-tight">Academic Records</h3>
-                    <p class="text-sm text-slate-500">Enrollment and course assignment information.</p>
+                    <h3 class="text-2xl font-black text-slate-800 tracking-tight italic uppercase">Academic Assignment
+                    </h3>
+                    <p class="text-sm text-slate-400 font-medium italic mt-1">Enrollment details, course allocation, and
+                        semester designation.</p>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10 relative z-10">
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-3" for="roll_no">Roll Number *</label>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 italic"
+                        for="roll_no">
+                        <i class="fas fa-hashtag mr-2 text-amber-500"></i>Roll Number Index *
+                    </label>
                     <input type="text" id="roll_no" name="roll_no" required placeholder="BCA/2025/042"
-                        class="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all outline-none font-medium uppercase">
+                        class="w-full px-8 py-5 bg-slate-50 border-2 border-transparent rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:bg-white focus:border-amber-500/30 transition-all outline-none font-bold text-slate-800 text-base uppercase">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-3" for="course_id">Course Assignment
-                        *</label>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 italic"
+                        for="course_id">
+                        <i class="fas fa-book-bookmark mr-2 text-amber-500"></i>Program Enrollment *
+                    </label>
                     <select id="course_id" name="course_id" required
-                        class="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all outline-none font-medium">
-                        <option value="">Select Course</option>
+                        class="w-full px-8 py-5 bg-slate-50 border-2 border-transparent rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:bg-white focus:border-amber-500/30 transition-all outline-none font-bold text-slate-800 text-base">
+                        <option value="">Select Academic Program</option>
                         <?php foreach ($courses as $course): ?>
                             <option value="<?php echo $course['id']; ?>">
                                 <?php echo $course['name']; ?>
@@ -160,84 +258,172 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-3" for="semester">Current Semester *</label>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 italic"
+                        for="semester">
+                        <i class="fas fa-layer-group mr-2 text-amber-500"></i>Active Semester Cycle *
+                    </label>
                     <select id="semester" name="semester" required
-                        class="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all outline-none font-medium">
-                        <option value="1">Semester 1</option>
-                        <option value="2">Semester 2</option>
-                        <option value="3">Semester 3</option>
-                        <option value="4">Semester 4</option>
-                        <option value="5">Semester 5</option>
-                        <option value="6">Semester 6</option>
+                        class="w-full px-8 py-5 bg-slate-50 border-2 border-transparent rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:bg-white focus:border-amber-500/30 transition-all outline-none font-bold text-slate-800 text-base">
+                        <?php for ($i = 1; $i <= 6; $i++): ?>
+                            <option value="<?php echo $i; ?>">Semester <?php echo $i; ?></option>
+                        <?php endfor; ?>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-3" for="admission_date">Date of Admission
-                        *</label>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 italic"
+                        for="admission_date">
+                        <i class="fas fa-calendar-plus mr-2 text-amber-500"></i>Admission Date *
+                    </label>
                     <input type="date" id="admission_date" name="admission_date" required
                         value="<?php echo date('Y-m-d'); ?>"
-                        class="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all outline-none font-medium">
+                        class="w-full px-8 py-5 bg-slate-50 border-2 border-transparent rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:bg-white focus:border-amber-500/30 transition-all outline-none font-bold text-slate-800 text-base">
                 </div>
             </div>
         </div>
 
-        <!-- Personal Information -->
-        <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-indigo-100/50">
-            <div class="flex items-center space-x-4 mb-8">
-                <div class="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-600">
-                    <i class="fas fa-id-card text-xl"></i>
+        <!-- Section 3: Personal Profile -->
+        <div id="section-personal"
+            class="bg-white p-12 md:p-16 rounded-[4rem] shadow-sm border border-rose-100/30 relative overflow-hidden group hover:shadow-2xl hover:shadow-rose-50 transition-all duration-500">
+            <div
+                class="absolute top-0 right-0 w-40 h-40 bg-rose-500/5 rounded-full -mr-20 -mt-20 group-hover:scale-150 transition-all duration-700">
+            </div>
+
+            <div class="flex items-center space-x-6 mb-12 relative z-10">
+                <div
+                    class="w-16 h-16 bg-rose-500 rounded-[1.5rem] flex items-center justify-center text-white shadow-2xl shadow-rose-200">
+                    <i class="fas fa-id-card text-2xl"></i>
                 </div>
                 <div>
-                    <h3 class="text-xl font-bold text-slate-800 tracking-tight">Personal Profile</h3>
-                    <p class="text-sm text-slate-500">Contact and demographic information.</p>
+                    <h3 class="text-2xl font-black text-slate-800 tracking-tight italic uppercase">Personal Demographics
+                    </h3>
+                    <p class="text-sm text-slate-400 font-medium italic mt-1">Identity documentation and contact
+                        coordinates.</p>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10 relative z-10">
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-3" for="dob">Date of Birth</label>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 italic"
+                        for="dob">
+                        <i class="fas fa-cake-candles mr-2 text-rose-500"></i>Date of Birth
+                    </label>
                     <input type="date" id="dob" name="dob"
-                        class="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all outline-none font-medium">
+                        class="w-full px-8 py-5 bg-slate-50 border-2 border-transparent rounded-2xl focus:ring-4 focus:ring-rose-500/10 focus:bg-white focus:border-rose-500/30 transition-all outline-none font-bold text-slate-800 text-base">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-3" for="gender">Gender</label>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 italic"
+                        for="gender">
+                        <i class="fas fa-venus-mars mr-2 text-rose-500"></i>Gender Identity
+                    </label>
                     <select id="gender" name="gender"
-                        class="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all outline-none font-medium">
+                        class="w-full px-8 py-5 bg-slate-50 border-2 border-transparent rounded-2xl focus:ring-4 focus:ring-rose-500/10 focus:bg-white focus:border-rose-500/30 transition-all outline-none font-bold text-slate-800 text-base">
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
                         <option value="Other">Other</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-3" for="phone">Personal Phone</label>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 italic"
+                        for="phone">
+                        <i class="fas fa-phone mr-2 text-rose-500"></i>Primary Phone
+                    </label>
                     <input type="text" id="phone" name="phone" placeholder="+91 00000 00000"
-                        class="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all outline-none font-medium">
+                        class="w-full px-8 py-5 bg-slate-50 border-2 border-transparent rounded-2xl focus:ring-4 focus:ring-rose-500/10 focus:bg-white focus:border-rose-500/30 transition-all outline-none font-bold text-slate-800 text-base">
                 </div>
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-3" for="parent_name">Parent/Guardian
-                        Name</label>
-                    <input type="text" id="parent_name" name="parent_name" placeholder="Parents Name"
-                        class="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all outline-none font-medium">
-                </div>
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-bold text-slate-700 mb-3" for="address">Permanent Address</label>
+                <div class="md:col-span-3">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 italic"
+                        for="address">
+                        <i class="fas fa-location-dot mr-2 text-rose-500"></i>Permanent Residential Address
+                    </label>
                     <textarea id="address" name="address" rows="3" placeholder="Enter full residential address..."
-                        class="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all outline-none font-medium"></textarea>
+                        class="w-full px-8 py-5 bg-slate-50 border-2 border-transparent rounded-2xl focus:ring-4 focus:ring-rose-500/10 focus:bg-white focus:border-rose-500/30 transition-all outline-none font-bold text-slate-800 text-base"></textarea>
                 </div>
             </div>
         </div>
 
-        <div class="flex items-center justify-end space-x-6">
-            <button type="reset"
-                class="px-10 py-5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-[2rem] font-black text-xs tracking-widest uppercase transition-all">
-                Reset Form
-            </button>
-            <button type="submit"
-                class="px-12 py-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[2rem] font-black text-xs tracking-widest uppercase shadow-xl shadow-indigo-100 hover:shadow-indigo-200 hover:-translate-y-1 transition-all">
-                Finalize Enrollment
-            </button>
+        <!-- Section 4: Guardian Information -->
+        <div id="section-guardian"
+            class="bg-white p-12 md:p-16 rounded-[4rem] shadow-sm border border-emerald-100/30 relative overflow-hidden group hover:shadow-2xl hover:shadow-emerald-50 transition-all duration-500">
+            <div
+                class="absolute top-0 right-0 w-40 h-40 bg-emerald-500/5 rounded-full -mr-20 -mt-20 group-hover:scale-150 transition-all duration-700">
+            </div>
+
+            <div class="flex items-center space-x-6 mb-12 relative z-10">
+                <div
+                    class="w-16 h-16 bg-emerald-500 rounded-[1.5rem] flex items-center justify-center text-white shadow-2xl shadow-emerald-200">
+                    <i class="fas fa-people-roof text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-black text-slate-800 tracking-tight italic uppercase">Guardian Profile</h3>
+                    <p class="text-sm text-slate-400 font-medium italic mt-1">Parent or legal guardian contact registry.
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10 relative z-10">
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 italic"
+                        for="parent_name">
+                        <i class="fas fa-user-tie mr-2 text-emerald-500"></i>Guardian Full Name
+                    </label>
+                    <input type="text" id="parent_name" name="parent_name" placeholder="Parent / Guardian Name"
+                        class="w-full px-8 py-5 bg-slate-50 border-2 border-transparent rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:bg-white focus:border-emerald-500/30 transition-all outline-none font-bold text-slate-800 text-base">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 italic"
+                        for="parent_phone">
+                        <i class="fas fa-phone-flip mr-2 text-emerald-500"></i>Guardian Contact Number
+                    </label>
+                    <input type="text" id="parent_phone" name="parent_phone" placeholder="+91 00000 00000"
+                        class="w-full px-8 py-5 bg-slate-50 border-2 border-transparent rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:bg-white focus:border-emerald-500/30 transition-all outline-none font-bold text-slate-800 text-base">
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Actions -->
+        <div
+            class="bg-slate-900 p-10 rounded-[4rem] shadow-2xl flex flex-col md:flex-row items-center justify-between gap-8">
+            <div class="flex items-center space-x-6">
+                <div
+                    class="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white font-black italic text-xl shadow-lg shadow-indigo-600/30">
+                    V</div>
+                <div>
+                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest italic leading-none mb-1">
+                        Enrollment Authorization</p>
+                    <p class="text-white font-black text-lg italic tracking-tight">Ready to finalize this student
+                        record?</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-6 w-full md:w-auto">
+                <button type="reset"
+                    class="flex-1 md:flex-auto px-10 py-5 bg-slate-800 hover:bg-slate-700 text-slate-400 rounded-[2rem] font-black text-[10px] tracking-widest uppercase transition-all border border-slate-700 italic">
+                    <i class="fas fa-rotate-left mr-2"></i> Reset All
+                </button>
+                <button type="submit"
+                    class="flex-1 md:flex-auto px-14 py-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[2rem] font-black text-[10px] tracking-widest uppercase shadow-xl shadow-indigo-600/30 hover:shadow-indigo-600/50 hover:-translate-y-1 transition-all italic">
+                    <i class="fas fa-user-plus mr-2"></i> Enroll Student
+                </button>
+            </div>
         </div>
     </form>
 </div>
+
+<script>
+    function togglePwd() {
+        const pwd = document.getElementById('password');
+        const icon = document.getElementById('pwdToggle');
+        if (pwd.type === 'password') {
+            pwd.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            pwd.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+
+    function scrollToSection(id) {
+        document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+</script>
 
 <?php require_once 'includes/footer.php'; ?>
