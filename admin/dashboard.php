@@ -2,304 +2,212 @@
 $page_title = "Overview Dashboard";
 require_once 'includes/header.php';
 
-// Fetch stats for the dashboard
 $total_students = $pdo->query("SELECT COUNT(*) FROM students")->fetchColumn();
 $total_teachers = $pdo->query("SELECT COUNT(*) FROM teachers")->fetchColumn();
 $total_courses = $pdo->query("SELECT COUNT(*) FROM courses")->fetchColumn();
 $total_departments = $pdo->query("SELECT COUNT(*) FROM departments")->fetchColumn();
 
-// Recent Students (Live Data)
 $recent_students = $pdo->query("SELECT u.full_name, u.created_at, s.roll_no, s.gender, c.name as course_name 
                                 FROM students s 
                                 JOIN users u ON s.user_id = u.id 
                                 JOIN courses c ON s.course_id = c.id 
                                 ORDER BY u.created_at DESC LIMIT 5")->fetchAll();
 
-// Recent Notices
 $notices = $pdo->query("SELECT * FROM notices ORDER BY created_at DESC LIMIT 5")->fetchAll();
 
-// Attendance mock data
 $attendance_data = [
     'labels' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
     'data' => [88, 92, 85, 91, 89, 94]
 ];
 
-// Today's date info
 $today = date('l, F j, Y');
-$greeting = '';
 $hour = date('H');
-if ($hour < 12)
-    $greeting = 'Good Morning';
-elseif ($hour < 17)
-    $greeting = 'Good Afternoon';
-else
-    $greeting = 'Good Evening';
+if ($hour < 12) $greeting = 'Good Morning';
+elseif ($hour < 17) $greeting = 'Good Afternoon';
+else $greeting = 'Good Evening';
 ?>
 
-<!-- Hero Welcome Banner -->
-<div class="bg-slate-900 rounded-[4rem] p-12 md:p-16 mb-12 relative overflow-hidden group">
-    <!-- Ambient decorative elements -->
-    <div
-        class="absolute -top-20 -right-20 w-60 h-60 bg-indigo-600/20 rounded-full group-hover:scale-150 transition-all duration-1000">
-    </div>
-    <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-violet-600/10 rounded-full"></div>
-    <div class="absolute top-1/2 right-1/4 w-20 h-20 bg-indigo-500/10 rounded-full"></div>
+<!-- Welcome Banner -->
+<div class="relative bg-gradient-to-br from-slate-900 via-slate-800 to-primary-900 rounded-xl p-4 sm:p-5 lg:p-6 mb-4 lg:mb-5 overflow-hidden">
+    <div class="absolute -top-12 -right-12 w-32 h-32 bg-primary-600/20 rounded-full blur-2xl"></div>
+    <div class="absolute -bottom-8 -left-8 w-24 h-24 bg-violet-600/15 rounded-full blur-xl"></div>
 
-    <div class="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-10">
+    <div class="relative z-10 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
         <div>
-            <div class="flex items-center space-x-3 mb-6">
-                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest italic">Live Dashboard •
-                    <?php echo $today; ?></span>
+            <div class="flex items-center space-x-1.5 mb-2">
+                <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+                <span class="text-[10px] font-medium text-slate-400 tracking-wide"><?php echo $today; ?></span>
             </div>
-            <h1 class="text-5xl md:text-6xl font-black text-white tracking-tight leading-none italic mb-4">
-                <?php echo $greeting; ?>,<br>
-                <span
-                    class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-violet-400 to-purple-400">
+            <h1 class="text-xl sm:text-2xl font-bold text-white tracking-tight leading-tight mb-1">
+                <?php echo $greeting; ?>,
+                <span class="bg-gradient-to-r from-primary-400 to-violet-400 bg-clip-text text-transparent">
                     <?php echo explode(' ', $_SESSION['full_name'])[0]; ?>
                 </span>
             </h1>
-            <p class="text-slate-400 font-medium text-lg italic max-w-xl">
-                Here's an overview of your institutional operations and academic performance metrics.
+            <p class="text-slate-400 text-[11px] max-w-md leading-relaxed">
+                Overview of institutional operations and academic performance.
             </p>
         </div>
-
-        <div class="flex items-center space-x-4">
+        <div class="flex items-center gap-2 flex-shrink-0">
             <a href="students-add.php"
-                class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-5 rounded-[2rem] font-black text-[10px] uppercase tracking-widest shadow-xl shadow-indigo-600/30 hover:-translate-y-1 transition-all flex items-center space-x-3 italic">
-                <i class="fas fa-plus"></i>
-                <span>Enroll Student</span>
+                class="inline-flex items-center space-x-1.5 bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-lg font-medium text-[11px] shadow-md shadow-primary-600/20 hover:-translate-y-px transition-all">
+                <i class="fas fa-plus text-[9px]"></i><span>Enroll Student</span>
             </a>
             <a href="notices.php"
-                class="bg-white/10 hover:bg-white/15 text-white px-8 py-5 rounded-[2rem] font-black text-[10px] uppercase tracking-widest transition-all flex items-center space-x-3 italic border border-white/10">
-                <i class="fas fa-bullhorn"></i>
-                <span>Post Notice</span>
+                class="inline-flex items-center space-x-1.5 bg-white/10 hover:bg-white/15 text-white px-3 py-1.5 rounded-lg font-medium text-[11px] border border-white/10 transition-all">
+                <i class="fas fa-bullhorn text-[9px]"></i><span>Post Notice</span>
             </a>
         </div>
     </div>
 </div>
 
-<!-- Analytics Grid -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+<!-- Stats Cards -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4 lg:mb-5">
 
-    <!-- Total Students -->
-    <div
-        class="bg-white p-8 rounded-[3rem] shadow-sm border border-indigo-100/30 hover:shadow-2xl hover:shadow-indigo-50 transition-all duration-500 group relative overflow-hidden">
-        <div
-            class="absolute -top-8 -right-8 w-24 h-24 bg-indigo-600/5 rounded-full group-hover:scale-200 transition-all duration-700">
-        </div>
-        <div class="relative z-10">
-            <div class="flex items-center justify-between mb-6">
-                <div
-                    class="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-200 group-hover:scale-110 transition-transform">
-                    <i class="fas fa-user-graduate text-xl"></i>
-                </div>
-                <div
-                    class="text-emerald-500 text-[10px] font-black bg-emerald-50 px-3 py-1.5 rounded-xl flex items-center border border-emerald-100 uppercase tracking-widest italic">
-                    <i class="fas fa-arrow-up mr-1.5 text-[8px]"></i>Active
-                </div>
+    <div class="bg-white rounded-xl p-3.5 shadow-card hover:shadow-card-hover transition-all duration-200 border border-slate-100/80 group">
+        <div class="flex items-center justify-between mb-2.5">
+            <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform">
+                <i class="fas fa-user-graduate text-[11px]"></i>
             </div>
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 italic">Total Students</p>
-            <h3 class="text-4xl font-black text-slate-800 tracking-tight leading-none"><?php echo $total_students; ?>
-            </h3>
+            <span class="text-[9px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
+                <i class="fas fa-arrow-up text-[7px] mr-0.5"></i>Active
+            </span>
         </div>
+        <p class="text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-0.5">Students</p>
+        <h3 class="text-xl font-bold text-slate-800"><?php echo $total_students; ?></h3>
     </div>
 
-    <!-- Total Faculty -->
-    <div
-        class="bg-white p-8 rounded-[3rem] shadow-sm border border-violet-100/30 hover:shadow-2xl hover:shadow-violet-50 transition-all duration-500 group relative overflow-hidden">
-        <div
-            class="absolute -top-8 -right-8 w-24 h-24 bg-violet-600/5 rounded-full group-hover:scale-200 transition-all duration-700">
-        </div>
-        <div class="relative z-10">
-            <div class="flex items-center justify-between mb-6">
-                <div
-                    class="w-14 h-14 bg-violet-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-violet-200 group-hover:scale-110 transition-transform">
-                    <i class="fas fa-chalkboard-teacher text-xl"></i>
-                </div>
-                <div
-                    class="text-violet-500 text-[10px] font-black bg-violet-50 px-3 py-1.5 rounded-xl flex items-center border border-violet-100 uppercase tracking-widest italic">
-                    <i class="fas fa-check mr-1.5 text-[8px]"></i>Verified
-                </div>
+    <div class="bg-white rounded-xl p-3.5 shadow-card hover:shadow-card-hover transition-all duration-200 border border-slate-100/80 group">
+        <div class="flex items-center justify-between mb-2.5">
+            <div class="w-8 h-8 bg-gradient-to-br from-violet-500 to-violet-600 rounded-lg flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform">
+                <i class="fas fa-chalkboard-teacher text-[11px]"></i>
             </div>
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 italic">Total Faculty</p>
-            <h3 class="text-4xl font-black text-slate-800 tracking-tight leading-none"><?php echo $total_teachers; ?>
-            </h3>
+            <span class="text-[9px] font-semibold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded border border-violet-100">
+                <i class="fas fa-check text-[7px] mr-0.5"></i>Verified
+            </span>
         </div>
+        <p class="text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-0.5">Faculty</p>
+        <h3 class="text-xl font-bold text-slate-800"><?php echo $total_teachers; ?></h3>
     </div>
 
-    <!-- Departments -->
-    <div
-        class="bg-white p-8 rounded-[3rem] shadow-sm border border-rose-100/30 hover:shadow-2xl hover:shadow-rose-50 transition-all duration-500 group relative overflow-hidden">
-        <div
-            class="absolute -top-8 -right-8 w-24 h-24 bg-rose-600/5 rounded-full group-hover:scale-200 transition-all duration-700">
-        </div>
-        <div class="relative z-10">
-            <div class="flex items-center justify-between mb-6">
-                <div
-                    class="w-14 h-14 bg-rose-500 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-rose-200 group-hover:scale-110 transition-transform">
-                    <i class="fas fa-building text-xl"></i>
-                </div>
-                <div
-                    class="text-rose-500 text-[10px] font-black bg-rose-50 px-3 py-1.5 rounded-xl flex items-center border border-rose-100 uppercase tracking-widest italic">
-                    <i class="fas fa-building mr-1.5 text-[8px]"></i>Units
-                </div>
+    <div class="bg-white rounded-xl p-3.5 shadow-card hover:shadow-card-hover transition-all duration-200 border border-slate-100/80 group">
+        <div class="flex items-center justify-between mb-2.5">
+            <div class="w-8 h-8 bg-gradient-to-br from-rose-500 to-rose-600 rounded-lg flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform">
+                <i class="fas fa-building text-[11px]"></i>
             </div>
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 italic">Departments</p>
-            <h3 class="text-4xl font-black text-slate-800 tracking-tight leading-none"><?php echo $total_departments; ?>
-            </h3>
+            <span class="text-[9px] font-semibold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-100">Units</span>
         </div>
+        <p class="text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-0.5">Departments</p>
+        <h3 class="text-xl font-bold text-slate-800"><?php echo $total_departments; ?></h3>
     </div>
 
-    <!-- Active Courses -->
-    <div
-        class="bg-white p-8 rounded-[3rem] shadow-sm border border-amber-100/30 hover:shadow-2xl hover:shadow-amber-50 transition-all duration-500 group relative overflow-hidden">
-        <div
-            class="absolute -top-8 -right-8 w-24 h-24 bg-amber-500/5 rounded-full group-hover:scale-200 transition-all duration-700">
-        </div>
-        <div class="relative z-10">
-            <div class="flex items-center justify-between mb-6">
-                <div
-                    class="w-14 h-14 bg-amber-500 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-amber-200 group-hover:scale-110 transition-transform">
-                    <i class="fas fa-graduation-cap text-xl"></i>
-                </div>
-                <div
-                    class="text-amber-500 text-[10px] font-black bg-amber-50 px-3 py-1.5 rounded-xl flex items-center border border-amber-100 uppercase tracking-widest italic">
-                    <i class="fas fa-book mr-1.5 text-[8px]"></i>Programs
-                </div>
+    <div class="bg-white rounded-xl p-3.5 shadow-card hover:shadow-card-hover transition-all duration-200 border border-slate-100/80 group">
+        <div class="flex items-center justify-between mb-2.5">
+            <div class="w-8 h-8 bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform">
+                <i class="fas fa-graduation-cap text-[11px]"></i>
             </div>
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 italic">Active Courses</p>
-            <h3 class="text-4xl font-black text-slate-800 tracking-tight leading-none"><?php echo $total_courses; ?>
-            </h3>
+            <span class="text-[9px] font-semibold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">Programs</span>
         </div>
+        <p class="text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-0.5">Courses</p>
+        <h3 class="text-xl font-bold text-slate-800"><?php echo $total_courses; ?></h3>
     </div>
 
 </div>
 
-<!-- Charts and Notices -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-12">
+<!-- Charts & Notices -->
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-3 sm:gap-4 mb-4 lg:mb-5">
 
-    <!-- Attendance Insights -->
-    <div
-        class="lg:col-span-2 bg-white p-12 rounded-[4rem] shadow-sm border border-indigo-100/30 hover:shadow-2xl hover:shadow-indigo-50 transition-all duration-500">
-        <div class="flex items-center justify-between mb-10">
+    <!-- Attendance Chart -->
+    <div class="xl:col-span-2 bg-white rounded-xl p-4 sm:p-5 shadow-card border border-slate-100/80">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
             <div>
-                <h4 class="text-2xl font-black text-slate-800 tracking-tight italic uppercase">Attendance Insights</h4>
-                <p class="text-sm text-slate-400 font-medium italic mt-1">Student participation rates over the last 6
-                    months</p>
+                <h4 class="text-[13px] font-bold text-slate-800">Attendance Insights</h4>
+                <p class="text-[11px] text-slate-400 mt-0.5">Participation over the last 6 months</p>
             </div>
-            <select
-                class="text-[10px] font-black border-2 border-slate-100 bg-slate-50 rounded-2xl px-5 py-3 focus:ring-0 uppercase tracking-widest text-slate-600 italic outline-none">
+            <select class="text-[10px] font-medium border border-slate-200 bg-slate-50 rounded-md px-2 py-1 focus:ring-1 focus:ring-primary-100 text-slate-500 outline-none cursor-pointer">
                 <option>Current Semester</option>
                 <option>Last Semester</option>
             </select>
         </div>
-
-        <div class="h-80 w-full">
+        <div class="h-48 sm:h-56 w-full">
             <canvas id="attendanceChart"></canvas>
         </div>
     </div>
 
     <!-- Recent Notices -->
-    <div
-        class="bg-white p-10 rounded-[4rem] shadow-sm border border-indigo-100/30 flex flex-col hover:shadow-2xl hover:shadow-indigo-50 transition-all duration-500">
-        <div class="flex items-center justify-between mb-10">
-            <h4 class="text-xl font-black text-slate-800 tracking-tight italic uppercase">Latest Notices</h4>
-            <a href="notices.php"
-                class="text-[10px] font-black text-indigo-600 hover:underline tracking-widest uppercase italic">View
-                All</a>
+    <div class="bg-white rounded-xl p-4 sm:p-5 shadow-card border border-slate-100/80 flex flex-col">
+        <div class="flex items-center justify-between mb-3">
+            <h4 class="text-[13px] font-bold text-slate-800">Latest Notices</h4>
+            <a href="notices.php" class="text-[10px] font-semibold text-primary-600 hover:underline">View All</a>
         </div>
-
-        <div class="space-y-5 flex-1 overflow-y-auto">
+        <div class="space-y-1 flex-1 overflow-y-auto max-h-[220px] custom-scroll">
             <?php if (empty($notices)): ?>
-                <div class="text-center py-10">
-                    <div
-                        class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
-                        <i class="fas fa-bullhorn text-2xl"></i>
-                    </div>
-                    <p class="text-slate-400 text-sm italic font-bold">No notices published yet.</p>
+                <div class="text-center py-6">
+                    <div class="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center mx-auto mb-2 text-slate-300"><i class="fas fa-bullhorn text-sm"></i></div>
+                    <p class="text-slate-400 text-[11px]">No notices yet.</p>
                 </div>
             <?php else: ?>
                 <?php foreach ($notices as $notice): ?>
-                    <div
-                        class="flex items-start space-x-4 group cursor-pointer hover:bg-indigo-50/50 p-4 rounded-2xl transition-all">
-                        <div
-                            class="w-10 h-10 min-w-[2.5rem] bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
-                            <i class="fas fa-calendar-day text-sm"></i>
+                    <div class="flex items-start space-x-2 group cursor-pointer hover:bg-primary-50/50 p-2 rounded-lg transition-all">
+                        <div class="w-7 h-7 min-w-[1.75rem] bg-primary-50 rounded-md flex items-center justify-center text-primary-600 group-hover:bg-primary-600 group-hover:text-white transition-all mt-px">
+                            <i class="fas fa-calendar-day text-[9px]"></i>
                         </div>
-                        <div>
-                            <h6 class="text-sm font-black text-slate-800 line-clamp-1 group-hover:text-indigo-600 italic">
-                                <?php echo $notice['title']; ?>
-                            </h6>
-                            <p class="text-[10px] text-slate-400 mt-0.5 font-bold">
-                                <?php echo date('M d, Y h:i A', strtotime($notice['created_at'])); ?>
-                            </p>
+                        <div class="min-w-0">
+                            <h6 class="text-[11px] font-semibold text-slate-700 line-clamp-1 group-hover:text-primary-600"><?php echo htmlspecialchars($notice['title']); ?></h6>
+                            <p class="text-[9px] text-slate-400 mt-px"><?php echo date('M d, Y h:i A', strtotime($notice['created_at'])); ?></p>
                         </div>
                     </div>
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
-
-        <a href="notices.php"
-            class="mt-8 w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[2rem] font-black text-[10px] tracking-widest uppercase transition-all flex items-center justify-center space-x-2 shadow-xl shadow-indigo-100 italic">
-            <i class="fas fa-plus-circle"></i> <span>Add New Notice</span>
+        <a href="notices.php" class="mt-3 w-full py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium text-[11px] transition-all flex items-center justify-center space-x-1 shadow-sm">
+            <i class="fas fa-plus-circle text-[9px]"></i><span>Add Notice</span>
         </a>
     </div>
 
 </div>
 
-<!-- Recent Students & Fee Collection -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-12">
+<!-- Recent Students & Fee -->
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4 mb-4 lg:mb-5">
 
-    <!-- Recent Students (LIVE DATA) -->
-    <div
-        class="bg-white p-10 rounded-[4rem] shadow-sm border border-indigo-100/30 hover:shadow-2xl hover:shadow-indigo-50 transition-all duration-500">
-        <div class="flex items-center justify-between mb-10">
-            <h4 class="text-xl font-black text-slate-800 tracking-tight italic uppercase">Recent Enrollments</h4>
-            <a href="students-list.php"
-                class="text-[10px] font-black text-indigo-600 hover:underline tracking-widest uppercase italic">View
-                All</a>
+    <!-- Recent Students -->
+    <div class="bg-white rounded-xl p-4 sm:p-5 shadow-card border border-slate-100/80">
+        <div class="flex items-center justify-between mb-3">
+            <h4 class="text-[13px] font-bold text-slate-800">Recent Enrollments</h4>
+            <a href="students-list.php" class="text-[10px] font-semibold text-primary-600 hover:underline">View All</a>
         </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left">
+        <div class="overflow-x-auto -mx-4 sm:-mx-5 px-4 sm:px-5">
+            <table class="w-full text-left min-w-[360px]">
                 <thead>
-                    <tr
-                        class="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-indigo-50">
-                        <th class="pb-5 pr-4 italic">Student</th>
-                        <th class="pb-5 px-4 italic">Program</th>
-                        <th class="pb-5 text-right italic">Date</th>
+                    <tr class="text-[9px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                        <th class="pb-2 pr-3">Student</th>
+                        <th class="pb-2 px-3">Program</th>
+                        <th class="pb-2 text-right">Date</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-indigo-50/30">
+                <tbody class="divide-y divide-slate-50">
                     <?php if (empty($recent_students)): ?>
-                        <tr>
-                            <td colspan="3" class="py-12 text-center">
-                                <p class="text-slate-400 italic text-sm font-bold">No students enrolled yet.</p>
-                            </td>
-                        </tr>
+                        <tr><td colspan="3" class="py-6 text-center"><p class="text-slate-400 text-[11px]">No students enrolled yet.</p></td></tr>
                     <?php else: ?>
                         <?php foreach ($recent_students as $std): ?>
-                            <tr class="group hover:bg-indigo-50/30 transition-all">
-                                <td class="py-5 pr-4">
-                                    <div class="flex items-center space-x-3">
-                                        <div
-                                            class="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-black text-xs italic shadow-lg shadow-indigo-100">
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="py-2.5 pr-3">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-7 h-7 rounded-md bg-gradient-to-br from-primary-500 to-primary-600 text-white flex items-center justify-center font-bold text-[9px]">
                                             <?php echo strtoupper(substr($std['full_name'], 0, 1)); ?>
                                         </div>
                                         <div>
-                                            <span
-                                                class="text-sm font-black text-slate-800 italic"><?php echo $std['full_name']; ?></span>
-                                            <p class="text-[10px] font-bold text-slate-400"><?php echo $std['roll_no']; ?></p>
+                                            <span class="text-[11px] font-semibold text-slate-700"><?php echo htmlspecialchars($std['full_name']); ?></span>
+                                            <p class="text-[9px] text-slate-400"><?php echo $std['roll_no']; ?></p>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="py-5 px-4">
-                                    <span
-                                        class="text-[10px] font-black text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-100 uppercase tracking-widest italic">
-                                        <?php echo $std['course_name']; ?>
+                                <td class="py-2.5 px-3">
+                                    <span class="text-[9px] font-semibold text-primary-600 bg-primary-50 px-1.5 py-0.5 rounded border border-primary-100 whitespace-nowrap">
+                                        <?php echo htmlspecialchars($std['course_name']); ?>
                                     </span>
                                 </td>
-                                <td class="py-5 text-right text-xs font-bold text-slate-500 italic">
+                                <td class="py-2.5 text-right text-[10px] font-medium text-slate-400">
                                     <?php echo date('M d', strtotime($std['created_at'])); ?>
                                 </td>
                             </tr>
@@ -310,171 +218,157 @@ else
         </div>
     </div>
 
-    <!-- Fee Collection Performance -->
-    <div
-        class="bg-white p-10 rounded-[4rem] shadow-sm border border-indigo-100/30 hover:shadow-2xl hover:shadow-indigo-50 transition-all duration-500">
-        <div class="flex items-center justify-between mb-10">
-            <h4 class="text-xl font-black text-slate-800 tracking-tight italic uppercase">Financial Treasury</h4>
-            <div class="flex items-center space-x-2">
-                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                <span class="text-[10px] font-black text-emerald-500 italic uppercase tracking-widest">Live</span>
+    <!-- Financial -->
+    <div class="bg-white rounded-xl p-4 sm:p-5 shadow-card border border-slate-100/80">
+        <div class="flex items-center justify-between mb-3">
+            <h4 class="text-[13px] font-bold text-slate-800">Financial Overview</h4>
+            <div class="flex items-center space-x-1">
+                <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                <span class="text-[9px] font-semibold text-emerald-600">Live</span>
             </div>
         </div>
 
-        <div class="flex items-end justify-between mb-10">
+        <div class="flex items-end justify-between mb-4">
             <div>
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Total Collected</p>
-                <div class="text-5xl font-black text-slate-800 mt-2 tracking-tight">₹ 2,45,000</div>
+                <p class="text-[9px] font-medium text-slate-400 uppercase tracking-wider mb-0.5">Total Collected</p>
+                <div class="text-2xl font-bold text-slate-800">₹ 2,45,000</div>
             </div>
-            <div class="text-right">
-                <p
-                    class="text-[10px] font-black text-emerald-500 uppercase tracking-widest italic bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-100">
-                    +15% vs Last</p>
-            </div>
+            <span class="text-[9px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-100">+15% vs Last</span>
         </div>
 
-        <div class="space-y-6 mb-10">
-            <div>
-                <div
-                    class="flex justify-between text-[10px] font-black text-slate-600 mb-3 uppercase tracking-widest italic">
-                    <span>Target Achievement</span>
-                    <span class="text-indigo-600">85%</span>
-                </div>
-                <div class="w-full h-4 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
-                    <div class="h-full bg-gradient-to-r from-indigo-600 to-violet-600 rounded-full" style="width: 85%">
-                    </div>
-                </div>
-            </div>
-            <div>
-                <div
-                    class="flex justify-between text-[10px] font-black text-slate-600 mb-3 uppercase tracking-widest italic">
-                    <span>Pending Dues</span>
-                    <span class="text-rose-500">15%</span>
-                </div>
-                <div class="w-full h-4 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
-                    <div class="h-full bg-gradient-to-r from-rose-400 to-rose-500 rounded-full" style="width: 15%">
-                    </div>
+        <div class="flex items-center justify-center mb-4">
+            <div class="relative w-32 h-32">
+                <canvas id="genderChart"></canvas>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                    <span class="text-lg font-bold text-slate-800"><?php echo $total_students; ?></span>
+                    <span class="text-[9px] text-slate-400">Total</span>
                 </div>
             </div>
         </div>
 
-        <a href="fees.php"
-            class="w-full py-5 bg-slate-900 text-white rounded-[2rem] font-black text-[10px] tracking-widest uppercase shadow-xl hover:bg-indigo-700 hover:-translate-y-1 transition-all flex items-center justify-center space-x-3 italic">
-            <i class="fas fa-file-invoice-dollar"></i>
-            <span>Generate Treasury Report</span>
+        <div class="space-y-3 mb-4">
+            <div>
+                <div class="flex justify-between text-[10px] font-medium text-slate-600 mb-1">
+                    <span>Target Achievement</span><span class="text-primary-600">85%</span>
+                </div>
+                <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-primary-500 to-violet-500 rounded-full" style="width:85%"></div>
+                </div>
+            </div>
+            <div>
+                <div class="flex justify-between text-[10px] font-medium text-slate-600 mb-1">
+                    <span>Pending Dues</span><span class="text-rose-500">15%</span>
+                </div>
+                <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-rose-400 to-rose-500 rounded-full" style="width:15%"></div>
+                </div>
+            </div>
+        </div>
+
+        <a href="fees.php" class="w-full py-2 bg-slate-800 text-white rounded-lg font-medium text-[11px] hover:bg-primary-700 transition-all flex items-center justify-center space-x-1.5 shadow-sm">
+            <i class="fas fa-file-invoice-dollar text-[9px]"></i><span>View Fee Report</span>
         </a>
     </div>
 </div>
 
-<!-- Quick Action Grid -->
-<div class="bg-slate-900 rounded-[4rem] p-12 mb-8 relative overflow-hidden">
-    <div class="absolute -top-20 -right-20 w-60 h-60 bg-indigo-600/10 rounded-full"></div>
-    <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-violet-600/10 rounded-full"></div>
-
-    <h4 class="text-xl font-black text-white tracking-tight italic uppercase mb-10 relative z-10">Quick Actions</h4>
-
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 relative z-10">
-        <a href="students-add.php"
-            class="bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 p-8 rounded-[2.5rem] text-center group transition-all hover:-translate-y-1">
-            <div
-                class="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-4 shadow-lg shadow-indigo-600/30 group-hover:scale-110 transition-transform">
-                <i class="fas fa-user-plus text-xl"></i>
+<!-- Quick Actions -->
+<div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl p-4 sm:p-5 mb-2 relative overflow-hidden">
+    <div class="absolute -top-12 -right-12 w-32 h-32 bg-primary-600/10 rounded-full blur-2xl"></div>
+    <h4 class="text-[13px] font-bold text-white mb-3 relative z-10">Quick Actions</h4>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 relative z-10">
+        <?php
+        $actions = [
+            ['students-add.php', 'fa-user-plus', 'Add Student', 'New enrollment', 'from-blue-500 to-blue-600', 'shadow-blue-600/20'],
+            ['faculty-add.php', 'fa-chalkboard-teacher', 'Add Faculty', 'Hire staff', 'from-violet-500 to-violet-600', 'shadow-violet-600/20'],
+            ['timetable.php', 'fa-calendar-alt', 'Timetable', 'Schedule', 'from-amber-500 to-amber-600', 'shadow-amber-500/20'],
+            ['settings.php', 'fa-cog', 'Settings', 'Configuration', 'from-emerald-500 to-emerald-600', 'shadow-emerald-500/20'],
+        ];
+        foreach ($actions as $act):
+        ?>
+        <a href="<?php echo $act[0]; ?>"
+            class="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 p-3 sm:p-4 rounded-lg text-center group transition-all hover:-translate-y-px">
+            <div class="w-8 h-8 bg-gradient-to-br <?php echo $act[4]; ?> rounded-lg flex items-center justify-center text-white mx-auto mb-2 shadow-md <?php echo $act[5]; ?> group-hover:scale-105 transition-transform">
+                <i class="fas <?php echo $act[1]; ?> text-[11px]"></i>
             </div>
-            <p class="text-white font-black text-xs italic">Add Student</p>
-            <p class="text-[9px] text-slate-500 font-bold italic mt-1">New enrollment</p>
+            <p class="text-white font-medium text-[11px]"><?php echo $act[2]; ?></p>
+            <p class="text-[9px] text-slate-400 mt-px hidden sm:block"><?php echo $act[3]; ?></p>
         </a>
-        <a href="faculty-add.php"
-            class="bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 p-8 rounded-[2.5rem] text-center group transition-all hover:-translate-y-1">
-            <div
-                class="w-14 h-14 bg-violet-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-4 shadow-lg shadow-violet-600/30 group-hover:scale-110 transition-transform">
-                <i class="fas fa-chalkboard-teacher text-xl"></i>
-            </div>
-            <p class="text-white font-black text-xs italic">Recruit Faculty</p>
-            <p class="text-[9px] text-slate-500 font-bold italic mt-1">Hiring portal</p>
-        </a>
-        <a href="timetable.php"
-            class="bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 p-8 rounded-[2.5rem] text-center group transition-all hover:-translate-y-1">
-            <div
-                class="w-14 h-14 bg-amber-500 rounded-2xl flex items-center justify-center text-white mx-auto mb-4 shadow-lg shadow-amber-500/30 group-hover:scale-110 transition-transform">
-                <i class="fas fa-calendar-alt text-xl"></i>
-            </div>
-            <p class="text-white font-black text-xs italic">Timetable</p>
-            <p class="text-[9px] text-slate-500 font-bold italic mt-1">Schedule mgmt</p>
-        </a>
-        <a href="settings.php"
-            class="bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 p-8 rounded-[2.5rem] text-center group transition-all hover:-translate-y-1">
-            <div
-                class="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center text-white mx-auto mb-4 shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform">
-                <i class="fas fa-cog text-xl"></i>
-            </div>
-            <p class="text-white font-black text-xs italic">Settings</p>
-            <p class="text-[9px] text-slate-500 font-bold italic mt-1">Global config</p>
-        </a>
+        <?php endforeach; ?>
     </div>
 </div>
 
 <script>
-    // Attendance Chart
-    const ctx = document.getElementById('attendanceChart').getContext('2d');
-    const chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: <?php echo json_encode($attendance_data['labels']); ?>,
-            datasets: [{
-                label: 'Attendance Rate (%)',
-                data: <?php echo json_encode($attendance_data['data']); ?>,
-                borderColor: '#4F46E5',
-                borderWidth: 4,
-                tension: 0.4,
-                fill: true,
-                backgroundColor: (context) => {
-                    const bgColor = [
-                        'rgba(79, 70, 229, 0.08)',
-                        'rgba(79, 70, 229, 0)'
-                    ];
-                    if (!context.chart.chartArea) return;
-                    const { ctx, chartArea: { top, bottom } } = context.chart;
-                    const gradient = ctx.createLinearGradient(0, top, 0, bottom);
-                    gradient.addColorStop(0, bgColor[0]);
-                    gradient.addColorStop(1, bgColor[1]);
-                    return gradient;
-                },
-                pointBackgroundColor: '#fff',
-                pointBorderColor: '#4F46E5',
-                pointHoverRadius: 10,
-                pointRadius: 7,
-                pointBorderWidth: 4,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: '#0f172a',
-                    titleFont: { family: 'Inter', weight: 'bold', size: 13 },
-                    bodyFont: { family: 'Inter', weight: 'bold', size: 12 },
-                    padding: 16,
-                    cornerRadius: 16,
-                    displayColors: false,
-                }
+document.addEventListener('DOMContentLoaded', () => {
+    const ctx = document.getElementById('attendanceChart');
+    if (ctx) {
+        new Chart(ctx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: <?php echo json_encode($attendance_data['labels']); ?>,
+                datasets: [{
+                    label: 'Attendance (%)',
+                    data: <?php echo json_encode($attendance_data['data']); ?>,
+                    borderColor: '#4F46E5',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                    backgroundColor: context => {
+                        if (!context.chart.chartArea) return;
+                        const {ctx, chartArea:{top,bottom}} = context.chart;
+                        const g = ctx.createLinearGradient(0,top,0,bottom);
+                        g.addColorStop(0,'rgba(79,70,229,0.08)');
+                        g.addColorStop(1,'rgba(79,70,229,0)');
+                        return g;
+                    },
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#4F46E5',
+                    pointHoverRadius: 5,
+                    pointRadius: 3,
+                    pointBorderWidth: 2,
+                }]
             },
-            scales: {
-                y: {
-                    beginAtZero: false,
-                    min: 60,
-                    max: 100,
-                    grid: { color: '#f1f5f9', drawBorder: false },
-                    ticks: { font: { family: 'Inter', weight: '800', size: 10 }, color: '#94a3b8' }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#0f172a',
+                        titleFont: { family:'Inter', weight:'600', size:11 },
+                        bodyFont: { family:'Inter', weight:'500', size:10 },
+                        padding: 8,
+                        cornerRadius: 8,
+                        displayColors: false,
+                    }
                 },
-                x: {
-                    grid: { display: false },
-                    ticks: { font: { family: 'Inter', weight: '800', size: 10 }, color: '#94a3b8' }
+                scales: {
+                    y: { beginAtZero:false, min:60, max:100, grid:{color:'#f1f5f9',drawBorder:false}, ticks:{font:{family:'Inter',weight:'500',size:9},color:'#94a3b8'} },
+                    x: { grid:{display:false}, ticks:{font:{family:'Inter',weight:'500',size:9},color:'#94a3b8'} }
                 }
             }
-        }
-    });
+        });
+    }
+
+    const gCtx = document.getElementById('genderChart');
+    if (gCtx) {
+        new Chart(gCtx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Male','Female'],
+                datasets: [{ data:[65,35], backgroundColor:['#4F46E5','#F43F5E'], borderWidth:0, borderRadius:3, spacing:2 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                cutout: '70%',
+                plugins: {
+                    legend: { display:true, position:'bottom', labels:{padding:8,usePointStyle:true,pointStyle:'circle',font:{family:'Inter',weight:'500',size:9},color:'#64748B'} },
+                    tooltip: { backgroundColor:'#0f172a', titleFont:{family:'Inter',weight:'600',size:10}, bodyFont:{family:'Inter',weight:'500',size:9}, padding:8, cornerRadius:6 }
+                }
+            }
+        });
+    }
+});
 </script>
 
 <?php require_once 'includes/footer.php'; ?>
