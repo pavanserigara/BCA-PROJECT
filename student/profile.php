@@ -203,4 +203,4 @@ $att_percent = $att_stats['total'] > 0 ? round(($att_stats['present'] / $att_sta
     </div>
 </div>
 
-<?php require_once '../admin/includes/footer.php'; ?>
+<?php require_once 'includes/footer.php'; ?>

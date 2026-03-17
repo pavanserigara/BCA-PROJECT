@@ -159,4 +159,4 @@ if (isset($_POST['enter_marks'])) {
     <?php endif; ?>
 </div>
 
-<?php require_once '../admin/includes/footer.php'; ?>
+<?php require_once 'includes/footer.php'; ?>

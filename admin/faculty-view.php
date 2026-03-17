@@ -19,10 +19,62 @@ if (!$faculty) {
     exit();
 }
 
+// Assign / remove subjects
+$success_message = '';
+$error_message = '';
+
+if (isset($_POST['assign_subject'])) {
+    $subject_id = isset($_POST['subject_id']) ? (int) $_POST['subject_id'] : 0;
+    if ($subject_id <= 0) {
+        $error_message = "Please select a valid subject to assign.";
+    } else {
+        try {
+            $stmt = $pdo->prepare("INSERT IGNORE INTO teacher_subjects (teacher_id, subject_id) VALUES (?, ?)");
+            $stmt->execute([$id, $subject_id]);
+            $success_message = "Subject assigned successfully.";
+        } catch (PDOException $e) {
+            $error_message = "Failed to assign subject: " . $e->getMessage();
+        }
+    }
+}
+
+if (isset($_POST['remove_subject'])) {
+    $subject_id = isset($_POST['subject_id']) ? (int) $_POST['subject_id'] : 0;
+    if ($subject_id <= 0) {
+        $error_message = "Invalid subject selected.";
+    } else {
+        try {
+            $stmt = $pdo->prepare("DELETE FROM teacher_subjects WHERE teacher_id = ? AND subject_id = ?");
+            $stmt->execute([$id, $subject_id]);
+            $success_message = "Subject removed successfully.";
+        } catch (PDOException $e) {
+            $error_message = "Failed to remove subject: " . $e->getMessage();
+        }
+    }
+}
+
 // Fetch Assigned Subjects
-$stmt_sub = $pdo->prepare("SELECT s.*, c.name as course_name FROM subjects s JOIN courses c ON s.course_id = c.id WHERE s.id IN (SELECT subject_id FROM teacher_subjects WHERE teacher_id = ?)");
-// Note: teacher_subjects table might not exist yet if not created in previous steps. 
-// For now, let's assume it exists or show a placeholder.
+$stmt_sub = $pdo->prepare("
+    SELECT s.id, s.name, s.code, s.semester, c.name AS course_name
+    FROM teacher_subjects ts
+    JOIN subjects s ON ts.subject_id = s.id
+    JOIN courses c ON s.course_id = c.id
+    WHERE ts.teacher_id = ?
+    ORDER BY c.name, s.semester, s.name
+");
+$stmt_sub->execute([$id]);
+$assigned_subjects = $stmt_sub->fetchAll();
+
+// Fetch Available Subjects (same department as faculty)
+$stmt_avail = $pdo->prepare("
+    SELECT s.id, s.name, s.code, s.semester, c.name AS course_name
+    FROM subjects s
+    JOIN courses c ON s.course_id = c.id
+    WHERE c.dept_id = ?
+    ORDER BY c.name, s.semester, s.name
+");
+$stmt_avail->execute([(int) $faculty['dept_id']]);
+$available_subjects = $stmt_avail->fetchAll();
 ?>
 
 <div class="flex items-center justify-between mb-15">
@@ -117,6 +169,19 @@ $stmt_sub = $pdo->prepare("SELECT s.*, c.name as course_name FROM subjects s JOI
 
     <!-- Right Column: Details & Subjects -->
     <div class="lg:col-span-2 space-y-12">
+        <?php if ($success_message): ?>
+            <div class="alert alert-success" role="alert">
+                <i class="fas fa-check-circle text-[12px]"></i>
+                <span><?php echo htmlspecialchars($success_message); ?></span>
+            </div>
+        <?php endif; ?>
+        <?php if ($error_message): ?>
+            <div class="alert alert-error" role="alert">
+                <i class="fas fa-triangle-exclamation text-[12px]"></i>
+                <span><?php echo htmlspecialchars($error_message); ?></span>
+            </div>
+        <?php endif; ?>
+
         <div class="bg-white p-15 rounded-[4rem] shadow-sm border border-indigo-100/30">
             <h4 class="text-2xl font-black text-slate-800 tracking-tight italic mb-12 flex items-center space-x-4">
                 <span
@@ -173,28 +238,59 @@ $stmt_sub = $pdo->prepare("SELECT s.*, c.name as course_name FROM subjects s JOI
                 <span>Assigned Syllabus Flow</span>
             </h4>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div
-                    class="p-8 bg-slate-50/50 border border-slate-100 rounded-[2.5rem] flex items-center justify-between group hover:bg-white hover:border-indigo-100 hover:shadow-xl transition-all duration-300">
-                    <div>
-                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 italic">BCA -
-                            Semester 6</p>
-                        <h6 class="text-base font-black text-slate-800 italic uppercase">Advanced Networks</h6>
+            <div class="bg-slate-50/60 border border-slate-100 rounded-[2.5rem] p-8 mb-10">
+                <form method="POST" class="flex flex-col md:flex-row gap-4 items-stretch md:items-end">
+                    <div class="flex-1">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 italic">Assign
+                            Subject</label>
+                        <select name="subject_id" required class="w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-[12px] font-semibold text-slate-700">
+                            <option value="">Select a subject</option>
+                            <?php foreach ($available_subjects as $s): ?>
+                                <option value="<?php echo (int) $s['id']; ?>">
+                                    <?php echo htmlspecialchars($s['course_name'] . " • Sem " . $s['semester'] . " • " . $s['code'] . " — " . $s['name']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
-                    <i
-                        class="fas fa-chevron-right text-slate-200 group-hover:text-indigo-400 group-hover:translate-x-2 transition-all"></i>
-                </div>
-                <div
-                    class="p-8 bg-slate-50/50 border border-slate-100 rounded-[2.5rem] flex items-center justify-between group hover:bg-white hover:border-indigo-100 hover:shadow-xl transition-all duration-300">
-                    <div>
-                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 italic">BCA -
-                            Semester 4</p>
-                        <h6 class="text-base font-black text-slate-800 italic uppercase">Operating Systems Lab</h6>
-                    </div>
-                    <i
-                        class="fas fa-chevron-right text-slate-200 group-hover:text-indigo-400 group-hover:translate-x-2 transition-all"></i>
-                </div>
+                    <button type="submit" name="assign_subject" value="1"
+                        class="btn btn-primary md:w-auto w-full">
+                        <i class="fas fa-plus text-[11px] mr-2"></i>Assign
+                    </button>
+                </form>
             </div>
+
+            <?php if (empty($assigned_subjects)): ?>
+                <div class="p-10 bg-white border border-slate-100 rounded-[2.5rem] text-center text-slate-500">
+                    <p class="font-semibold">No subjects assigned yet.</p>
+                    <p class="text-[12px] text-slate-400 mt-1">Assign subjects above to populate the faculty portal.</p>
+                </div>
+            <?php else: ?>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <?php foreach ($assigned_subjects as $s): ?>
+                        <div
+                            class="p-8 bg-slate-50/50 border border-slate-100 rounded-[2.5rem] flex items-center justify-between gap-6 group hover:bg-white hover:border-indigo-100 hover:shadow-xl transition-all duration-300">
+                            <div class="min-w-0">
+                                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 italic truncate">
+                                    <?php echo htmlspecialchars($s['course_name']); ?> — Semester <?php echo (int) $s['semester']; ?>
+                                </p>
+                                <h6 class="text-base font-black text-slate-800 italic uppercase truncate">
+                                    <?php echo htmlspecialchars($s['name']); ?>
+                                </h6>
+                                <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest italic mt-2">
+                                    <?php echo htmlspecialchars($s['code']); ?>
+                                </p>
+                            </div>
+                            <form method="POST" onsubmit="return confirm('Remove this subject from faculty allocation?');">
+                                <input type="hidden" name="subject_id" value="<?php echo (int) $s['id']; ?>">
+                                <button type="submit" name="remove_subject" value="1"
+                                    class="w-11 h-11 bg-white border border-slate-200 rounded-2xl flex items-center justify-center text-slate-400 hover:text-rose-600 hover:border-rose-200 transition-all">
+                                    <i class="fas fa-trash-alt text-[12px]"></i>
+                                </button>
+                            </form>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>

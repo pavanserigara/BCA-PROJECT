@@ -175,4 +175,4 @@ $subjects_attendance = $stmt_sub_stats->fetchAll();
     </div>
 </div>
 
-<?php require_once '../admin/includes/footer.php'; ?>
+<?php require_once 'includes/footer.php'; ?>

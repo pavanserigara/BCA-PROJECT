@@ -211,4 +211,4 @@ $outstanding = max(0, $total_course_fee - $paid_so_far);
     }
 </script>
 
-<?php require_once '../admin/includes/footer.php'; ?>
+<?php require_once 'includes/footer.php'; ?>

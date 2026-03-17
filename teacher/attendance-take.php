@@ -161,4 +161,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['mark_attendance'])) {
     <?php endif; ?>
 </div>
 
-<?php require_once '../admin/includes/footer.php'; ?>
+<?php require_once 'includes/footer.php'; ?>

@@ -111,4 +111,4 @@ $all_notices = $notices->fetchAll();
     </div>
 </div>
 
-<?php require_once '../admin/includes/footer.php'; ?>
+<?php require_once 'includes/footer.php'; ?>

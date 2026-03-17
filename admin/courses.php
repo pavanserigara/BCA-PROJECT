@@ -51,7 +51,7 @@ if (isset($_POST['add_course'])) {
                 <?php echo $course['name']; ?>
             </h3>
             <p class="text-xs font-bold text-indigo-500 mb-8 uppercase tracking-widest">
-                <?php echo $dept['dept_name']; ?>
+                <?php echo $course['dept_name']; ?>
             </p>
 
             <div class="flex items-center justify-between pt-6 border-t border-slate-50">

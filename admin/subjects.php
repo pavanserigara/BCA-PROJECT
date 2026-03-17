@@ -36,6 +36,26 @@ if (isset($_POST['add_subject'])) {
     }
 }
 
+// Handle Delete Subject
+if (isset($_POST['delete_subject'])) {
+    $subject_id = isset($_POST['subject_id']) ? (int) $_POST['subject_id'] : 0;
+    if ($subject_id <= 0) {
+        $error_message = "Invalid subject selected.";
+    } else {
+        try {
+            $stmt = $pdo->prepare("DELETE FROM subjects WHERE id = ? AND course_id = ?");
+            $stmt->execute([$subject_id, $course_id]);
+            if ($stmt->rowCount() > 0) {
+                $success_message = "Subject deleted successfully.";
+            } else {
+                $error_message = "Subject not found (or already deleted).";
+            }
+        } catch (PDOException $e) {
+            $error_message = "Failed to delete subject: " . $e->getMessage();
+        }
+    }
+}
+
 // Fetch Subjects for this course
 $stmt_subjects = $pdo->prepare("SELECT * FROM subjects WHERE course_id = ? ORDER BY semester, name");
 $stmt_subjects->execute([$course_id]);
@@ -69,6 +89,15 @@ $subjects = $stmt_subjects->fetchAll();
         <i class="fas fa-check-circle text-2xl mr-4"></i>
         <p class="text-sm font-bold">
             <?php echo $success_message; ?>
+        </p>
+    </div>
+<?php endif; ?>
+
+<?php if ($error_message): ?>
+    <div class="bg-rose-50 border-l-4 border-rose-500 text-rose-700 p-6 rounded-2xl mb-8 flex items-center">
+        <i class="fas fa-triangle-exclamation text-2xl mr-4"></i>
+        <p class="text-sm font-bold">
+            <?php echo $error_message; ?>
         </p>
     </div>
 <?php endif; ?>
@@ -124,8 +153,14 @@ $subjects = $stmt_subjects->fetchAll();
                             </span>
                         </td>
                         <td class="py-6 px-10 text-right">
-                            <button class="text-slate-400 hover:text-rose-600 transition-all"><i
-                                    class="fas fa-trash-alt"></i></button>
+                            <form method="POST" action="subjects.php?course_id=<?php echo $course_id; ?>" class="inline"
+                                onsubmit="return confirm('Delete this subject? This cannot be undone.');">
+                                <input type="hidden" name="delete_subject" value="1">
+                                <input type="hidden" name="subject_id" value="<?php echo (int) $sub['id']; ?>">
+                                <button type="submit" class="text-slate-400 hover:text-rose-600 transition-all">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
                         </td>
                     </tr>
                 <?php endforeach; ?>

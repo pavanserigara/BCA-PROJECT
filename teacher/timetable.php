@@ -124,4 +124,4 @@ $today = date('l');
     </div>
 </div>
 
-<?php require_once '../admin/includes/footer.php'; ?>
+<?php require_once 'includes/footer.php'; ?>

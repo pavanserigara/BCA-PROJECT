@@ -110,4 +110,4 @@ $events = $pdo->query("SELECT e.*, u.full_name as author FROM events e JOIN user
     </div>
 </div>
 
-<?php require_once '../admin/includes/footer.php'; ?>
+<?php require_once 'includes/footer.php'; ?>

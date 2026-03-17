@@ -202,4 +202,4 @@ if (isset($_POST['submit_task'])) {
     }
 </script>
 
-<?php require_once '../admin/includes/footer.php'; ?>
+<?php require_once 'includes/footer.php'; ?>
