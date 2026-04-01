@@ -10,17 +10,26 @@ $error_message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = sanitize($_POST['username']);
     $password = $_POST['password'];
+    $remember = isset($_POST['remember']);
 
     if (empty($username) || empty($password)) {
         $error_message = "Please fill in all fields.";
     } else {
         if (authenticate($pdo, $username, $password)) {
+            if ($remember) {
+                setcookie('remember_user', base64_encode($username), time() + (86400 * 30), "/");
+            } else {
+                setcookie('remember_user', '', time() - 3600, "/");
+            }
             redirect_if_logged_in();
         } else {
             $error_message = "Invalid username/email or password.";
         }
     }
 }
+
+// Pre-fill username if cookie exists
+$saved_username = isset($_COOKIE['remember_user']) ? base64_decode($_COOKIE['remember_user']) : '';
 
 $settings = get_college_settings($pdo);
 ?>
@@ -42,17 +51,19 @@ $settings = get_college_settings($pdo);
         }
 
         .login-bg {
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #312e81 70%, #4338ca 100%);
+            background: radial-gradient(1200px 600px at 15% 20%, rgba(99, 102, 241, 0.18), transparent 55%),
+                radial-gradient(900px 500px at 85% 30%, rgba(244, 63, 94, 0.12), transparent 55%),
+                linear-gradient(180deg, #f8fafc 0%, #eef2ff 60%, #f8fafc 100%);
         }
 
         .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(148, 163, 184, 0.25);
         }
 
         .glow-indigo {
-            box-shadow: 0 0 60px rgba(99, 102, 241, 0.3), 0 0 120px rgba(99, 102, 241, 0.1);
+            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.10), 0 8px 22px rgba(79, 70, 229, 0.10);
         }
 
         .float-animation {
@@ -94,9 +105,9 @@ $settings = get_college_settings($pdo);
         }
 
         .input-focus:focus {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(129, 140, 248, 0.6);
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15), 0 0 30px rgba(99, 102, 241, 0.1);
+            background: #ffffff;
+            border-color: rgba(79, 70, 229, 0.55);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
         }
 
         .btn-login {
@@ -115,8 +126,8 @@ $settings = get_college_settings($pdo);
 
         .grid-bg {
             background-image:
-                linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+                linear-gradient(rgba(99, 102, 241, 0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99, 102, 241, 0.06) 1px, transparent 1px);
             background-size: 60px 60px;
         }
 
@@ -128,12 +139,12 @@ $settings = get_college_settings($pdo);
     </style>
 </head>
 
-<body class="login-bg min-h-screen flex items-center justify-center p-4 overflow-hidden relative grid-bg">
+<body class="login-bg min-h-screen flex items-center justify-center p-4 relative grid-bg text-slate-800 antialiased overflow-x-hidden">
 
     <!-- Ambient Orbs -->
-    <div class="orb absolute w-96 h-96 bg-indigo-600/20 top-[-10%] left-[-5%]"></div>
-    <div class="orb absolute w-80 h-80 bg-violet-600/15 bottom-[-10%] right-[-5%]" style="animation-delay: 2s;"></div>
-    <div class="orb absolute w-64 h-64 bg-blue-600/10 top-[40%] right-[20%]" style="animation-delay: 4s;"></div>
+    <div class="orb absolute w-96 h-96 bg-indigo-600/20 top-[-10%] left-[-5%] -z-10"></div>
+    <div class="orb absolute w-80 h-80 bg-violet-600/15 bottom-[-10%] right-[-5%] -z-10" style="animation-delay: 2s;"></div>
+    <div class="orb absolute w-64 h-64 bg-blue-600/10 top-[40%] right-[20%] -z-10" style="animation-delay: 4s;"></div>
 
     <div class="flex w-full max-w-6xl relative z-10">
 
@@ -143,7 +154,7 @@ $settings = get_college_settings($pdo);
             <!-- Floating decorative elements -->
             <div
                 class="absolute top-20 right-20 w-20 h-20 glass-card rounded-3xl flex items-center justify-center float-animation">
-                <i class="fas fa-graduation-cap text-indigo-400 text-2xl"></i>
+                <i class="fas fa-graduation-cap text-indigo-600 text-2xl"></i>
             </div>
             <div
                 class="absolute bottom-40 left-10 w-16 h-16 glass-card rounded-2xl flex items-center justify-center float-animation-delay">
@@ -161,13 +172,13 @@ $settings = get_college_settings($pdo);
                         class="w-16 h-16 bg-indigo-600 rounded-3xl flex items-center justify-center text-white font-black text-3xl italic shadow-2xl shadow-indigo-600/30 glow-indigo">
                         V</div>
                     <div>
-                        <h1 class="text-4xl font-black text-white tracking-tight italic">VidyaSetu</h1>
-                        <p class="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em]">College Management
+                        <h1 class="text-4xl font-black text-slate-900 tracking-tight italic">VidyaSetu</h1>
+                        <p class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em]">College Management
                             System</p>
                     </div>
                 </div>
 
-                <h2 class="text-6xl font-black text-white leading-[1.1] tracking-tight mb-8">
+                <h2 class="text-6xl font-black text-slate-900 leading-[1.1] tracking-tight mb-8">
                     The Bridge<br>
                     <span
                         class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-violet-400 to-purple-400">Between
@@ -175,7 +186,7 @@ $settings = get_college_settings($pdo);
                     & Excellence.
                 </h2>
 
-                <p class="text-slate-400 text-lg font-medium leading-relaxed max-w-md">
+                <p class="text-slate-600 text-lg font-medium leading-relaxed max-w-md">
                     A unified platform to manage academic operations, student performance, and institutional workflow.
                 </p>
             </div>
@@ -187,8 +198,8 @@ $settings = get_college_settings($pdo);
                         <i class="fas fa-shield-halved text-indigo-400"></i>
                     </div>
                     <div>
-                        <h4 class="font-bold text-white text-sm">Role-Based Access Control</h4>
-                        <p class="text-xs text-slate-500 font-medium">Admin, Faculty, and Student portals with dedicated
+                        <h4 class="font-bold text-slate-900 text-sm">Role-Based Access Control</h4>
+                        <p class="text-xs text-slate-600 font-medium">Admin, Faculty, and Student portals with dedicated
                             dashboards</p>
                     </div>
                 </div>
@@ -197,8 +208,8 @@ $settings = get_college_settings($pdo);
                         <i class="fas fa-bolt text-amber-400"></i>
                     </div>
                     <div>
-                        <h4 class="font-bold text-white text-sm">Real-Time Analytics</h4>
-                        <p class="text-xs text-slate-500 font-medium">Live attendance tracking, financial treasury, and
+                        <h4 class="font-bold text-slate-900 text-sm">Real-Time Analytics</h4>
+                        <p class="text-xs text-slate-600 font-medium">Live attendance tracking, financial treasury, and
                             performance metrics</p>
                     </div>
                 </div>
@@ -207,8 +218,8 @@ $settings = get_college_settings($pdo);
                         <i class="fas fa-calendar-check text-emerald-400"></i>
                     </div>
                     <div>
-                        <h4 class="font-bold text-white text-sm">Academic Scheduling</h4>
-                        <p class="text-xs text-slate-500 font-medium">Timetable management, exam scheduling, and
+                        <h4 class="font-bold text-slate-900 text-sm">Academic Scheduling</h4>
+                        <p class="text-xs text-slate-600 font-medium">Timetable management, exam scheduling, and
                             curriculum flow</p>
                     </div>
                 </div>
@@ -216,7 +227,7 @@ $settings = get_college_settings($pdo);
 
             <!-- Footer -->
             <div class="flex items-center justify-between">
-                <p class="text-xs text-slate-600 font-bold">© <?php echo date('Y'); ?>
+                <p class="text-xs text-slate-500 font-bold">© <?php echo date('Y'); ?>
                     <?php echo $settings['college_name']; ?></p>
                 <div class="flex items-center space-x-4">
                     <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
@@ -227,7 +238,7 @@ $settings = get_college_settings($pdo);
 
         <!-- Right Side: Login Form -->
         <div class="w-full lg:w-1/2 flex items-center justify-center">
-            <div class="glass-card rounded-[3rem] p-12 md:p-16 w-full max-w-md glow-indigo relative overflow-hidden">
+            <div class="glass-card rounded-[2.5rem] p-10 md:p-12 w-full max-w-md glow-indigo relative overflow-hidden">
 
                 <!-- Decorative corner -->
                 <div class="absolute -top-20 -right-20 w-40 h-40 bg-indigo-600/10 rounded-full"></div>
@@ -244,8 +255,8 @@ $settings = get_college_settings($pdo);
                     <div class="mb-12">
                         <p class="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-3">Authentication
                             Portal</p>
-                        <h2 class="text-4xl font-black text-white tracking-tight mb-3">Welcome Back</h2>
-                        <p class="text-slate-500 font-medium text-sm">Sign in to access your institutional dashboard</p>
+                        <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-2">Welcome Back</h2>
+                        <p class="text-slate-600 font-medium text-sm">Sign in to access your dashboard</p>
                     </div>
 
                     <?php if ($error_message): ?>
@@ -263,12 +274,12 @@ $settings = get_college_settings($pdo);
                                 Username or Email
                             </label>
                             <div class="relative">
-                                <span class="absolute inset-y-0 left-0 flex items-center pl-5 text-slate-500">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
                                     <i class="fas fa-user text-sm"></i>
                                 </span>
                                 <input type="text" id="username" name="username"
-                                    class="input-focus w-full pl-14 pr-6 py-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 outline-none font-bold text-sm"
-                                    placeholder="Enter your username" required>
+                                    class="input-focus w-full !pl-12 pr-6 py-4 bg-white border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 outline-none font-bold text-sm"
+                                    placeholder="Enter your username" value="<?php echo $saved_username; ?>" required>
                             </div>
                         </div>
 
@@ -279,17 +290,17 @@ $settings = get_college_settings($pdo);
                                     Password
                                 </label>
                                 <a href="forgot-password.php"
-                                    class="text-[10px] font-black text-indigo-400 hover:text-indigo-300 uppercase tracking-widest transition-colors">Forgot?</a>
+                                    class="text-[10px] font-black text-indigo-600 hover:text-indigo-500 uppercase tracking-widest transition-colors">Forgot?</a>
                             </div>
                             <div class="relative">
-                                <span class="absolute inset-y-0 left-0 flex items-center pl-5 text-slate-500">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
                                     <i class="fas fa-lock text-sm"></i>
                                 </span>
                                 <input type="password" id="password" name="password"
-                                    class="input-focus w-full pl-14 pr-6 py-5 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 outline-none font-bold text-sm"
+                                    class="input-focus w-full !pl-12 !pr-12 py-4 bg-white border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 outline-none font-bold text-sm"
                                     placeholder="••••••••" required>
                                 <button type="button" onclick="togglePassword()"
-                                    class="absolute inset-y-0 right-0 flex items-center pr-5 text-slate-500 hover:text-slate-300 transition-colors">
+                                    class="absolute inset-y-0 right-0 flex items-center pr-5 text-slate-400 hover:text-slate-600 transition-colors">
                                     <i class="fas fa-eye text-sm" id="toggleIcon"></i>
                                 </button>
                             </div>
@@ -297,10 +308,10 @@ $settings = get_college_settings($pdo);
 
                         <div class="flex items-center justify-between">
                             <label class="flex items-center cursor-pointer group">
-                                <input type="checkbox" id="remember"
-                                    class="w-4 h-4 rounded-md bg-white/5 border-white/20 text-indigo-600 focus:ring-indigo-500/30 cursor-pointer">
+                                <input type="checkbox" id="remember" name="remember"
+                                    class="w-4 h-4 rounded-md bg-white border-slate-300 text-indigo-600 focus:ring-indigo-500/30 cursor-pointer">
                                 <span
-                                    class="ml-3 text-xs text-slate-500 font-bold group-hover:text-slate-400 transition-colors">Remember
+                                    class="ml-3 text-xs text-slate-600 font-bold group-hover:text-slate-700 transition-colors">Remember
                                     session</span>
                             </label>
                         </div>
@@ -315,31 +326,31 @@ $settings = get_college_settings($pdo);
                     <div class="mt-10 pt-8 border-t border-white/5">
                         <p class="text-center text-xs text-slate-600 font-bold">
                             Need help? Contact <span
-                                class="text-indigo-400 cursor-pointer hover:text-indigo-300">administration@vidyasetu.ac.in</span>
+                                class="text-indigo-600 cursor-pointer hover:text-indigo-500">administration@vidyasetu.ac.in</span>
                         </p>
                     </div>
 
                     <!-- Quick access role indicators -->
-                    <div class="mt-8 flex items-center justify-center space-x-3">
-                        <div class="glass-card px-4 py-2 rounded-xl flex items-center space-x-2 cursor-pointer hover:bg-white/5 transition-all group"
+                    <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+                        <div class="glass-card px-4 py-2 rounded-xl flex items-center space-x-2 cursor-pointer hover:bg-white transition-all group"
                             title="Admin Portal">
-                            <i class="fas fa-user-shield text-[10px] text-indigo-400 group-hover:text-indigo-300"></i>
+                            <i class="fas fa-user-shield text-[10px] text-indigo-600 group-hover:text-indigo-600"></i>
                             <span
-                                class="text-[9px] font-black text-slate-500 uppercase tracking-wider group-hover:text-slate-400">Admin</span>
+                                class="text-[9px] font-black text-slate-400 uppercase tracking-wider group-hover:text-slate-700">Admin</span>
                         </div>
-                        <div class="glass-card px-4 py-2 rounded-xl flex items-center space-x-2 cursor-pointer hover:bg-white/5 transition-all group"
+                        <div class="glass-card px-4 py-2 rounded-xl flex items-center space-x-2 cursor-pointer hover:bg-white transition-all group"
                             title="Faculty Portal">
                             <i
-                                class="fas fa-chalkboard-teacher text-[10px] text-violet-400 group-hover:text-violet-300"></i>
+                                class="fas fa-chalkboard-teacher text-[10px] text-violet-600 group-hover:text-violet-600"></i>
                             <span
-                                class="text-[9px] font-black text-slate-500 uppercase tracking-wider group-hover:text-slate-400">Faculty</span>
+                                class="text-[9px] font-black text-slate-400 uppercase tracking-wider group-hover:text-slate-700">Faculty</span>
                         </div>
-                        <div class="glass-card px-4 py-2 rounded-xl flex items-center space-x-2 cursor-pointer hover:bg-white/5 transition-all group"
+                        <div class="glass-card px-4 py-2 rounded-xl flex items-center space-x-2 cursor-pointer hover:bg-white transition-all group"
                             title="Student Portal">
                             <i
-                                class="fas fa-user-graduate text-[10px] text-emerald-400 group-hover:text-emerald-300"></i>
+                                class="fas fa-user-graduate text-[10px] text-emerald-600 group-hover:text-emerald-600"></i>
                             <span
-                                class="text-[9px] font-black text-slate-500 uppercase tracking-wider group-hover:text-slate-400">Student</span>
+                                class="text-[9px] font-black text-slate-400 uppercase tracking-wider group-hover:text-slate-700">Student</span>
                         </div>
                     </div>
                 </div>

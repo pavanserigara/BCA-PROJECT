@@ -14,12 +14,15 @@ $stmt_pay = $pdo->prepare("SELECT * FROM fee_payments WHERE student_id = ? ORDER
 $stmt_pay->execute([$student_id]);
 $payments = $stmt_pay->fetchAll();
 
-// Mock fee details for BCA/BBA
-$total_course_fee = 150000;
-$paid_so_far = 0;
+// Fee details (REAL): use fees_structure as expected amount for current semester
+$stmt_total = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) FROM fees_structure WHERE course_id = ? AND semester = ?");
+$stmt_total->execute([(int) $student['course_id'], (int) $student['semester']]);
+$total_course_fee = (float) $stmt_total->fetchColumn();
+
+$paid_so_far = 0.0;
 foreach ($payments as $p) {
-    if ($p['status'] == 'Success') {
-        $paid_so_far += $p['amount'];
+    if (in_array($p['status'], ['Paid', 'Partial'], true)) {
+        $paid_so_far += (float) $p['amount'];
     }
 }
 $outstanding = max(0, $total_course_fee - $paid_so_far);
@@ -103,10 +106,10 @@ $outstanding = max(0, $total_course_fee - $paid_so_far);
                     <?php echo number_format($outstanding, 2); ?>
                 </div>
             </div>
-            <button onclick="simulatePayment(event)"
+            <a href="complaints.php"
                 class="w-full py-5 bg-rose-600 text-white rounded-[2rem] font-black text-[10px] uppercase tracking-widest shadow-xl shadow-rose-900/20 hover:bg-rose-700 transition-all transform active:scale-95 flex items-center justify-center gap-3">
-                <i class="fas fa-credit-card"></i> Pay Now (SIM)
-            </button>
+                <i class="fas fa-headset"></i> Contact Accounts
+            </a>
         </div>
     </div>
 
@@ -151,7 +154,7 @@ $outstanding = max(0, $total_course_fee - $paid_so_far);
                                         <?php echo date('M d, Y', strtotime($pay['payment_date'])); ?>
                                     </span>
                                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">
-                                        <?php echo date('h:i A', strtotime($pay['payment_date'])); ?>
+                                        <?php echo strtoupper($pay['status']); ?>
                                     </p>
                                 </td>
                                 <td class="py-8 px-12">
@@ -171,9 +174,14 @@ $outstanding = max(0, $total_course_fee - $paid_so_far);
                                     </div>
                                 </td>
                                 <td class="py-8 px-12 text-right">
-                                    <span
-                                        class="px-4 py-2 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl text-[10px] font-black uppercase tracking-widest leading-none">
-                                        <i class="fas fa-shield-check mr-2 text-[8px]"></i> SUCCESS
+                                    <?php
+                                    $status = $pay['status'];
+                                    $pill = $status === 'Paid'
+                                        ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                                        : ($status === 'Partial' ? "bg-amber-50 text-amber-700 border-amber-100" : "bg-rose-50 text-rose-600 border-rose-100");
+                                    ?>
+                                    <span class="px-4 py-2 <?php echo $pill; ?> border rounded-xl text-[10px] font-black uppercase tracking-widest leading-none">
+                                        <?php echo htmlspecialchars($status); ?>
                                     </span>
                                 </td>
                             </tr>
@@ -192,23 +200,5 @@ $outstanding = max(0, $total_course_fee - $paid_so_far);
         </div>
     </div>
 </div>
-
-<script>
-    function simulatePayment() {
-        if (confirm('Initiate institutional fee payment simulation?')) {
-            const btn = event.currentTarget;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> AUTHORIZING FLOW...';
-            btn.disabled = true;
-
-            setTimeout(() => {
-                alert('Institutional Payment Flow Authorized! Simulating banking gateway...');
-                setTimeout(() => {
-                    alert('Transaction Successful! Receipt REC-<?php echo rand(10000, 99999); ?> generated.');
-                    location.reload();
-                }, 1500);
-            }, 1000);
-        }
-    }
-</script>
 
 <?php require_once 'includes/footer.php'; ?>

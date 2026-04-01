@@ -8,13 +8,69 @@ $stmt = $pdo->prepare("SELECT s.*, c.name as course_name FROM students s JOIN co
 $stmt->execute([$student_id]);
 $student = $stmt->fetch();
 
-// Attendance Stats (MOCK)
-$attendance_rate = 88.5;
+// Attendance Stats (REAL)
+$stmt_att = $pdo->prepare("SELECT 
+    COUNT(*) as total_lectures,
+    SUM(CASE WHEN status = 'Present' OR status = 'Late' THEN 1 ELSE 0 END) as present_count
+    FROM attendance WHERE student_id = ?");
+$stmt_att->execute([$student_id]);
+$att = $stmt_att->fetch();
+$att_total = (int) ($att['total_lectures'] ?? 0);
+$att_present = (int) ($att['present_count'] ?? 0);
+$attendance_rate = $att_total > 0 ? round(($att_present / $att_total) * 100, 1) : 0;
+
+// Fees (REAL: current semester total vs paid)
+$stmt_fee = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) FROM fees_structure WHERE course_id = ? AND semester = ?");
+$stmt_fee->execute([(int) $student['course_id'], (int) $student['semester']]);
+$sem_fee_total = (float) $stmt_fee->fetchColumn();
+
+$stmt_paid = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) FROM fee_payments WHERE student_id = ? AND status IN ('Paid','Partial')");
+$stmt_paid->execute([$student_id]);
+$paid_total = (float) $stmt_paid->fetchColumn();
+
+$fee_outstanding = max(0, $sem_fee_total - $paid_total);
+
+// GPA (REAL: derived from published marks)
+$stmt_gpa = $pdo->prepare("SELECT AVG(marks_obtained / NULLIF(max_marks,0)) * 10 FROM marks WHERE student_id = ?");
+$stmt_gpa->execute([$student_id]);
+$gpa10 = (float) $stmt_gpa->fetchColumn();
+$gpa10 = $gpa10 > 0 ? round($gpa10, 2) : null;
 
 // My Subjects
 $stmt_subs = $pdo->prepare("SELECT * FROM subjects WHERE course_id = ? AND semester = ?");
 $stmt_subs->execute([$student['course_id'], $student['semester']]);
 $subjects = $stmt_subs->fetchAll();
+
+// Subject-wise attendance map (REAL)
+$stmt_sub_att = $pdo->prepare("SELECT subject_id,
+    COUNT(*) as total,
+    SUM(CASE WHEN status = 'Present' OR status = 'Late' THEN 1 ELSE 0 END) as present
+    FROM attendance
+    WHERE student_id = ?
+    GROUP BY subject_id");
+$stmt_sub_att->execute([$student_id]);
+$att_rows = $stmt_sub_att->fetchAll();
+$att_by_subject = [];
+foreach ($att_rows as $r) {
+    $t = (int) ($r['total'] ?? 0);
+    $p = (int) ($r['present'] ?? 0);
+    $att_by_subject[(int) $r['subject_id']] = [
+        'total' => $t,
+        'present' => $p,
+        'percent' => $t > 0 ? round(($p / $t) * 100, 1) : 0
+    ];
+}
+
+// Recent assignments (REAL)
+$stmt_asg = $pdo->prepare("SELECT a.id, a.title, a.deadline, s.name as subject_name, s.code,
+    (SELECT COUNT(*) FROM submissions sub WHERE sub.assignment_id = a.id AND sub.student_id = ?) as submitted
+    FROM assignments a
+    JOIN subjects s ON a.subject_id = s.id
+    WHERE s.course_id = ? AND s.semester = ?
+    ORDER BY a.deadline ASC
+    LIMIT 4");
+$stmt_asg->execute([$student_id, (int) $student['course_id'], (int) $student['semester']]);
+$recent_assignments = $stmt_asg->fetchAll();
 ?>
 
 <!-- Hero Section -->
@@ -58,7 +114,9 @@ $subjects = $stmt_subs->fetchAll();
                     style="width: <?php echo $attendance_rate; ?>%"></div>
             </div>
         </div>
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Well Above 75% Target</p>
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <?php echo $attendance_rate >= 75 ? 'On Track (≥ 75%)' : 'Below Target (< 75%)'; ?>
+        </p>
     </div>
 
     <!-- Fee Card -->
@@ -71,11 +129,24 @@ $subjects = $stmt_subs->fetchAll();
             </div>
         </div>
         <div>
-            <div class="text-4xl font-black text-slate-800 tracking-tight leading-none mb-1">Cleared</div>
-            <p class="text-xs font-bold text-slate-400 mt-4 tracking-tight leading-relaxed">Wait, next installment in
-                July.</p>
+            <div class="text-4xl font-black text-slate-800 tracking-tight leading-none mb-1">
+                <?php echo $sem_fee_total <= 0 ? '—' : ($fee_outstanding <= 0 ? 'Cleared' : 'Due'); ?>
+            </div>
+            <p class="text-xs font-bold text-slate-400 mt-4 tracking-tight leading-relaxed">
+                <?php if ($sem_fee_total <= 0): ?>
+                    Fees not configured for this semester.
+                <?php else: ?>
+                    Total: ₹<?php echo number_format($sem_fee_total, 0); ?> • Paid: ₹<?php echo number_format($paid_total, 0); ?>
+                <?php endif; ?>
+            </p>
         </div>
-        <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">No Dues Pending</p>
+        <p class="text-[10px] font-bold <?php echo ($sem_fee_total > 0 && $fee_outstanding <= 0) ? 'text-emerald-500' : 'text-slate-400'; ?> uppercase tracking-widest">
+            <?php
+            if ($sem_fee_total <= 0) echo 'No Fee Plan';
+            elseif ($fee_outstanding <= 0) echo 'No Dues Pending';
+            else echo 'Outstanding: ₹' . number_format($fee_outstanding, 0);
+            ?>
+        </p>
     </div>
 
     <!-- Results Card -->
@@ -89,8 +160,12 @@ $subjects = $stmt_subs->fetchAll();
             </div>
         </div>
         <div>
-            <div class="text-4xl font-black text-slate-800 tracking-tight leading-none mb-1">8.42/10</div>
-            <p class="text-xs font-bold text-slate-400 mt-4 tracking-tight leading-relaxed">Top 15% in your batch.</p>
+            <div class="text-4xl font-black text-slate-800 tracking-tight leading-none mb-1">
+                <?php echo $gpa10 !== null ? ($gpa10 . '/10') : '—'; ?>
+            </div>
+            <p class="text-xs font-bold text-slate-400 mt-4 tracking-tight leading-relaxed">
+                <?php echo $gpa10 !== null ? 'Computed from published marks.' : 'No marks published yet.'; ?>
+            </p>
         </div>
         <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">Current Semester Profile</p>
     </div>
@@ -135,9 +210,14 @@ $subjects = $stmt_subs->fetchAll();
                             <td class="py-6 px-4">
                                 <div class="flex items-center space-x-3">
                                     <div class="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                        <div class="h-full bg-emerald-400" style="width: 85%"></div>
+                                        <?php
+                                        $sub_stats = $att_by_subject[(int) $sub['id']] ?? ['percent' => 0];
+                                        $pct = (float) $sub_stats['percent'];
+                                        ?>
+                                        <div class="h-full <?php echo $pct >= 75 ? 'bg-emerald-400' : 'bg-rose-400'; ?>"
+                                            style="width: <?php echo $pct; ?>%"></div>
                                     </div>
-                                    <span class="text-xs font-bold text-slate-500">85%</span>
+                                    <span class="text-xs font-bold text-slate-500"><?php echo $pct; ?>%</span>
                                 </div>
                             </td>
                             <td class="py-6 px-4 text-right">
@@ -162,44 +242,48 @@ $subjects = $stmt_subs->fetchAll();
         </div>
 
         <div class="space-y-6 flex-1 overflow-y-auto pr-2 scrollbar-hide">
-            <!-- MOCK -->
-            <div
-                class="p-6 bg-slate-800 rounded-[2rem] border border-slate-700/50 hover:border-indigo-500/50 transition-all group">
-                <div class="flex items-center justify-between mb-4">
-                    <span
-                        class="px-3 py-1 bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase tracking-widest rounded-lg border border-indigo-500/20">Programming</span>
-                    <span class="text-rose-400 text-[10px] font-black uppercase tracking-widest">Due Today</span>
+            <?php if (empty($recent_assignments)): ?>
+                <div class="p-6 bg-slate-800 rounded-[2rem] border border-slate-700/50 text-slate-400">
+                    <p class="font-bold">No assignments posted yet.</p>
+                    <p class="text-[12px] mt-1">When faculty posts assignments for your semester, they’ll appear here.</p>
                 </div>
-                <h6 class="text-white font-bold leading-tight group-hover:text-indigo-400 transition-colors mb-4">
-                    Complete Tic-Tac-Toe Game with Java Swing</h6>
-                <div class="flex items-center justify-between pt-4 border-t border-slate-700/50">
-                    <div class="flex items-center space-x-2 text-[10px] font-bold text-slate-500">
-                        <i class="fas fa-paper-plane"></i>
-                        <span>Not Submitted</span>
+            <?php else: ?>
+                <?php foreach ($recent_assignments as $a): ?>
+                    <?php
+                    $is_submitted = (int) $a['submitted'] > 0;
+                    $deadline = $a['deadline'] ? strtotime($a['deadline']) : null;
+                    $deadline_label = $deadline ? date('M d, Y', $deadline) : 'No deadline';
+                    ?>
+                    <div
+                        class="p-6 bg-slate-800 rounded-[2rem] border border-slate-700/50 hover:border-indigo-500/50 transition-all group">
+                        <div class="flex items-center justify-between mb-4">
+                            <span
+                                class="px-3 py-1 bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase tracking-widest rounded-lg border border-indigo-500/20">
+                                <?php echo htmlspecialchars($a['code']); ?>
+                            </span>
+                            <span class="text-slate-500 text-[10px] font-black uppercase tracking-widest">
+                                <?php echo htmlspecialchars($deadline_label); ?>
+                            </span>
+                        </div>
+                        <h6 class="text-white font-bold leading-tight group-hover:text-indigo-400 transition-colors mb-2">
+                            <?php echo htmlspecialchars($a['title']); ?>
+                        </h6>
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">
+                            <?php echo htmlspecialchars($a['subject_name']); ?>
+                        </p>
+                        <div class="flex items-center justify-between pt-4 border-t border-slate-700/50">
+                            <div class="flex items-center space-x-2 text-[10px] font-bold <?php echo $is_submitted ? 'text-emerald-500' : 'text-slate-500'; ?>">
+                                <i class="fas <?php echo $is_submitted ? 'fa-check-double' : 'fa-paper-plane'; ?>"></i>
+                                <span><?php echo $is_submitted ? 'Submitted' : 'Not Submitted'; ?></span>
+                            </div>
+                            <a href="assignments.php"
+                                class="w-8 h-8 rounded-lg bg-indigo-500 text-white flex items-center justify-center hover:bg-indigo-600 transition-all uppercase font-black text-[10px]">
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
                     </div>
-                    <button
-                        class="w-8 h-8 rounded-lg bg-indigo-500 text-white flex items-center justify-center hover:bg-indigo-600 transition-all uppercase font-black text-[10px]">
-                        <i class="fas fa-arrow-up"></i>
-                    </button>
-                </div>
-            </div>
-
-            <div
-                class="p-6 bg-slate-800 rounded-[2rem] border border-slate-700/50 hover:border-emerald-500/50 transition-all group">
-                <div class="flex items-center justify-between mb-4">
-                    <span
-                        class="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase tracking-widest rounded-lg border border-emerald-500/20">DBMS</span>
-                    <span class="text-slate-500 text-[10px] font-black uppercase tracking-widest">Oct 12, 2025</span>
-                </div>
-                <h6 class="text-white font-bold leading-tight group-hover:text-emerald-400 transition-colors mb-4">
-                    Relational Algebra Exercise 1-5</h6>
-                <div class="flex items-center justify-between pt-4 border-t border-slate-700/50">
-                    <div class="flex items-center space-x-2 text-[10px] font-bold text-emerald-500">
-                        <i class="fas fa-check-double"></i>
-                        <span>Submitted</span>
-                    </div>
-                </div>
-            </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </div>
 
         <button

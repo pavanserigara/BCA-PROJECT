@@ -87,6 +87,26 @@ table td { vertical-align: middle; }
     .shadow-card { box-shadow: none !important; }
 }
 
+/* Project utility aliases (legacy Tailwind-like classes used in templates)
+   These are intentionally compact to keep UI dense and responsive. */
+.p-15 { padding: 2.5rem !important; }         /* was used as a non-standard Tailwind class */
+.px-15 { padding-left: 2.5rem !important; padding-right: 2.5rem !important; }
+.py-15 { padding-top: 2.5rem !important; padding-bottom: 2.5rem !important; }
+.mt-15 { margin-top: 2.5rem !important; }
+.mb-15 { margin-bottom: 2.5rem !important; }
+.pt-15 { padding-top: 2.5rem !important; }
+.pb-15 { padding-bottom: 2.5rem !important; }
+.py-4\\.5 { padding-top: 1.125rem !important; padding-bottom: 1.125rem !important; } /* 18px */
+.px-4\\.5 { padding-left: 1.125rem !important; padding-right: 1.125rem !important; } /* 18px */
+.p-4\\.5 { padding: 1.125rem !important; } /* 18px */
+
+/* Admin: make oversized Tailwind text classes more compact */
+.admin-compact .text-6xl { font-size: 2.25rem !important; line-height: 1.1 !important; }
+.admin-compact .text-5xl { font-size: 2rem !important; line-height: 1.1 !important; }
+.admin-compact .text-4xl { font-size: 1.75rem !important; line-height: 1.2 !important; }
+.admin-compact .text-3xl { font-size: 1.5rem !important; line-height: 1.25 !important; }
+.admin-compact .text-2xl { font-size: 1.25rem !important; line-height: 1.25 !important; }
+
 /* Clamp */
 .line-clamp-1 { display: -webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; }
 .line-clamp-2 { display: -webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }

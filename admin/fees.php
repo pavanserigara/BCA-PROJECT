@@ -4,7 +4,27 @@ require_once 'includes/header.php';
 
 // Stats
 $total_collected = $pdo->query("SELECT SUM(amount) FROM fee_payments")->fetchColumn() ?: 0;
-$pending_dues = 125000; // Mocked for simplicity
+// Pending dues (REAL): expected from fees_structure for each student minus paid
+$pending_dues = 0;
+$critical_students = 0;
+try {
+    $rows = $pdo->query("
+        SELECT st.user_id,
+               COALESCE(SUM(fs.amount), 0) AS expected_amount,
+               COALESCE((SELECT SUM(fp.amount) FROM fee_payments fp WHERE fp.student_id = st.user_id AND fp.status IN ('Paid','Partial')), 0) AS paid_amount
+        FROM students st
+        LEFT JOIN fees_structure fs ON fs.course_id = st.course_id AND fs.semester = st.semester
+        GROUP BY st.user_id
+    ")->fetchAll();
+
+    foreach ($rows as $r) {
+        $due = max(0, (float) $r['expected_amount'] - (float) $r['paid_amount']);
+        $pending_dues += $due;
+        if ($due > 0) $critical_students++;
+    }
+} catch (PDOException $e) {
+    // keep zeros if fee tables aren't populated
+}
 
 $payments = $pdo->query("SELECT p.*, u.full_name, s.roll_no, c.name as course_name 
                          FROM fee_payments p 
@@ -73,7 +93,7 @@ $payments = $pdo->query("SELECT p.*, u.full_name, s.roll_no, c.name as course_na
         <div
             class="flex items-center justify-between text-[11px] font-black uppercase tracking-widest text-slate-400 mt-4 leading-none">
             <span>Critical Dues</span>
-            <span class="text-rose-500">65 Students</span>
+            <span class="text-rose-500"><?php echo (int) $critical_students; ?> Students</span>
         </div>
     </div>
 </div>

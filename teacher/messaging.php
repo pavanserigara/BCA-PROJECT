@@ -2,7 +2,7 @@
 require_once '../includes/db.php';
 require_once '../includes/functions.php';
 
-if (!has_role('admin')) {
+if (!has_role('teacher')) {
     header("Location: ../login.php");
     exit();
 }
@@ -11,7 +11,7 @@ $me = (int) ($_SESSION['user_id'] ?? 0);
 $success_message = '';
 $error_message = '';
 
-// Pick selected user
+// Selected contact
 $selected_user_id = isset($_GET['user']) ? (int) $_GET['user'] : 0;
 
 // Send message
@@ -25,7 +25,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_message'])) {
         $error_message = "Message cannot be empty.";
     } else {
         try {
-            // Validate receiver exists
             $stmt_u = $pdo->prepare("SELECT id FROM users WHERE id = ? AND status = 'active' LIMIT 1");
             $stmt_u->execute([$receiver_id]);
             if (!$stmt_u->fetchColumn()) {
@@ -42,10 +41,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_message'])) {
     }
 }
 
-$page_title = "Messaging Hub";
+$page_title = "Messages";
 require_once 'includes/header.php';
 
-// Build contacts list (all users except current)
+// Contacts (teachers can message admin + students + other teachers)
 $search = isset($_GET['q']) ? trim($_GET['q']) : '';
 $params = [$me];
 $where = "u.id <> ?";
@@ -57,7 +56,6 @@ if ($search !== '') {
     $params[] = $like;
 }
 
-// Latest message per contact + unread count
 $stmt_contacts = $pdo->prepare("
     SELECT u.id, u.full_name, u.role,
            COALESCE(m.last_message, '') as last_message,
@@ -101,13 +99,11 @@ if ($selected_user_id > 0) {
     $selected_user = $stmt_sel->fetch();
 }
 
-// Mark incoming as read
 if ($selected_user) {
     $stmt_read = $pdo->prepare("UPDATE messages SET is_read = 1 WHERE sender_id = ? AND receiver_id = ? AND is_read = 0");
     $stmt_read->execute([$selected_user_id, $me]);
 }
 
-// Fetch conversation messages
 $messages = [];
 if ($selected_user) {
     $stmt_msgs = $pdo->prepare("
@@ -125,8 +121,8 @@ if ($selected_user) {
 <div class="max-w-7xl mx-auto flex flex-col h-full">
     <div class="flex items-center justify-between mb-6">
         <div>
-            <h2 class="text-2xl font-black text-slate-800 tracking-tight">Messaging</h2>
-            <p class="text-slate-500 font-medium mt-1">Direct messages between users.</p>
+            <h2 class="text-2xl font-black text-slate-800 tracking-tight">Messages</h2>
+            <p class="text-slate-500 font-medium mt-1">Direct messages with admins, faculty, and students.</p>
         </div>
     </div>
 
@@ -143,9 +139,7 @@ if ($selected_user) {
         </div>
     <?php endif; ?>
 
-    <!-- Messaging Interface -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[700px] mb-10 animate__animated animate__fadeInUp">
-        <!-- Sidebar Contacts -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[700px] mb-10">
         <div class="bg-white rounded-2xl shadow-sm border border-indigo-100/30 overflow-hidden flex flex-col">
             <div class="p-4 border-b border-indigo-50 bg-slate-50/50">
                 <form method="GET" class="flex items-center gap-3">
@@ -165,14 +159,11 @@ if ($selected_user) {
                     </div>
                 <?php else: ?>
                     <?php foreach ($contacts as $c): ?>
-                        <?php
-                        $active = (int) $c['id'] === (int) $selected_user_id;
-                        $initials = strtoupper(substr($c['full_name'], 0, 1));
-                        ?>
+                        <?php $active = (int) $c['id'] === (int) $selected_user_id; ?>
                         <a href="messaging.php?user=<?php echo (int) $c['id']; ?><?php echo $search !== '' ? '&q=' . urlencode($search) : ''; ?>"
                             class="flex items-center gap-3 px-4 py-3 border-l-4 <?php echo $active ? 'border-primary-600 bg-primary-50/60' : 'border-transparent hover:bg-slate-50'; ?> transition-all">
                             <div class="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-primary-700 font-black text-[12px] shadow-sm">
-                                <?php echo $initials; ?>
+                                <?php echo htmlspecialchars(strtoupper(substr($c['full_name'], 0, 1))); ?>
                             </div>
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-center justify-between gap-2">
@@ -192,7 +183,6 @@ if ($selected_user) {
             </div>
         </div>
 
-        <!-- Chat View Area -->
         <div class="lg:col-span-2 bg-slate-900 rounded-2xl shadow-2xl flex flex-col overflow-hidden relative">
             <div class="p-4 border-b border-slate-800 bg-slate-900/50 backdrop-blur-xl flex items-center justify-between z-10 sticky top-0">
                 <div class="flex items-center gap-3 min-w-0">
@@ -203,14 +193,13 @@ if ($selected_user) {
                         <h4 class="text-[14px] font-black text-white tracking-tight truncate">
                             <?php echo $selected_user ? htmlspecialchars($selected_user['full_name']) : 'Select a user'; ?>
                         </h4>
-                        <div class="flex items-center gap-2 text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
-                            <span class="capitalize"><?php echo $selected_user ? htmlspecialchars($selected_user['role']) : ''; ?></span>
+                        <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
+                            <?php echo $selected_user ? htmlspecialchars($selected_user['role']) : ''; ?>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Chat Bubbles -->
             <div class="flex-1 overflow-y-auto p-4 custom-scroll space-y-4" id="chat-scroll">
                 <?php if (!$selected_user): ?>
                     <div class="h-full flex items-center justify-center text-slate-400">
@@ -237,7 +226,6 @@ if ($selected_user) {
                 <?php endif; ?>
             </div>
 
-            <!-- Input Box -->
             <div class="p-4 border-t border-slate-800 bg-slate-900/50 backdrop-blur-xl z-10">
                 <form method="POST" class="flex items-center gap-3">
                     <input type="hidden" name="send_message" value="1">
@@ -262,3 +250,4 @@ if ($selected_user) {
 </script>
 
 <?php require_once 'includes/footer.php'; ?>
+

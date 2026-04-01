@@ -1,12 +1,12 @@
 <?php
 $page_title = "Manage Subjects";
-require_once 'includes/header.php';
-
 $course_id = isset($_GET['course_id']) ? (int) $_GET['course_id'] : 0;
 if (!$course_id) {
     header("Location: courses.php");
     exit();
 }
+
+require_once 'includes/header.php';
 
 // Fetch Course Details
 $stmt_course = $pdo->prepare("SELECT * FROM courses WHERE id = ?");

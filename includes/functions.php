@@ -42,6 +42,23 @@ function redirect_if_logged_in()
 }
 
 /**
+ * Require login to access a page.
+ */
+function require_login($role = null)
+{
+    if (!is_logged_in()) {
+        header("Location: /login.php");
+        exit();
+    }
+
+    if ($role && $_SESSION['role'] !== $role) {
+        set_flash_message('error', 'Access Denied: You do not have permission to view this page.');
+        header("Location: /login.php");
+        exit();
+    }
+}
+
+/**
  * Sanitize user input.
  */
 function sanitize($input)

@@ -10,6 +10,9 @@ if (!has_role('teacher')) {
 $settings = get_college_settings($pdo);
 $page_title = isset($page_title) ? $page_title : 'Faculty Dashboard';
 $current_page = basename($_SERVER['PHP_SELF']);
+$profile_pic = $_SESSION['profile_pic'] ?? '';
+$profile_pic_path = __DIR__ . '/../../assets/images/' . $profile_pic;
+$profile_pic_url = (!empty($profile_pic) && is_file($profile_pic_path)) ? $profile_pic : 'default_profile.svg';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -71,7 +74,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
             <div class="px-3 py-2.5 border-b border-slate-100 flex-shrink-0">
                 <div class="flex items-center space-x-2 p-2 bg-slate-50 rounded-lg">
-                    <img src="../assets/images/<?php echo $_SESSION['profile_pic']; ?>"
+                    <img src="../assets/images/<?php echo htmlspecialchars($profile_pic_url); ?>"
                         class="w-8 h-8 rounded-lg object-cover ring-1 ring-white shadow-sm" alt="Faculty">
                     <div class="min-w-0">
                         <p class="text-[12px] font-semibold text-slate-700 truncate leading-tight">
@@ -113,6 +116,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 $campus_links = [
                     ['timetable.php', 'fa-calendar-alt', 'Timetable'],
                     ['notices.php', 'fa-bullhorn', 'Notices'],
+                    ['messaging.php', 'fa-comment-dots', 'Messages'],
                     ['../admin/library.php', 'fa-book-open', 'Library'],
                     ['../admin/events.php', 'fa-calendar-star', 'Events'],
                     ['profile.php', 'fa-user-circle', 'My Profile'],
@@ -160,7 +164,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 </div>
 
                 <a href="profile.php" class="flex items-center space-x-2 ml-1 pl-3 border-l border-slate-100">
-                    <img src="../assets/images/<?php echo $_SESSION['profile_pic']; ?>"
+                    <img src="../assets/images/<?php echo htmlspecialchars($profile_pic_url); ?>"
                         class="w-7 h-7 rounded-lg object-cover ring-1 ring-slate-100" alt="Profile">
                 </a>
             </header>

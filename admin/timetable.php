@@ -17,10 +17,16 @@ if (isset($_POST['create_slot'])) {
     $room_no = sanitize($_POST['room_no']);
 
     try {
+        $pdo->beginTransaction();
         $stmt = $pdo->prepare("INSERT INTO timetable (course_id, semester, day, subject_id, teacher_id, start_time, end_time, room_no) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([$course_id, $semester, $day, $subject_id, $teacher_id, $start_time, $end_time, $room_no]);
+        // Ensure faculty can mark attendance for allocated subjects
+        $stmt_alloc = $pdo->prepare("INSERT IGNORE INTO teacher_subjects (teacher_id, subject_id) VALUES (?, ?)");
+        $stmt_alloc->execute([$teacher_id, $subject_id]);
+        $pdo->commit();
         $success_message = "New lecture slot published to the $day schedule!";
     } catch (PDOException $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
         $error_message = "Failed to schedule slot: " . $e->getMessage();
     }
 }
@@ -51,22 +57,22 @@ if ($sel_course && $sel_sem) {
 }
 ?>
 
-<div class="flex items-center justify-between mb-15">
+<div class="flex items-center justify-between mb-6">
     <div>
-        <h2 class="text-4xl font-black text-slate-800 tracking-tight leading-none italic">Academic Scheduling Flow</h2>
-        <p class="text-slate-500 font-medium tracking-tight mt-4 italic">Configure and manage lecture timings for all
+        <h2 class="text-2xl font-black text-slate-800 tracking-tight leading-tight">Academic Timetable</h2>
+        <p class="text-slate-500 font-medium mt-1">Configure and manage lecture timings for all
             institutional programs.</p>
     </div>
 
     <button onclick="document.getElementById('slot_modal').classList.remove('hidden')"
-        class="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-4.5 rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-xl shadow-indigo-100 transition-all hover:-translate-y-1 transform active:scale-95 flex items-center space-x-3">
+        class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-2xl font-bold text-[11px] uppercase tracking-widest shadow-md shadow-indigo-100 transition-all hover:-translate-y-0.5 transform active:scale-95 flex items-center space-x-2">
         <i class="fas fa-calendar-plus text-sm"></i>
         <span>Register New Slot</span>
     </button>
 </div>
 
 <!-- Filters -->
-<div class="bg-white p-10 rounded-[3rem] border border-indigo-50 shadow-sm mb-12">
+<div class="bg-white p-6 rounded-2xl border border-indigo-50 shadow-sm mb-8">
     <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-8 items-end">
         <div>
             <label
@@ -97,7 +103,7 @@ if ($sel_course && $sel_sem) {
         </div>
         <div>
             <button type="submit"
-                class="w-full py-4.5 bg-slate-900 text-white font-black rounded-2xl hover:bg-indigo-600 transition-all uppercase tracking-widest text-[10px] italic">Fetch
+                class="w-full py-3 bg-slate-900 text-white font-bold rounded-2xl hover:bg-indigo-600 transition-all uppercase tracking-widest text-[10px]">Fetch
                 Schedule Profile</button>
         </div>
     </form>
@@ -105,10 +111,19 @@ if ($sel_course && $sel_sem) {
 
 <?php if ($success_message): ?>
     <div
-        class="bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 p-8 rounded-[2.5rem] mb-12 flex items-center animate__animated animate__fadeInDown italic">
+        class="bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 p-6 rounded-2xl mb-8 flex items-center animate__animated animate__fadeInDown">
         <i class="fas fa-check-circle text-2xl mr-6"></i>
         <p class="text-base font-bold">
             <?php echo $success_message; ?>
+        </p>
+    </div>
+<?php endif; ?>
+
+<?php if ($error_message): ?>
+    <div class="bg-rose-50 border-l-4 border-rose-500 text-rose-700 p-6 rounded-2xl mb-8 flex items-center">
+        <i class="fas fa-triangle-exclamation text-2xl mr-6"></i>
+        <p class="text-base font-bold">
+            <?php echo $error_message; ?>
         </p>
     </div>
 <?php endif; ?>
@@ -121,16 +136,16 @@ if ($sel_course && $sel_sem) {
         foreach ($days as $day):
             ?>
             <div
-                class="bg-white rounded-[3.5rem] shadow-sm border border-indigo-100/30 overflow-hidden group hover:shadow-2xl transition-all duration-300">
-                <div class="p-10 border-b border-indigo-50 bg-slate-50/50 flex items-center justify-between">
-                    <h4 class="text-2xl font-black text-slate-800 tracking-tight leading-none italic uppercase">
+                class="bg-white rounded-2xl shadow-sm border border-indigo-100/30 overflow-hidden group hover:shadow-xl transition-all duration-300">
+                <div class="p-6 border-b border-indigo-50 bg-slate-50/50 flex items-center justify-between">
+                    <h4 class="text-lg font-black text-slate-800 tracking-tight leading-none uppercase">
                         <?php echo $day; ?>
                     </h4>
-                    <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest italic">
+                    <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">
                         <?php echo count($timetable_data[$day] ?? []); ?> Slots Active
                     </span>
                 </div>
-                <div class="p-10">
+                <div class="p-6">
                     <?php if (empty($timetable_data[$day])): ?>
                         <p class="text-slate-400 italic text-sm py-10 text-center">No academic sessions scheduled for this day
                             Profile.</p>
@@ -138,26 +153,26 @@ if ($sel_course && $sel_sem) {
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             <?php foreach ($timetable_data[$day] as $slot): ?>
                                 <div
-                                    class="p-8 bg-slate-50/50 rounded-[2.5rem] border border-slate-50 relative overflow-hidden group/item hover:bg-white hover:border-indigo-100 transition-all">
+                                    class="p-5 bg-slate-50/50 rounded-2xl border border-slate-50 relative overflow-hidden group/item hover:bg-white hover:border-indigo-100 transition-all">
                                     <div class="absolute top-0 right-0 p-6 flex flex-col items-end">
                                         <p
-                                            class="text-[10px] font-black text-indigo-400 uppercase tracking-widest italic opacity-40 group-hover/item:opacity-100 transition-opacity">
+                                            class="text-[10px] font-black text-indigo-400 uppercase tracking-widest opacity-40 group-hover/item:opacity-100 transition-opacity">
                                             Room
                                             <?php echo $slot['room_no']; ?>
                                         </p>
                                     </div>
                                     <div class="flex items-center space-x-4 mb-4">
                                         <span
-                                            class="text-[9px] font-black text-slate-400 uppercase tracking-widest italic border border-slate-100 px-3 py-1.5 rounded-lg">
+                                            class="text-[9px] font-black text-slate-400 uppercase tracking-widest border border-slate-100 px-3 py-1.5 rounded-lg">
                                             <?php echo date('h:i A', strtotime($slot['start_time'])); ?> -
                                             <?php echo date('h:i A', strtotime($slot['end_time'])); ?>
                                         </span>
                                     </div>
                                     <h5
-                                        class="text-lg font-black text-slate-800 tracking-tight leading-tight group-hover/item:text-indigo-600 transition-colors uppercase italic mb-2">
+                                        class="text-base font-black text-slate-800 tracking-tight leading-tight group-hover/item:text-indigo-600 transition-colors uppercase mb-2">
                                         <?php echo $slot['subject_name']; ?>
                                     </h5>
-                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic mb-6">•
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">•
                                         <?php echo $slot['teacher_name']; ?>
                                     </p>
 
@@ -182,9 +197,9 @@ if ($sel_course && $sel_sem) {
 <!-- Slot Modal -->
 <div id="slot_modal"
     class="fixed inset-0 bg-slate-900/60 z-[100] hidden items-center justify-center p-4 backdrop-blur-sm transition-all flex">
-    <div class="bg-white w-full max-w-4xl rounded-[3rem] shadow-2xl p-15 animate__animated animate__zoomIn">
-        <div class="flex items-center justify-between mb-12">
-            <h3 class="text-3xl font-black text-slate-800 tracking-tight leading-none italic">Academic Slot
+    <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl p-6 animate__animated animate__zoomIn">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-black text-slate-800 tracking-tight leading-none">Academic Slot
                 Configuration</h3>
             <button onclick="document.getElementById('slot_modal').classList.add('hidden')"
                 class="text-slate-400 hover:text-slate-600 bg-slate-50 w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-sm">

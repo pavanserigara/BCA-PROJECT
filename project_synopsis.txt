@@ -1,0 +1,66 @@
+# Project Synopsis: VidyaSetu College Management System
+
+This project is a web-based College Management System (CMS) named "VidyaSetu," designed to streamline various administrative and academic processes within an educational institution. The system is built using PHP, with a MySQL database backend (as indicated by `cms.sql`).
+
+## Core Functionalities (Inferred from Database Schema and File Structure):
+
+1.  **User Management:** Supports multiple user roles including `admin`, `student`, `teacher`, `librarian`, `accountant`, and `staff`. Each user has a profile, and the system handles authentication and authorization based on roles.
+    *   _Related Files/Directories:_ `login.php`, `logout.php`, `reset_admin.php`, `admin/`, `student/`, `teacher/`
+    *   _Key Database Table:_ `users`
+
+2.  **Academic Structure:** Manages departments, courses offered within each department, and subjects taught in specific courses and semesters.
+    *   _Related Files/Directories:_ `admin/departments.php`, `admin/courses.php`, `admin/subjects.php`
+    *   _Key Database Tables:_ `departments`, `courses`, `subjects`
+
+3.  **Student Management:** Handles student admissions, enrollment in courses, and maintains student-specific details.
+    *   _Related Files/Directories:_ `admin/students-add.php`, `admin/students-list.php`, `admin/student-edit.php`, `admin/student-view.php`, `student/` (student-facing modules)
+    *   _Key Database Table:_ `students`
+
+4.  **Teacher Management:** Manages teacher profiles, departmental assignments, qualifications, and the subjects they teach.
+    *   _Related Files/Directories:_ `admin/faculty-add.php`, `admin/faculty-list.php`, `admin/faculty-view.php`, `teacher/` (teacher-facing modules)
+    *   _Key Database Tables:_ `teachers`, `teacher_subjects`
+
+5.  **Attendance Management:** Allows for tracking and recording student attendance for various subjects, likely managed by teachers.
+    *   _Related Files/Directories:_ `teacher/attendance-take.php`, `student/attendance.php`
+    *   _Key Database Table:_ `attendance`
+
+6.  **Examination & Marks Management:** Facilitates the creation and management of exams (internal, semester, practical) and records student marks obtained in these exams.
+    *   _Related Files/Directories:_ `admin/exams.php`, `teacher/marks-entry.php`, `student/results.php`
+    *   _Key Database Tables:_ `exams`, `marks`
+
+7.  **Assignment & Submission System:** Enables teachers to create and distribute assignments, and students to submit their work, with provisions for grading and feedback.
+    *   _Related Files/Directories:_ `teacher/assignments.php`, `student/assignments.php`
+    *   _Key Database Tables:_ `assignments`, `submissions`
+
+8.  **Fees Management:** Defines fee structures for courses and semesters, and tracks student fee payments, including payment dates and receipt numbers.
+    *   _Related Files/Directories:_ `admin/fees.php`, `student/fees.php`
+    *   _Key Database Tables:_ `fees_structure`, `fee_payments`
+
+9.  **Library Management:** Manages a catalog of books, including quantity and availability. It also tracks issued and returned books, along with overdue fines.
+    *   _Related Files/Directories:_ `admin/library.php`, `student/library.php`
+    *   _Key Database Tables:_ `library_books`, `issued_books`
+
+10. **Communication & Events:** Provides mechanisms for broadcasting notices (role-targeted), managing college events, and facilitating internal messaging between users.
+    *   _Related Files/Directories:_ `admin/notices.php`, `admin/events.php`, `admin/messaging.php`, `student/notices.php`, `student/events.php`, `teacher/notices.php`, `teacher/messaging.php`
+    *   _Key Database Tables:_ `notices`, `events`, `messages`
+
+11. **Complaint/Feedback System:** Allows students to lodge complaints, which can be tracked and resolved by administrators.
+    *   _Related Files/Directories:_ `admin/complaints.php`, `student/complaints.php`
+    *   _Key Database Table:_ `complaints`
+
+12. **System Settings:** Configurable college-wide settings such as college name, contact information, academic year, and logos.
+    *   _Related Files/Directories:_ `admin/settings.php`
+    *   _Key Database Table:_ `settings`
+
+## Project Structure Overview:
+
+*   **`/` (Root Directory):** Contains core application files like `index.php` (likely the entry point), `login.php`, `logout.php`, and utility scripts (`test_db.php`, `update_db.php`, `reset_admin.php`).
+*   **`admin/`:** Houses all administrative panels and functionalities for managing users, academic data, finances, library, and system settings. Includes its own `includes/` for headers and footers.
+*   **`student/`:** Contains modules and dashboards specific to student users, allowing them to view assignments, attendance, results, fees, library status, and notices. Includes its own `includes/`.
+*   **`teacher/`:** Contains modules and dashboards for teacher users, enabling them to manage assignments, take attendance, enter marks, and view notices. Includes its own `includes/`.
+*   **`assets/`:** Stores static resources such as CSS (`assets/css/style.css`), JavaScript (`assets/js/main.js`), and images (`assets/images/default_profile.svg`).
+*   **`database/`:** Contains the `cms.sql` file, which defines the database schema and initial data for the system.
+*   **`includes/`:** Contains common PHP files like `db.php` (for database connection) and `functions.php` (for utility functions).
+*   **`fees/`, `exams/`, `library/`, `reports/`, `staff/`, `timetable/`:** These directories exist at the root level, but do not contain directly visible PHP files in the provided listing. They might be placeholders for future modules, contain assets, or are accessed indirectly by the main application logic. Given the other module-specific folders (`admin`, `student`, `teacher`), it's possible these are intended for more general functionalities or shared resources.
+
+This CMS appears to be a comprehensive solution for managing the operations of a college or educational institution.

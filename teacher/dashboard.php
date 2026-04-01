@@ -16,6 +16,26 @@ $subjects = $pdo->prepare("SELECT s.*, c.name as course_name
                            WHERE ts.teacher_id = ?");
 $subjects->execute([$teacher_id]);
 $my_subjects = $subjects->fetchAll();
+
+// Today's attendance % across all marked rows by this teacher
+$stmt_today = $pdo->prepare("SELECT 
+    COUNT(*) as total,
+    SUM(CASE WHEN status = 'Present' OR status = 'Late' THEN 1 ELSE 0 END) as present
+    FROM attendance
+    WHERE marked_by = ? AND date = ?");
+$stmt_today->execute([$teacher_id, date('Y-m-d')]);
+$today = $stmt_today->fetch();
+$today_total = (int) ($today['total'] ?? 0);
+$today_present = (int) ($today['present'] ?? 0);
+$avg_today = $today_total > 0 ? round(($today_present / $today_total) * 100, 1) : 0;
+
+// Unchecked submissions (grade is NULL)
+$stmt_pending = $pdo->prepare("SELECT COUNT(*)
+    FROM submissions sub
+    JOIN assignments a ON sub.assignment_id = a.id
+    WHERE a.teacher_id = ? AND (sub.grade IS NULL OR sub.grade = '')");
+$stmt_pending->execute([$teacher_id]);
+$pending_submissions = (int) $stmt_pending->fetchColumn();
 ?>
 
 <!-- Top Hero Stats -->
@@ -44,7 +64,9 @@ $my_subjects = $subjects->fetchAll();
         </div>
         <div>
             <h4 class="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">Avg. Attendance</h4>
-            <div class="text-4xl font-black text-slate-800 tracking-tight">92.4%</div>
+            <div class="text-4xl font-black text-slate-800 tracking-tight">
+                <?php echo $today_total > 0 ? ($avg_today . '%') : '—'; ?>
+            </div>
         </div>
     </div>
 
@@ -58,7 +80,9 @@ $my_subjects = $subjects->fetchAll();
         </div>
         <div>
             <h4 class="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">Unchecked Submissions</h4>
-            <div class="text-4xl font-black text-slate-800 tracking-tight">18</div>
+            <div class="text-4xl font-black text-slate-800 tracking-tight">
+                <?php echo $pending_submissions; ?>
+            </div>
         </div>
     </div>
 </div>

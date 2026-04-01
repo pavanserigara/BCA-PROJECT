@@ -56,6 +56,20 @@ try {
       FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
     ) ENGINE=InnoDB");
 
+  // Messages (direct messages)
+  $pdo->exec("CREATE TABLE IF NOT EXISTS `messages` (
+      `id` int(11) NOT NULL AUTO_INCREMENT,
+      `sender_id` int(11) NOT NULL,
+      `receiver_id` int(11) NOT NULL,
+      `subject` varchar(255) DEFAULT NULL,
+      `message` text NOT NULL,
+      `is_read` tinyint(1) DEFAULT 0,
+      `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+      PRIMARY KEY (`id`),
+      FOREIGN KEY (`sender_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+      FOREIGN KEY (`receiver_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB");
+
   // Timetable
   $pdo->exec("CREATE TABLE IF NOT EXISTS `timetable` (
       `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -73,6 +87,13 @@ try {
       FOREIGN KEY (`subject_id`) REFERENCES `subjects`(`id`) ON DELETE CASCADE,
       FOREIGN KEY (`teacher_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
     ) ENGINE=InnoDB");
+
+  // Attendance uniqueness (one row per student/subject/date)
+  try {
+    $pdo->exec("CREATE UNIQUE INDEX attendance_unique ON attendance (student_id, subject_id, date)");
+  } catch (PDOException $e) {
+    // ignore if already exists
+  }
 
   // Teacher Subjects Mapping
   $pdo->exec("CREATE TABLE IF NOT EXISTS `teacher_subjects` (

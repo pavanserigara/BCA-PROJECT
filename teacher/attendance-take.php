@@ -13,31 +13,83 @@ $my_subjects = $subjects->fetchAll();
 
 $students = [];
 $selected_subject = null;
+$selected_subject_id = null;
 
 if (isset($_GET['subject_id'])) {
-    $selected_subject_id = $_GET['subject_id'];
-    $stmt = $pdo->prepare("SELECT s.*, u.full_name FROM students s JOIN users u ON s.user_id = u.id WHERE s.course_id = (SELECT course_id FROM subjects WHERE id = ?)");
-    $stmt->execute([$selected_subject_id]);
-    $students = $stmt->fetchAll();
-
-    $stmt_sub = $pdo->prepare("SELECT * FROM subjects WHERE id = ?");
-    $stmt_sub->execute([$selected_subject_id]);
+    $selected_subject_id = (int) $_GET['subject_id'];
+    // Only allow subjects allocated to this faculty
+    $stmt_sub = $pdo->prepare("SELECT s.*, c.name as course_name 
+                               FROM subjects s 
+                               JOIN courses c ON s.course_id = c.id
+                               JOIN teacher_subjects ts ON ts.subject_id = s.id
+                               WHERE s.id = ? AND ts.teacher_id = ?");
+    $stmt_sub->execute([$selected_subject_id, $teacher_id]);
     $selected_subject = $stmt_sub->fetch();
+
+    if ($selected_subject) {
+        // Filter students to the subject's course + semester
+        $stmt = $pdo->prepare("SELECT s.*, u.full_name 
+                               FROM students s 
+                               JOIN users u ON s.user_id = u.id 
+                               WHERE s.course_id = ? AND s.semester = ?
+                               ORDER BY s.roll_no ASC");
+        $stmt->execute([(int) $selected_subject['course_id'], (int) $selected_subject['semester']]);
+        $students = $stmt->fetchAll();
+    }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['mark_attendance'])) {
-    $subject_id = $_POST['subject_id'];
+    $subject_id = (int) $_POST['subject_id'];
     $date = $_POST['date'];
     $attendance_data = $_POST['attendance']; // Array of student_id => status
 
     try {
         $pdo->beginTransaction();
-        $stmt = $pdo->prepare("INSERT INTO attendance (student_id, subject_id, date, status, marked_by) VALUES (?, ?, ?, ?, ?)");
+        // Validate subject belongs to this teacher
+        $stmt_valid = $pdo->prepare("SELECT 1 FROM teacher_subjects WHERE teacher_id = ? AND subject_id = ? LIMIT 1");
+        $stmt_valid->execute([$teacher_id, $subject_id]);
+        if (!$stmt_valid->fetchColumn()) {
+            throw new Exception("Unauthorized subject allocation.");
+        }
+
+        // Validate subject details (for student list validation)
+        $stmt_sd = $pdo->prepare("SELECT course_id, semester FROM subjects WHERE id = ? LIMIT 1");
+        $stmt_sd->execute([$subject_id]);
+        $sd = $stmt_sd->fetch();
+        if (!$sd) {
+            throw new Exception("Invalid subject selected.");
+        }
+
+        // Ensure posted student IDs belong to that course+semester
+        $student_ids = array_map('intval', array_keys($attendance_data ?? []));
+        if (count($student_ids) === 0) {
+            throw new Exception("No students submitted for marking.");
+        }
+
+        $placeholders = implode(',', array_fill(0, count($student_ids), '?'));
+        $stmt_allowed = $pdo->prepare("SELECT user_id FROM students WHERE course_id = ? AND semester = ? AND user_id IN ($placeholders)");
+        $stmt_allowed->execute(array_merge([(int) $sd['course_id'], (int) $sd['semester']], $student_ids));
+        $allowed = array_map('intval', array_column($stmt_allowed->fetchAll(), 'user_id'));
+        $allowed_set = array_fill_keys($allowed, true);
+
+        $valid_status = ['Present' => true, 'Absent' => true, 'Late' => true, 'Leave' => true];
+
+        // Upsert (requires unique index on attendance)
+        $stmt = $pdo->prepare("INSERT INTO attendance (student_id, subject_id, date, status, marked_by)
+                               VALUES (?, ?, ?, ?, ?)
+                               ON DUPLICATE KEY UPDATE status = VALUES(status), marked_by = VALUES(marked_by)");
+
+        $written = 0;
         foreach ($attendance_data as $std_id => $status) {
-            $stmt->execute([$std_id, $subject_id, $date, $status, $teacher_id]);
+            $sid = (int) $std_id;
+            $st = (string) $status;
+            if (!isset($allowed_set[$sid])) continue;
+            if (!isset($valid_status[$st])) $st = 'Present';
+            $stmt->execute([$sid, $subject_id, $date, $st, $teacher_id]);
+            $written++;
         }
         $pdo->commit();
-        $success = "Attendance recorded successfully for " . count($attendance_data) . " students.";
+        $success = "Attendance saved for " . $written . " students.";
     } catch (Exception $e) {
         $pdo->rollBack();
         $error = "Error: " . $e->getMessage();
@@ -52,6 +104,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['mark_attendance'])) {
             <p class="text-slate-500 font-medium">Capture student presence for your assigned lectures.</p>
         </div>
     </div>
+
+    <?php if (!empty($success)): ?>
+        <div class="alert alert-success" role="alert">
+            <i class="fas fa-check-circle text-[12px]"></i>
+            <span><?php echo htmlspecialchars($success); ?></span>
+        </div>
+    <?php endif; ?>
+    <?php if (!empty($error)): ?>
+        <div class="alert alert-error" role="alert">
+            <i class="fas fa-triangle-exclamation text-[12px]"></i>
+            <span><?php echo htmlspecialchars($error); ?></span>
+        </div>
+    <?php endif; ?>
 
     <!-- Subject Selection -->
     <div class="bg-white p-10 rounded-[2.5rem] border border-indigo-50 shadow-sm mb-8">
@@ -155,8 +220,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['mark_attendance'])) {
             <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-400">
                 <i class="fas fa-users-slash text-3xl"></i>
             </div>
-            <h4 class="text-2xl font-black text-slate-800">No Students Found</h4>
-            <p class="text-slate-500 mt-2">No students registered for this course yet.</p>
+            <h4 class="text-2xl font-black text-slate-800">
+                <?php echo $selected_subject_id ? 'No Access / Not Allocated' : 'No Students Found'; ?>
+            </h4>
+            <p class="text-slate-500 mt-2">
+                <?php echo $selected_subject_id ? 'This subject is not allocated to your account.' : 'No students registered for this subject yet.'; ?>
+            </p>
         </div>
     <?php endif; ?>
 </div>

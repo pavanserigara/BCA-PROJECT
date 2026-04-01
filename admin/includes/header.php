@@ -10,6 +10,9 @@ if (!has_role('admin')) {
 $settings = get_college_settings($pdo);
 $page_title = isset($page_title) ? $page_title : 'Admin Dashboard';
 $current_page = basename($_SERVER['PHP_SELF']);
+$profile_pic = $_SESSION['profile_pic'] ?? '';
+$profile_pic_path = __DIR__ . '/../../assets/images/' . $profile_pic;
+$profile_pic_url = (!empty($profile_pic) && is_file($profile_pic_path)) ? $profile_pic : 'default_profile.svg';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -44,7 +47,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
-<body class="bg-slate-50/80 font-inter text-slate-700 antialiased text-[13px]">
+<body class="bg-slate-50/80 font-inter text-slate-700 antialiased text-[13px] admin-compact">
 
     <div id="sidebar-backdrop" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 hidden transition-opacity duration-300 opacity-0 lg:hidden"></div>
 
@@ -68,7 +71,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <!-- User Card -->
             <div class="px-3 py-2.5 border-b border-slate-100 flex-shrink-0">
                 <div class="flex items-center space-x-2 p-2 bg-slate-50 rounded-lg">
-                    <img src="../assets/images/<?php echo $_SESSION['profile_pic']; ?>" class="w-8 h-8 rounded-lg object-cover ring-1 ring-white shadow-sm" alt="Admin">
+                    <img src="../assets/images/<?php echo htmlspecialchars($profile_pic_url); ?>" class="w-8 h-8 rounded-lg object-cover ring-1 ring-white shadow-sm" alt="Admin">
                     <div class="min-w-0">
                         <p class="text-[12px] font-semibold text-slate-700 truncate leading-tight"><?php echo $_SESSION['full_name']; ?></p>
                         <p class="text-[10px] font-medium text-primary-600 capitalize"><?php echo $_SESSION['role']; ?></p>
@@ -253,7 +256,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                                 <p class="text-[11px] font-semibold text-slate-700 leading-tight"><?php echo $_SESSION['full_name']; ?></p>
                                 <p class="text-[9px] font-medium text-primary-600 capitalize"><?php echo $_SESSION['role']; ?></p>
                             </div>
-                            <img src="../assets/images/<?php echo $_SESSION['profile_pic']; ?>"
+                            <img src="../assets/images/<?php echo htmlspecialchars($profile_pic_url); ?>"
                                 class="w-7 h-7 rounded-lg object-cover ring-1 ring-slate-100" alt="Profile">
                         </button>
                         <div id="profile-menu" class="absolute right-0 top-full mt-1 w-44 bg-white rounded-lg shadow-lg border border-slate-100 opacity-0 invisible transition-all duration-150 transform translate-y-1 py-1 z-50">

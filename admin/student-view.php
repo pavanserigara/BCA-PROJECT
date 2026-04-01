@@ -23,7 +23,7 @@ if (!$student) {
 // Fetch Attendance Stats
 $stmt_att = $pdo->prepare("SELECT 
     COUNT(*) as total,
-    SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) as present
+    SUM(CASE WHEN status = 'Present' OR status = 'Late' THEN 1 ELSE 0 END) as present
     FROM attendance WHERE student_id = ?");
 $stmt_att->execute([$id]);
 $att_stats = $stmt_att->fetch();
