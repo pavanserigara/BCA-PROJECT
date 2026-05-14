@@ -151,7 +151,18 @@ $_SESSION['linked_student_name'] = $student_data['full_name'];
                     <div class="absolute -right-6 -top-6 w-20 h-20 bg-emerald-500/10 rounded-full group-hover:scale-110 transition-transform"></div>
                     <p class="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-4">Linked Student</p>
                     <div class="flex items-center space-x-3">
-                        <img src="../assets/images/<?php echo $student_data['student_pic'] ?: 'default_profile.svg'; ?>" class="w-10 h-10 rounded-xl object-cover border border-white dark:border-slate-700 shadow-sm" alt="">
+                    <?php 
+                        $s_pic = $student_data['student_pic'];
+                        $s_pic_url = '../assets/images/default_profile.svg';
+                        if (!empty($s_pic)) {
+                            if (is_file(__DIR__ . '/../../uploads/profiles/' . $s_pic)) {
+                                $s_pic_url = '../uploads/profiles/' . $s_pic;
+                            } elseif (is_file(__DIR__ . '/../../assets/images/' . $s_pic)) {
+                                $s_pic_url = '../assets/images/' . $s_pic;
+                            }
+                        }
+                    ?>
+                    <img src="<?php echo $s_pic_url; ?>" class="w-10 h-10 rounded-xl object-cover border border-white dark:border-slate-700 shadow-sm" alt="">
                         <div>
                             <p class="text-[10px] font-black text-slate-800 dark:text-white uppercase italic leading-none mb-1"><?php echo $student_data['full_name']; ?></p>
                             <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest"><?php echo $student_data['roll_no']; ?></p>

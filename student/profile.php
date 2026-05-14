@@ -28,10 +28,18 @@ $stmt_pay = $pdo->prepare("SELECT SUM(amount) FROM fee_payments WHERE student_id
 $stmt_pay->execute([$student_id]);
 $paid_so_far = (float) $stmt_pay->fetchColumn();
 
-$stmt_total = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) FROM fees_structure WHERE course_id = ? AND semester = ?");
-$stmt_total->execute([(int) $student['course_id'], (int) $student['semester']]);
-$total_course_fee = (float) $stmt_total->fetchColumn();
+$total_course_fee = (float) $stmt_total['amount'] ?? 0;
+$paid_so_far = (float) $paid_so_far;
 $is_cleared = ($paid_so_far >= $total_course_fee && $total_course_fee > 0);
+
+// Fetch Student Documents
+$stmt_docs = $pdo->prepare("SELECT * FROM student_documents WHERE student_id = ?");
+$stmt_docs->execute([$student_id]);
+$documents = $stmt_docs->fetchAll(PDO::FETCH_ASSOC);
+$doc_map = [];
+foreach ($documents as $d) {
+    $doc_map[$d['document_type']] = $d;
+}
 ?>
 
 <div class="mb-10 lg:mb-16">
@@ -144,31 +152,49 @@ $is_cleared = ($paid_so_far >= $total_course_fee && $total_course_fee > 0);
             </div>
         </div>
 
-        <div class="bg-white dark:bg-slate-800 p-10 lg:p-14 rounded-[3.5rem] shadow-premium border border-slate-100 dark:border-slate-700/50 flex flex-col md:flex-row items-center gap-10">
-            <div class="flex-1 w-full">
-                <h4 class="text-xl font-black text-slate-800 dark:text-white tracking-tight uppercase italic mb-8 flex items-center">
-                    <i class="fas fa-receipt text-primary-600 mr-3 text-sm"></i>
-                    Tuition Status
+        <div class="bg-white dark:bg-slate-800 p-10 lg:p-14 rounded-[3.5rem] shadow-premium border border-slate-100 dark:border-slate-700/50">
+            <div class="flex items-center justify-between mb-12">
+                <h4 class="text-xl font-black text-slate-800 dark:text-white tracking-tight uppercase italic flex items-center">
+                    <i class="fas fa-file-shield text-primary-600 mr-3 text-sm"></i>
+                    Verification Vault
                 </h4>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-3xl border border-slate-100 dark:border-slate-800">
-                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 leading-none">Billable</p>
-                        <p class="text-lg font-black text-slate-800 dark:text-white italic">₹<?php echo number_format($total_course_fee, 0); ?></p>
-                    </div>
-                    <div class="bg-emerald-50 dark:bg-emerald-500/10 p-6 rounded-3xl border border-emerald-100 dark:border-emerald-500/20">
-                        <p class="text-[9px] font-black text-emerald-600/60 uppercase tracking-widest mb-2 leading-none">Paid Flow</p>
-                        <p class="text-lg font-black text-emerald-600 italic">₹<?php echo number_format($paid_so_far, 0); ?></p>
-                    </div>
-                </div>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Institutional Certifications</p>
             </div>
-            
-            <div class="w-full md:w-auto self-stretch flex items-center justify-center px-10 <?php echo $is_cleared ? 'bg-emerald-600 dark:bg-emerald-500' : 'bg-rose-600 dark:bg-rose-500'; ?> rounded-[2.5rem] text-white shadow-xl shadow-emerald-500/20 relative overflow-hidden group/badge transition-colors duration-500">
-                 <div class="relative z-10 text-center">
-                     <i class="fas <?php echo $is_cleared ? 'fa-certificate' : 'fa-circle-exclamation'; ?> text-3xl mb-4 group-hover/badge:rotate-12 transition-transform"></i>
-                     <p class="text-[10px] font-black uppercase tracking-[0.2em] opacity-80 leading-none mb-1">Financial</p>
-                     <p class="text-xl font-black italic uppercase leading-none"><?php echo $is_cleared ? 'Cleared' : 'Pending'; ?></p>
-                 </div>
-                 <i class="fas fa-shield-check absolute -bottom-6 -right-6 text-8xl opacity-10"></i>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <?php 
+                $needed_docs = [
+                    'aadhaar' => 'Aadhaar Card',
+                    'sslc' => 'SSLC Marks Card',
+                    'puc' => 'PUC Marks Card',
+                    'tc' => 'Transfer Certificate',
+                    'photo' => 'Passport Photo'
+                ];
+                foreach ($needed_docs as $type => $label): 
+                    $doc = $doc_map[$type] ?? null;
+                ?>
+                    <div class="p-6 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border <?php echo $doc ? 'border-emerald-100 dark:border-emerald-500/20' : 'border-slate-100 dark:border-slate-800'; ?> flex items-center justify-between group transition-all">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-10 h-10 <?php echo $doc ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-400'; ?> rounded-xl flex items-center justify-center italic font-black text-xs">
+                                <?php echo strtoupper(substr($type, 0, 1)); ?>
+                            </div>
+                            <div>
+                                <h6 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none"><?php echo $label; ?></h6>
+                                <p class="text-xs font-black <?php echo $doc ? 'text-emerald-600' : 'text-slate-400'; ?> uppercase italic"><?php echo $doc ? $doc['verification_status'] : 'Missing'; ?></p>
+                            </div>
+                        </div>
+                        <?php if ($doc): ?>
+                            <a href="../uploads/documents/<?php echo $doc['file_path']; ?>" target="_blank" class="w-8 h-8 bg-white dark:bg-slate-800 rounded-lg flex items-center justify-center text-slate-400 hover:text-primary-600 shadow-sm border border-slate-100 dark:border-slate-700">
+                                <i class="fas fa-eye text-[10px]"></i>
+                            </a>
+                        <?php else: ?>
+                            <label for="upload_<?php echo $type; ?>" class="w-8 h-8 bg-primary-600 text-white rounded-lg flex items-center justify-center hover:scale-110 transition-transform cursor-pointer shadow-lg shadow-primary-500/20">
+                                <i class="fas fa-plus text-[10px]"></i>
+                                <input type="file" id="upload_<?php echo $type; ?>" class="hidden" onchange="uploadDoc('<?php echo $type; ?>', this)">
+                            </label>
+                        <?php endif; ?>
+                    </div>
+                <?php endforeach; ?>
             </div>
         </div>
     </div>
@@ -205,6 +231,37 @@ document.getElementById('profile_input').addEventListener('change', function(e) 
         alert('An unexpected error occurred.');
     });
 });
+
+function uploadDoc(type, input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('document', file);
+    formData.append('doc_type', type);
+    formData.append('csrf_token', '<?php echo generate_csrf_token(); ?>');
+
+    input.parentElement.classList.add('opacity-50', 'pointer-events-none');
+
+    fetch('../includes/handlers/document_upload.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.message);
+            input.parentElement.classList.remove('opacity-50', 'pointer-events-none');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        input.parentElement.classList.remove('opacity-50', 'pointer-events-none');
+        alert('An unexpected error occurred.');
+    });
+}
 </script>
 
 <?php require_once 'includes/footer.php'; ?>

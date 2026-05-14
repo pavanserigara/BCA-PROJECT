@@ -47,6 +47,11 @@ $stmt_marks = $pdo->prepare("SELECT m.*, s.name as subject_name, s.code
                              ORDER BY s.semester ASC");
 $stmt_marks->execute([$id]);
 $performance = $stmt_marks->fetchAll();
+
+// Fetch Institutional Documents
+$stmt_docs = $pdo->prepare("SELECT * FROM student_documents WHERE student_id = ?");
+$stmt_docs->execute([$id]);
+$documents = $stmt_docs->fetchAll();
 ?>
 
 <div class="flex items-center justify-between mb-15">
@@ -55,6 +60,17 @@ $performance = $stmt_marks->fetchAll();
             class="w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-600 transition-all shadow-sm">
             <i class="fas fa-arrow-left text-sm"></i>
         </a>
+        <?php 
+            $pic_url = '../assets/images/default_profile.svg';
+            if (!empty($student['profile_pic'])) {
+                if (is_file(__DIR__ . '/../../uploads/profiles/' . $student['profile_pic'])) {
+                    $pic_url = '../uploads/profiles/' . $student['profile_pic'];
+                } elseif (is_file(__DIR__ . '/../../assets/images/' . $student['profile_pic'])) {
+                    $pic_url = '../assets/images/' . $student['profile_pic'];
+                }
+            }
+        ?>
+        <img src="<?php echo $pic_url; ?>" class="w-20 h-20 rounded-[2rem] object-cover shadow-2xl border-4 border-white" alt="">
         <div>
             <h2 class="text-4xl font-black text-slate-800 tracking-tight leading-none italic">
                 <?php echo $student['full_name']; ?>
@@ -73,11 +89,11 @@ $performance = $stmt_marks->fetchAll();
     </div>
 
     <div class="flex items-center space-x-4">
-        <button
+        <a href="student-edit.php?id=<?php echo $id; ?>"
             class="bg-indigo-600 text-white px-8 py-4 rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-xl shadow-indigo-100/50 hover:-translate-y-1 transition-all active:scale-95 flex items-center space-x-3 italic">
             <i class="fas fa-edit text-sm"></i>
             <span>Modify Record</span>
-        </button>
+        </a>
     </div>
 </div>
 
@@ -247,6 +263,47 @@ $performance = $stmt_marks->fetchAll();
                     <?php endif; ?>
                 </tbody>
             </table>
+        </div>
+
+        <div class="bg-white p-15 rounded-[4rem] shadow-sm border border-indigo-100/30 mt-12">
+            <div class="flex items-center justify-between mb-12">
+                <h4 class="text-2xl font-black text-slate-800 tracking-tight italic flex items-center space-x-4">
+                    <span class="w-10 h-10 bg-violet-50 rounded-2xl flex items-center justify-center text-violet-600 text-xs italic">V</span>
+                    <span>Institutional Verification Vault</span>
+                </h4>
+                <a href="verify-documents.php" class="text-[10px] font-black text-indigo-600 uppercase tracking-widest italic hover:underline">Verification Hub <i class="fas fa-arrow-right ml-1"></i></a>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <?php if (empty($documents)): ?>
+                    <div class="col-span-full py-12 bg-slate-50 rounded-[3rem] text-center border border-dashed border-slate-200">
+                        <i class="fas fa-file-circle-exclamation text-slate-300 text-4xl mb-4 opacity-50"></i>
+                        <p class="text-slate-400 italic font-bold">No institutional certifications synchronized for this identity.</p>
+                    </div>
+                <?php else: ?>
+                    <?php foreach ($documents as $doc): ?>
+                        <div class="p-8 bg-slate-50/50 rounded-[2.5rem] border border-slate-100 group hover:border-indigo-200 transition-all">
+                            <div class="flex items-center justify-between mb-6">
+                                <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-indigo-600 shadow-sm border border-slate-50">
+                                    <i class="fas fa-file-shield"></i>
+                                </div>
+                                <span class="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest <?php 
+                                    echo $doc['verification_status'] === 'verified' ? 'text-emerald-500 bg-emerald-50' : ($doc['verification_status'] === 'rejected' ? 'text-rose-500 bg-rose-50' : 'text-amber-500 bg-amber-50'); 
+                                ?>">
+                                    <?php echo $doc['verification_status']; ?>
+                                </span>
+                            </div>
+                            <h6 class="text-sm font-black text-slate-800 uppercase italic mb-1"><?php echo str_replace('_', ' ', $doc['document_type']); ?></h6>
+                            <p class="text-[10px] font-bold text-slate-400 mb-6 italic">Protocol Log: <?php echo date('M d, Y', strtotime($doc['uploaded_at'])); ?></p>
+                            
+                            <a href="../uploads/documents/<?php echo $doc['file_path']; ?>" target="_blank" 
+                               class="w-full py-3 bg-white text-slate-600 border border-slate-100 rounded-xl text-[9px] font-black uppercase tracking-widest italic flex items-center justify-center hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all shadow-sm">
+                                <i class="fas fa-external-link-alt mr-2 text-[8px]"></i> Audit Artifact
+                            </a>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 </div>

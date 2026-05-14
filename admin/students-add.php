@@ -34,9 +34,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $pdo->beginTransaction();
 
+        // Handle Profile Picture Upload
+        $profile_pic = 'default_profile.svg';
+        if (isset($_FILES['profile_pic']) && $_FILES['profile_pic']['error'] === 0) {
+            $ext = pathinfo($_FILES['profile_pic']['name'], PATHINFO_EXTENSION);
+            $profile_pic = 'student_' . time() . '_' . uniqid() . '.' . $ext;
+            move_uploaded_file($_FILES['profile_pic']['tmp_name'], '../uploads/profiles/' . $profile_pic);
+        }
+
         // 1. Create User
-        $stmt_user = $pdo->prepare("INSERT INTO users (username, email, password, role, full_name) VALUES (?, ?, ?, 'student', ?)");
-        $stmt_user->execute([$username, $email, $password, $full_name]);
+        $stmt_user = $pdo->prepare("INSERT INTO users (username, email, password, role, full_name, profile_pic) VALUES (?, ?, ?, 'student', ?, ?)");
+        $stmt_user->execute([$username, $email, $password, $full_name, $profile_pic]);
         $user_id = $pdo->lastInsertId();
 
         // 2. Create Student record
@@ -44,8 +52,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt_student->execute([$user_id, $roll_no, $course_id, $semester, $admission_date, $dob, $gender, $phone, $address, $parent_name, $parent_phone]);
 
+        // 3. Handle Institutional Documents
+        $doc_types = ['aadhaar', 'sslc', 'puc', 'tc', 'photo'];
+        foreach ($doc_types as $type) {
+            if (isset($_FILES[$type]) && $_FILES[$type]['error'] === 0) {
+                $ext = pathinfo($_FILES[$type]['name'], PATHINFO_EXTENSION);
+                $doc_filename = 'doc_' . $type . '_' . time() . '_' . uniqid() . '.' . $ext;
+                if (move_uploaded_file($_FILES[$type]['tmp_name'], '../uploads/documents/' . $doc_filename)) {
+                    $stmt_doc = $pdo->prepare("INSERT INTO student_documents (student_id, document_type, file_path) VALUES (?, ?, ?)");
+                    $stmt_doc->execute([$user_id, $type, $doc_filename]);
+                }
+            }
+        }
+
         $pdo->commit();
-        $success_message = "Student '$full_name' registered successfully with Roll No: $roll_no!";
+        $success_message = "Student '$full_name' registered successfully with Roll No: $roll_no! Protocols synchronized.";
     } catch (PDOException $e) {
         $pdo->rollBack();
         $error_message = "Registration failed: " . $e->getMessage();
@@ -115,7 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     <?php endif; ?>
 
-    <form action="students-add.php" method="POST" class="space-y-12" id="enrollmentForm">
+    <form action="students-add.php" method="POST" enctype="multipart/form-data" class="space-y-12" id="enrollmentForm">
         <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
 
         <!-- Step Indicator -->
@@ -127,7 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <span
                     class="text-[10px] font-black text-slate-800 uppercase tracking-widest hidden sm:block italic">Auth</span>
             </div>
-            <div class="w-12 h-0.5 bg-indigo-200 rounded-full"></div>
+            <div class="w-10 h-0.5 bg-indigo-200 rounded-full"></div>
             <div class="flex items-center space-x-3 cursor-pointer group" onclick="scrollToSection('section-academic')">
                 <div
                     class="w-10 h-10 bg-amber-500 rounded-2xl flex items-center justify-center text-white font-black text-xs shadow-lg shadow-amber-200">
@@ -135,7 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <span
                     class="text-[10px] font-black text-slate-800 uppercase tracking-widest hidden sm:block italic">Academic</span>
             </div>
-            <div class="w-12 h-0.5 bg-amber-200 rounded-full"></div>
+            <div class="w-10 h-0.5 bg-amber-200 rounded-full"></div>
             <div class="flex items-center space-x-3 cursor-pointer group" onclick="scrollToSection('section-personal')">
                 <div
                     class="w-10 h-10 bg-rose-500 rounded-2xl flex items-center justify-center text-white font-black text-xs shadow-lg shadow-rose-200">
@@ -143,13 +164,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <span
                     class="text-[10px] font-black text-slate-800 uppercase tracking-widest hidden sm:block italic">Personal</span>
             </div>
-            <div class="w-12 h-0.5 bg-rose-200 rounded-full"></div>
+            <div class="w-10 h-0.5 bg-rose-200 rounded-full"></div>
             <div class="flex items-center space-x-3 cursor-pointer group" onclick="scrollToSection('section-guardian')">
                 <div
                     class="w-10 h-10 bg-emerald-500 rounded-2xl flex items-center justify-center text-white font-black text-xs shadow-lg shadow-emerald-200">
                     4</div>
                 <span
                     class="text-[10px] font-black text-slate-800 uppercase tracking-widest hidden sm:block italic">Guardian</span>
+            </div>
+            <div class="w-10 h-0.5 bg-emerald-200 rounded-full"></div>
+            <div class="flex items-center space-x-3 cursor-pointer group" onclick="scrollToSection('section-docs')">
+                <div
+                    class="w-10 h-10 bg-violet-600 rounded-2xl flex items-center justify-center text-white font-black text-xs shadow-lg shadow-violet-200">
+                    5</div>
+                <span
+                    class="text-[10px] font-black text-slate-800 uppercase tracking-widest hidden sm:block italic">Docs</span>
             </div>
         </div>
 
@@ -171,6 +200,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <p class="text-sm text-slate-400 font-medium italic mt-1">Institutional login identity and secure
                         access parameters.</p>
                 </div>
+            </div>
+
+            <div class="mb-12 flex flex-col items-center justify-center space-y-6 relative z-10">
+                <div class="relative group/avatar">
+                    <div class="w-32 h-32 rounded-[2.5rem] bg-slate-100 overflow-hidden border-4 border-white shadow-xl">
+                        <img id="avatarPreview" src="../assets/images/default_profile.svg" class="w-full h-full object-cover" alt="Profile Preview">
+                    </div>
+                    <label for="profile_pic" class="absolute -bottom-2 -right-2 w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white cursor-pointer shadow-lg hover:scale-110 transition-all border-2 border-white">
+                        <i class="fas fa-camera text-sm"></i>
+                        <input type="file" id="profile_pic" name="profile_pic" class="hidden" accept="image/*" onchange="previewImage(this)">
+                    </label>
+                </div>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Identity Visualization (Optional)</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-10 relative z-10">
@@ -379,6 +421,88 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <input type="text" id="parent_phone" name="parent_phone" placeholder="+91 00000 00000"
                         class="w-full px-8 py-5 bg-slate-50 border-2 border-transparent rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:bg-white focus:border-emerald-500/30 transition-all outline-none font-bold text-slate-800 text-base">
                 </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 5: Institutional Documents -->
+        <div id="section-docs"
+            class="bg-white p-12 md:p-16 rounded-[4rem] shadow-sm border border-violet-100/30 relative overflow-hidden group hover:shadow-2xl hover:shadow-violet-50 transition-all duration-500">
+            <div
+                class="absolute top-0 right-0 w-40 h-40 bg-violet-600/5 rounded-full -mr-20 -mt-20 group-hover:scale-150 transition-all duration-700">
+            </div>
+
+            <div class="flex items-center space-x-6 mb-12 relative z-10">
+                <div
+                    class="w-16 h-16 bg-violet-600 rounded-[1.5rem] flex items-center justify-center text-white shadow-2xl shadow-violet-200">
+                    <i class="fas fa-file-shield text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-black text-slate-800 tracking-tight italic uppercase">Institutional Documents</h3>
+                    <p class="text-sm text-slate-400 font-medium italic mt-1">Verification protocols and academic certifications.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 relative z-10">
+                <!-- Aadhaar Card -->
+                <div class="bg-slate-50 p-8 rounded-[2.5rem] border border-transparent hover:border-violet-200 transition-all group/doc">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 italic">Aadhaar Identification</label>
+                    <div class="relative">
+                        <input type="file" name="aadhaar" class="hidden" id="doc_aadhaar" accept=".pdf,image/*" onchange="updateDocStatus('aadhaar')">
+                        <button type="button" onclick="document.getElementById('doc_aadhaar').click()" class="w-full py-4 bg-white rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 font-bold text-xs hover:border-violet-500 hover:text-violet-600 transition-all flex items-center justify-center gap-2">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span id="label_aadhaar">Upload PDF/JPG</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SSLC Marks Card -->
+                <div class="bg-slate-50 p-8 rounded-[2.5rem] border border-transparent hover:border-violet-200 transition-all group/doc">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 italic">SSLC Marks Card</label>
+                    <div class="relative">
+                        <input type="file" name="sslc" class="hidden" id="doc_sslc" accept=".pdf,image/*" onchange="updateDocStatus('sslc')">
+                        <button type="button" onclick="document.getElementById('doc_sslc').click()" class="w-full py-4 bg-white rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 font-bold text-xs hover:border-violet-500 hover:text-violet-600 transition-all flex items-center justify-center gap-2">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span id="label_sslc">Upload PDF/JPG</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- PUC Marks Card -->
+                <div class="bg-slate-50 p-8 rounded-[2.5rem] border border-transparent hover:border-violet-200 transition-all group/doc">
+                    <label class="block text-[10px) font-black text-slate-400 uppercase tracking-widest mb-4 italic">PUC Marks Card</label>
+                    <div class="relative">
+                        <input type="file" name="puc" class="hidden" id="doc_puc" accept=".pdf,image/*" onchange="updateDocStatus('puc')">
+                        <button type="button" onclick="document.getElementById('doc_puc').click()" class="w-full py-4 bg-white rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 font-bold text-xs hover:border-violet-500 hover:text-violet-600 transition-all flex items-center justify-center gap-2">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span id="label_puc">Upload PDF/JPG</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Transfer Certificate -->
+                <div class="bg-slate-50 p-8 rounded-[2.5rem] border border-transparent hover:border-violet-200 transition-all group/doc">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 italic">Transfer Certificate (TC)</label>
+                    <div class="relative">
+                        <input type="file" name="tc" class="hidden" id="doc_tc" accept=".pdf,image/*" onchange="updateDocStatus('tc')">
+                        <button type="button" onclick="document.getElementById('doc_tc').click()" class="w-full py-4 bg-white rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 font-bold text-xs hover:border-violet-500 hover:text-violet-600 transition-all flex items-center justify-center gap-2">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span id="label_tc">Upload PDF/JPG</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Passport Photo -->
+                <div class="bg-slate-50 p-8 rounded-[2.5rem] border border-transparent hover:border-violet-200 transition-all group/doc">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 italic">Passport Size Photo</label>
+                    <div class="relative">
+                        <input type="file" name="photo" class="hidden" id="doc_photo" accept="image/*" onchange="updateDocStatus('photo')">
+                        <button type="button" onclick="document.getElementById('doc_photo').click()" class="w-full py-4 bg-white rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 font-bold text-xs hover:border-violet-500 hover:text-violet-600 transition-all flex items-center justify-center gap-2">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span id="label_photo">Upload Image</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -425,6 +549,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     function scrollToSection(id) {
         document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('avatarPreview').src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function updateDocStatus(type) {
+        const input = document.getElementById('doc_' + type);
+        const label = document.getElementById('label_' + type);
+        if (input.files && input.files.length > 0) {
+            label.innerText = 'File Attached: ' + input.files[0].name.substring(0, 15) + '...';
+            label.parentElement.classList.replace('border-slate-200', 'border-emerald-500');
+            label.parentElement.classList.replace('text-slate-400', 'text-emerald-600');
+        }
     }
 </script>
 

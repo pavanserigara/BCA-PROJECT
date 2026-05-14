@@ -83,6 +83,14 @@ $available_subjects = $stmt_avail->fetchAll();
             class="w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-600 transition-all shadow-sm">
             <i class="fas fa-arrow-left text-sm"></i>
         </a>
+        <?php if ($faculty['profile_pic'] && $faculty['profile_pic'] !== 'default_profile.svg' && file_exists('../uploads/profiles/' . $faculty['profile_pic'])): ?>
+            <img src="../uploads/profiles/<?php echo $faculty['profile_pic']; ?>" 
+                 class="w-20 h-20 rounded-[2rem] object-cover shadow-2xl border-4 border-white" alt="">
+        <?php else: ?>
+            <div class="w-20 h-20 bg-gradient-to-tr from-amber-500 to-orange-600 rounded-[2rem] flex items-center justify-center text-white text-3xl font-black italic shadow-2xl border-4 border-white">
+                <?php echo substr($faculty['full_name'], 0, 1); ?>
+            </div>
+        <?php endif; ?>
         <div>
             <h2 class="text-4xl font-black text-slate-800 tracking-tight leading-none italic">
                 <?php echo $faculty['full_name']; ?>
@@ -104,11 +112,11 @@ $available_subjects = $stmt_avail->fetchAll();
     </div>
 
     <div class="flex items-center space-x-4">
-        <button
+        <a href="faculty-edit.php?id=<?php echo $id; ?>"
             class="bg-indigo-600 text-white px-8 py-4 rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-xl shadow-indigo-100/50 hover:-translate-y-1 transition-all active:scale-95 flex items-center space-x-3 italic">
             <i class="fas fa-edit text-sm"></i>
             <span>Institutional Update</span>
-        </button>
+        </a>
     </div>
 </div>
 

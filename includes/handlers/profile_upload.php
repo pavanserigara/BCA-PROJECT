@@ -1,67 +1,48 @@
 <?php
-require_once '../../includes/db.php';
-require_once '../../includes/functions.php';
+require_once '../db.php';
+require_once '../functions.php';
 
-// Security Gate
-csrf_guard();
+header('Content-Type: application/json');
+
 if (!is_logged_in()) {
     echo json_encode(['success' => false, 'message' => 'Unauthorized access.']);
     exit();
 }
 
-$user_id = $_SESSION['user_id'];
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_pic'])) {
-    $file = $_FILES['profile_pic'];
-    
-    // Validation
-    $allowed_types = ['image/jpeg', 'image/png', 'image/webp'];
-    $max_size = 2 * 1024 * 1024; // 2MB
-
-    if (!in_array($file['type'], $allowed_types)) {
-        echo json_encode(['success' => false, 'message' => 'Invalid file type. Only JPG, PNG, and WEBP allowed.']);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
+        echo json_encode(['success' => false, 'message' => 'Invalid CSRF token.']);
         exit();
     }
 
-    if ($file['size'] > $max_size) {
-        echo json_encode(['success' => false, 'message' => 'File size exceeds 2MB limit.']);
-        exit();
-    }
+    if (isset($_FILES['profile_pic']) && $_FILES['profile_pic']['error'] === 0) {
+        $user_id = $_SESSION['user_id'];
+        $file = $_FILES['profile_pic'];
+        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $allowed = ['jpg', 'jpeg', 'png', 'svg', 'webp'];
 
-    $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-    $filename = 'profile_' . $user_id . '_' . time() . '.' . $ext;
-    $upload_path = '../../uploads/profiles/' . $filename;
+        if (!in_array(strtolower($ext), $allowed)) {
+            echo json_encode(['success' => false, 'message' => 'Invalid file type.']);
+            exit();
+        }
 
-    if (move_uploaded_file($file['tmp_name'], $upload_path)) {
-        try {
-            $pdo->beginTransaction();
+        $filename = 'profile_' . $user_id . '_' . time() . '.' . $ext;
+        $upload_path = '../../uploads/profiles/' . $filename;
 
-            // Fetch old profile pic to delete it
-            $stmt = $pdo->prepare("SELECT profile_pic FROM users WHERE id = ?");
-            $stmt->execute([$user_id]);
-            $old_pic = $stmt->fetchColumn();
-
-            if ($old_pic && $old_pic != 'default_profile.png' && $old_pic != 'default_profile.svg') {
-                $old_path = '../../uploads/profiles/' . $old_pic;
-                if (file_exists($old_path)) unlink($old_path);
-            }
-
+        if (move_uploaded_file($file['tmp_name'], $upload_path)) {
             // Update DB
             $stmt = $pdo->prepare("UPDATE users SET profile_pic = ? WHERE id = ?");
             $stmt->execute([$filename, $user_id]);
-
-            // Update session
+            
             $_SESSION['profile_pic'] = $filename;
 
-            $pdo->commit();
-            echo json_encode(['success' => true, 'message' => 'Profile updated successfully.', 'filename' => $filename]);
-        } catch (Exception $e) {
-            $pdo->rollBack();
-            echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+            echo json_encode(['success' => true, 'filename' => $filename]);
+            exit();
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to move uploaded file.']);
+            exit();
         }
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to move uploaded file.']);
     }
-} else {
-    echo json_encode(['success' => false, 'message' => 'No file uploaded.']);
 }
+
+echo json_encode(['success' => false, 'message' => 'Invalid request.']);

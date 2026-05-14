@@ -4,7 +4,8 @@ require_once 'includes/header.php';
 
 // Search logic
 $search = isset($_GET['search']) ? sanitize($_GET['search']) : '';
-$query = "SELECT u.id, u.full_name, u.email, u.status, s.roll_no, c.name as course_name, s.semester 
+$query = "SELECT u.id, u.full_name, u.email, u.status, u.profile_pic, s.roll_no, c.name as course_name, s.semester,
+          (SELECT COUNT(*) FROM student_documents WHERE student_id = u.id AND verification_status = 'pending') as pending_count
           FROM students s 
           JOIN users u ON s.user_id = u.id 
           JOIN courses c ON s.course_id = c.id";
@@ -92,10 +93,14 @@ $students = $stmt->fetchAll();
                         <tr class="group hover:bg-slate-50/50 transition-colors">
                             <td class="py-6 px-8">
                                 <div class="flex items-center space-x-4">
-                                    <div
-                                        class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-blue-500 text-white flex items-center justify-center font-black text-lg shadow-lg shadow-indigo-100">
-                                        <?php echo substr($student['full_name'], 0, 1); ?>
-                                    </div>
+                                    <?php if ($student['profile_pic'] && $student['profile_pic'] !== 'default_profile.svg' && file_exists('../uploads/profiles/' . $student['profile_pic'])): ?>
+                                        <img src="../uploads/profiles/<?php echo $student['profile_pic']; ?>" 
+                                             class="w-12 h-12 rounded-2xl object-cover shadow-lg shadow-indigo-100" alt="">
+                                    <?php else: ?>
+                                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-blue-500 text-white flex items-center justify-center font-black text-lg shadow-lg shadow-indigo-100">
+                                            <?php echo substr($student['full_name'], 0, 1); ?>
+                                        </div>
+                                    <?php endif; ?>
                                     <div>
                                         <h6 class="text-base font-bold text-slate-800 tracking-tight leading-none mb-1">
                                             <?php echo $student['full_name']; ?>
@@ -137,6 +142,15 @@ $students = $stmt->fetchAll();
                                         <span class="w-1.5 h-1.5 bg-rose-500 rounded-full"></span>
                                         <span>Inactive</span>
                                     </span>
+                                <?php endif; ?>
+
+                                <?php if ($student['pending_count'] > 0): ?>
+                                    <div class="mt-2">
+                                        <span class="inline-flex items-center space-x-2 text-amber-600 bg-amber-50 border border-amber-100 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest italic">
+                                            <i class="fas fa-clock text-[8px] animate-spin-slow"></i>
+                                            <span><?php echo $student['pending_count']; ?> Pending</span>
+                                        </span>
+                                    </div>
                                 <?php endif; ?>
                             </td>
                             <td class="py-6 px-8 text-right">

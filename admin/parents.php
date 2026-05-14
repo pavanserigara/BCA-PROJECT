@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_parent'])) {
 $page_title = "Guardian Management";
 require_once 'includes/header.php';
 
-$parents = $pdo->query("SELECT p.*, u.full_name as parent_name, u.username, u.email, s_u.full_name as student_name, s.roll_no 
+$parents = $pdo->query("SELECT p.*, u.full_name as parent_name, u.username, u.email, u.profile_pic, s_u.full_name as student_name, s.roll_no 
                         FROM parents p 
                         JOIN users u ON p.user_id = u.id 
                         JOIN students s ON p.student_id = s.user_id 
@@ -88,7 +88,17 @@ $students = $pdo->query("SELECT s.user_id, u.full_name, s.roll_no
                         <tr class="group hover:bg-slate-50/50 transition-all">
                             <td class="py-8 px-10">
                                 <div class="flex items-center space-x-4">
-                                    <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 font-black italic text-sm">P</div>
+                                    <?php 
+                                        $pic_url = '../assets/images/default_profile.svg';
+                                        if (!empty($p['profile_pic'])) {
+                                            if (is_file(__DIR__ . '/../../uploads/profiles/' . $p['profile_pic'])) {
+                                                $pic_url = '../uploads/profiles/' . $p['profile_pic'];
+                                            } elseif (is_file(__DIR__ . '/../../assets/images/' . $p['profile_pic'])) {
+                                                $pic_url = '../assets/images/' . $p['profile_pic'];
+                                            }
+                                        }
+                                    ?>
+                                    <img src="<?php echo $pic_url; ?>" class="w-10 h-10 rounded-xl object-cover shadow-sm" alt="">
                                     <div>
                                         <p class="text-sm font-black text-slate-800 uppercase italic leading-none mb-1"><?php echo $p['parent_name']; ?></p>
                                         <p class="text-[10px] font-bold text-slate-400 italic"><?php echo $p['email']; ?></p>

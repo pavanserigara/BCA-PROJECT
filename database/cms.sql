@@ -12,7 +12,7 @@ CREATE TABLE `users` (
   `password` varchar(255) NOT NULL,
   `role` enum('admin','student','teacher','librarian','accountant','staff','parent') NOT NULL,
   `full_name` varchar(100) NOT NULL,
-  `profile_pic` varchar(255) DEFAULT 'default_profile.png',
+  `profile_pic` varchar(255) DEFAULT 'default_profile.svg',
   `phone` varchar(15) DEFAULT NULL,
   `address` text DEFAULT NULL,
   `status` enum('active','inactive') DEFAULT 'active',

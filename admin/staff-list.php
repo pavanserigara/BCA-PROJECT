@@ -59,26 +59,33 @@ $staff_members = $pdo->query("SELECT * FROM users WHERE role IN ('staff', 'libra
                 <th class="py-8 px-10 text-right">Actions</th>
             </tr>
         </thead>
-        <tbody class="divide-y divide-indigo-50/20">
-            <?php if (empty($staff_members)): ?>
-                <tr>
-                    <td colspan="4" class="p-20 text-center italic text-slate-400">Support directory is currently empty.
-                    </td>
-                </tr>
-            <?php else: ?>
-                <?php foreach ($staff_members as $s): ?>
-                    <tr class="group hover:bg-slate-50 transition-all">
-                        <td class="py-8 px-10">
-                            <div class="flex items-center space-x-4">
-                                <div
-                                    class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-500 font-black text-xs">
-                                    <?php echo substr($s['full_name'], 0, 1); ?>
-                                </div>
-                                <div>
-                                    <h6
-                                        class="text-sm font-bold text-slate-800 tracking-tight leading-none mb-1 text-slate-800">
-                                        <?php echo $s['full_name']; ?>
-                                    </h6>
+    <tbody class="divide-y divide-indigo-50/20">
+        <?php if (empty($staff_members)): ?>
+            <tr>
+                <td colspan="4" class="p-20 text-center italic text-slate-400">Support directory is currently empty.
+                </td>
+            </tr>
+        <?php else: ?>
+            <?php foreach ($staff_members as $s): ?>
+                <tr class="group hover:bg-slate-50 transition-all">
+                    <td class="py-8 px-10">
+                        <div class="flex items-center space-x-4">
+                            <?php 
+                                $pic_url = '../assets/images/default_profile.svg';
+                                if (!empty($s['profile_pic'])) {
+                                    if (is_file(__DIR__ . '/../../uploads/profiles/' . $s['profile_pic'])) {
+                                        $pic_url = '../uploads/profiles/' . $s['profile_pic'];
+                                    } elseif (is_file(__DIR__ . '/../../assets/images/' . $s['profile_pic'])) {
+                                        $pic_url = '../assets/images/' . $s['profile_pic'];
+                                    }
+                                }
+                            ?>
+                            <img src="<?php echo $pic_url; ?>" class="w-10 h-10 rounded-xl object-cover shadow-sm" alt="">
+                            <div>
+                                <h6
+                                    class="text-sm font-bold text-slate-800 tracking-tight leading-none mb-1 text-slate-800">
+                                    <?php echo $s['full_name']; ?>
+                                </h6>
                                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">
                                         <?php echo $s['email']; ?>
                                     </p>

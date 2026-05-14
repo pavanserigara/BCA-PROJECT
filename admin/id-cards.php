@@ -39,7 +39,17 @@ $students = $pdo->query("SELECT s.*, u.full_name, c.name as course_name, u.profi
                     <tr class="group hover:bg-slate-50/50 transition-all">
                         <td class="py-8 px-10">
                             <div class="flex items-center space-x-4">
-                                <img src="../assets/images/<?php echo $s['profile_pic'] ?: 'default_profile.svg'; ?>" class="w-12 h-12 rounded-2xl object-cover shadow-soft ring-2 ring-white border border-slate-100">
+                                <?php 
+                                    $pic_url = '../assets/images/default_profile.svg';
+                                    if (!empty($s['profile_pic'])) {
+                                        if (is_file(__DIR__ . '/../../uploads/profiles/' . $s['profile_pic'])) {
+                                            $pic_url = '../uploads/profiles/' . $s['profile_pic'];
+                                        } elseif (is_file(__DIR__ . '/../../assets/images/' . $s['profile_pic'])) {
+                                            $pic_url = '../assets/images/' . $s['profile_pic'];
+                                        }
+                                    }
+                                ?>
+                                <img src="<?php echo $pic_url; ?>" class="w-12 h-12 rounded-2xl object-cover shadow-soft ring-2 ring-white border border-slate-100">
                                 <div>
                                     <h6 class="text-base font-black text-slate-800 italic leading-none mb-1"><?php echo $s['full_name']; ?></h6>
                                     <p class="text-[9px] font-bold text-primary-600 uppercase tracking-widest">Active Student</p>
@@ -139,7 +149,22 @@ function previewID(student) {
     document.getElementById('card_course').textContent = student.course_name;
     document.getElementById('card_roll').textContent = '#' + student.roll_no;
     document.getElementById('card_sem').textContent = 'SEM ' + student.semester;
-    document.getElementById('card_pic').src = '../assets/images/' + (student.profile_pic || 'default_profile.svg');
+    
+    // Resolve Image Path for Preview
+    let picPath = '../assets/images/default_profile.svg';
+    if (student.profile_pic) {
+        // We use a trick here: since we don't know for sure in JS if it's in uploads or assets without checking,
+        // and we know where it *should* be based on our convention.
+        // For simplicity and parity with PHP, we can pass the resolved URL from the table.
+        // But since we pass the raw student object, let's just try to point to uploads first.
+        picPath = '../uploads/profiles/' + student.profile_pic;
+    }
+    document.getElementById('card_pic').src = picPath;
+    
+    // Fallback if not in uploads
+    document.getElementById('card_pic').onerror = function() {
+        this.src = '../assets/images/default_profile.svg';
+    };
     
     document.getElementById('id_modal').classList.remove('hidden');
     document.getElementById('id_modal').classList.add('flex');

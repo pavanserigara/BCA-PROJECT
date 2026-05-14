@@ -3,7 +3,7 @@ $page_title = "Manage Faculty";
 require_once 'includes/header.php';
 
 $search = isset($_GET['search']) ? sanitize($_GET['search']) : '';
-$query = "SELECT u.id, u.full_name, u.email, u.status, t.employee_id, t.designation, d.name as dept_name 
+$query = "SELECT u.id, u.full_name, u.email, u.status, u.profile_pic, t.employee_id, t.designation, d.name as dept_name 
           FROM teachers t 
           JOIN users u ON t.user_id = u.id 
           JOIN departments d ON t.dept_id = d.id";
@@ -89,10 +89,17 @@ $faculties = $stmt->fetchAll();
                         <tr class="group hover:bg-slate-50/50 transition-colors">
                             <td class="py-6 px-8">
                                 <div class="flex items-center space-x-4">
-                                    <div
-                                        class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center font-black text-lg shadow-lg shadow-amber-100">
-                                        <?php echo substr($faculty['full_name'], 0, 1); ?>
-                                    </div>
+                                    <?php 
+                                        $pic_url = '../assets/images/default_profile.svg';
+                                        if (!empty($faculty['profile_pic'])) {
+                                            if (is_file(__DIR__ . '/../../uploads/profiles/' . $faculty['profile_pic'])) {
+                                                $pic_url = '../uploads/profiles/' . $faculty['profile_pic'];
+                                            } elseif (is_file(__DIR__ . '/../../assets/images/' . $faculty['profile_pic'])) {
+                                                $pic_url = '../assets/images/' . $faculty['profile_pic'];
+                                            }
+                                        }
+                                    ?>
+                                    <img src="<?php echo $pic_url; ?>" class="w-12 h-12 rounded-2xl object-cover shadow-lg shadow-amber-100" alt="">
                                     <div>
                                         <h6
                                             class="text-base font-bold text-slate-800 tracking-tight leading-none mb-1 group-hover:text-indigo-600 transition-colors">
@@ -134,10 +141,10 @@ $faculties = $stmt->fetchAll();
                                         class="w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-indigo-600 hover:border-indigo-600 hover:shadow-lg transition-all">
                                         <i class="fas fa-eye text-sm"></i>
                                     </a>
-                                    <button
+                                    <a href="faculty-edit.php?id=<?php echo $faculty['id']; ?>"
                                         class="w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-amber-600 hover:border-amber-600 transition-all">
                                         <i class="fas fa-edit text-sm"></i>
-                                    </button>
+                                    </a>
                                     <button
                                         class="w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-rose-600 hover:border-rose-600 transition-all">
                                         <i class="fas fa-trash-alt text-sm"></i>

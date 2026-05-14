@@ -27,9 +27,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $pdo->beginTransaction();
 
+        // Handle Profile Picture Upload
+        $profile_pic = 'default_profile.svg';
+        if (isset($_FILES['profile_pic']) && $_FILES['profile_pic']['error'] === 0) {
+            $ext = pathinfo($_FILES['profile_pic']['name'], PATHINFO_EXTENSION);
+            $profile_pic = 'faculty_' . time() . '_' . uniqid() . '.' . $ext;
+            move_uploaded_file($_FILES['profile_pic']['tmp_name'], '../uploads/profiles/' . $profile_pic);
+        }
+
         // 1. Create User
-        $stmt_user = $pdo->prepare("INSERT INTO users (username, email, password, role, full_name) VALUES (?, ?, ?, 'teacher', ?)");
-        $stmt_user->execute([$username, $email, $password, $full_name]);
+        $stmt_user = $pdo->prepare("INSERT INTO users (username, email, password, role, full_name, profile_pic) VALUES (?, ?, ?, 'teacher', ?, ?)");
+        $stmt_user->execute([$username, $email, $password, $full_name, $profile_pic]);
         $user_id = $pdo->lastInsertId();
 
         // 2. Create Teacher record
@@ -73,38 +81,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     <?php endif; ?>
 
-    <form action="faculty-add.php" method="POST" class="space-y-8 pb-20">
+    <form action="faculty-add.php" method="POST" enctype="multipart/form-data" class="space-y-8 pb-20">
         <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
-        <!-- Account Information -->
-        <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-indigo-100/50">
-            <div class="flex items-center space-x-4 mb-8">
+
+        <!-- Profile Pic & Basic Auth -->
+        <div class="bg-white p-10 md:p-12 rounded-[3.5rem] shadow-sm border border-indigo-100/50 relative overflow-hidden">
+            <div class="flex items-center space-x-4 mb-10">
                 <div class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
                     <i class="fas fa-user-shield text-xl"></i>
                 </div>
                 <div>
                     <h3 class="text-xl font-bold text-slate-800 tracking-tight">Authentication Setup</h3>
-                    <p class="text-sm text-slate-500">Credentials for faculty portal access.</p>
+                    <p class="text-sm text-slate-500">Credentials and identity visualization.</p>
                 </div>
+            </div>
+
+            <div class="flex flex-col items-center mb-10 space-y-4">
+                <div class="relative group/avatar">
+                    <div class="w-32 h-32 rounded-[2.5rem] bg-slate-100 overflow-hidden border-4 border-white shadow-xl">
+                        <img id="avatarPreview" src="../assets/images/default_profile.svg" class="w-full h-full object-cover" alt="Profile Preview">
+                    </div>
+                    <label for="profile_pic" class="absolute -bottom-2 -right-2 w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white cursor-pointer shadow-lg hover:scale-110 transition-all border-2 border-white">
+                        <i class="fas fa-camera text-sm"></i>
+                        <input type="file" id="profile_pic" name="profile_pic" class="hidden" accept="image/*" onchange="previewImage(this)">
+                    </label>
+                </div>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Faculty Portrait (Optional)</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-3" for="full_name">Legal Name *</label>
+                    <label class="block text-sm font-bold text-slate-700 mb-3 italic" for="full_name">Legal Name *</label>
                     <input type="text" id="full_name" name="full_name" required placeholder="Professor Name"
                         class="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all outline-none font-medium">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-3" for="email">Institutional Email *</label>
+                    <label class="block text-sm font-bold text-slate-700 mb-3 italic" for="email">Institutional Email *</label>
                     <input type="email" id="email" name="email" required placeholder="faculty@vidyasetu.ac.in"
                         class="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all outline-none font-medium">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-3" for="username">Username *</label>
+                    <label class="block text-sm font-bold text-slate-700 mb-3 italic" for="username">Username *</label>
                     <input type="text" id="username" name="username" required placeholder="faculty_id"
                         class="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all outline-none font-medium">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-3" for="password">Portal Password *</label>
+                    <label class="block text-sm font-bold text-slate-700 mb-3 italic" for="password">Portal Password *</label>
                     <input type="password" id="password" name="password" required placeholder="••••••••"
                         class="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all outline-none font-medium">
                 </div>
@@ -174,15 +196,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="flex items-center justify-end space-x-6">
             <button type="reset"
-                class="px-10 py-5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-[2rem] font-black text-xs tracking-widest uppercase transition-all">
-                Reset
+                class="px-10 py-5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-[2rem] font-black text-xs tracking-widest uppercase transition-all italic">
+                Discard
             </button>
             <button type="submit"
-                class="px-12 py-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[2rem] font-black text-xs tracking-widest uppercase shadow-xl shadow-indigo-100 hover:shadow-indigo-200 hover:-translate-y-1 transition-all">
-                Complete Recruitment
+                class="px-12 py-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[2rem] font-black text-xs tracking-widest uppercase shadow-xl shadow-indigo-100 hover:shadow-indigo-200 hover:-translate-y-1 transition-all italic">
+                Authorize Personnel
             </button>
         </div>
     </form>
 </div>
+
+<script>
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('avatarPreview').src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
 
 <?php require_once 'includes/footer.php'; ?>
