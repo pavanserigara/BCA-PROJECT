@@ -11,8 +11,15 @@ $settings = get_college_settings($pdo);
 $page_title = isset($page_title) ? $page_title : 'Parent Portal';
 $current_page = basename($_SERVER['PHP_SELF']);
 $profile_pic = $_SESSION['profile_pic'] ?? '';
-$profile_pic_path = __DIR__ . '/../../assets/images/' . $profile_pic;
-$profile_pic_url = (!empty($profile_pic) && is_file($profile_pic_path)) ? $profile_pic : 'default_profile.svg';
+$profile_pic_url = '../assets/images/default_profile.svg';
+
+if (!empty($profile_pic)) {
+    if (is_file(__DIR__ . '/../../uploads/profiles/' . $profile_pic)) {
+        $profile_pic_url = '../uploads/profiles/' . $profile_pic;
+    } elseif (is_file(__DIR__ . '/../../assets/images/' . $profile_pic)) {
+        $profile_pic_url = '../assets/images/' . $profile_pic;
+    }
+}
 
 // Fetch the linked student for this parent
 $stmt = $pdo->prepare("SELECT s.*, u.full_name, u.profile_pic as student_pic 
@@ -24,7 +31,8 @@ $stmt->execute([$_SESSION['user_id']]);
 $student_data = $stmt->fetch();
 
 if (!$student_data) {
-    die("No linked student found for this parent account. Please contact administration.");
+    // Set defaults so the page still renders
+    $student_data = ['user_id' => 0, 'full_name' => 'Not Linked', 'roll_no' => 'N/A', 'student_pic' => 'default_profile.svg'];
 }
 
 $_SESSION['linked_student_id'] = $student_data['user_id'];

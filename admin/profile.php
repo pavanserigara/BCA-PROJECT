@@ -29,7 +29,7 @@ $admin = $stmt->fetch();
                     <p class="text-lg font-black text-white tracking-tight leading-none italic">Root Administrator</p>
                 </div>
                 <div
-                    class="w-12 h-12 bg-indigo-500 rounded-2xl flex items-center justify-center text-white font-black italic shadow-lg shadow-indigo-400 text-xl">
+                    class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-white font-black italic shadow-lg shadow-indigo-400 text-xl">
                     R</div>
             </div>
         </div>
@@ -96,6 +96,20 @@ $admin = $stmt->fetch();
                 </h4>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-15 mb-15">
+                                <div class="bg-indigo-50/50 p-6 rounded-3xl border border-indigo-50/50">
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 italic">
+                                        Active Interface</p>
+                                    <p class="text-sm font-black text-slate-700 italic">
+                                        <?php echo htmlspecialchars($_SERVER['HTTP_USER_AGENT'] ? (strpos($_SERVER['HTTP_USER_AGENT'], 'Chrome') !== false ? 'Chrome / Webkit' : 'Active Browser') : 'Browser System'); ?>
+                                    </p>
+                                </div>
+                                <div class="bg-indigo-50/50 p-6 rounded-3xl border border-indigo-50/50">
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 italic">
+                                        Security Tier</p>
+                                    <p class="text-sm font-black text-emerald-600 italic">
+                                        <?php echo (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'SSL Encrypted' : 'Local Interface'; ?>
+                                    </p>
+                                </div>
                     <div>
                         <label
                             class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 italic">Preferred
@@ -155,21 +169,58 @@ $admin = $stmt->fetch();
                         </div>
                         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Browser
                             Environment</p>
-                        <p class="text-sm font-black text-slate-800 italic">Edge Stable</p>
+                        <p class="text-sm font-black text-slate-800 italic">
+                            <?php echo htmlspecialchars($_SERVER['HTTP_USER_AGENT'] ? (strpos($_SERVER['HTTP_USER_AGENT'], 'Chrome') !== false ? 'Chrome / Webkit' : 'Active Browser') : 'System Browser'); ?>
+                        </p>
                     </div>
                     <div class="text-center group">
                         <div
                             class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100 group-hover:border-emerald-400 transition-all shadow-sm">
-                            <i class="fas fa-network-wired text-slate-300 group-hover:text-emerald-400"></i>
+                            <i class="fas fa-network-wired text-slate-300 group-hover:border-emerald-400"></i>
                         </div>
                         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Protocol Tier
                         </p>
-                        <p class="text-sm font-black text-slate-800 italic">HTTPS Secured</p>
+                        <p class="text-sm font-black text-emerald-600 italic">
+                            <?php echo (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'SSL Secured' : 'Local Host'; ?>
+                        </p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.getElementById('profile_input').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('profile_pic', file);
+    formData.append('csrf_token', '<?php echo generate_csrf_token(); ?>');
+
+    const display = document.getElementById('profile_display');
+    display.classList.add('opacity-50');
+
+    fetch('../includes/handlers/profile_upload.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        display.classList.remove('opacity-50');
+        if (data.success) {
+            display.src = '../uploads/profiles/' + data.filename;
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        display.classList.remove('opacity-50');
+        console.error('Error:', error);
+        alert('An unexpected error occurred.');
+    });
+});
+</script>
 
 <?php require_once 'includes/footer.php'; ?>

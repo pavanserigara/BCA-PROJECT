@@ -79,13 +79,13 @@ $outstanding = max(0, $total_course_fee - $paid_so_far);
             <div>
                 <div class="w-full h-2.5 bg-slate-50 rounded-full mt-8 overflow-hidden">
                     <div class="h-full bg-emerald-500 rounded-full"
-                        style="width: <?php echo ($paid_so_far / $total_course_fee) * 100; ?>%"></div>
+                        style="width: <?php echo $total_course_fee > 0 ? ($paid_so_far / $total_course_fee) * 100 : 0; ?>%"></div>
                 </div>
                 <p
                     class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-4 flex items-center justify-between">
                     <span>Investment Progress</span>
                     <span class="text-emerald-500">
-                        <?php echo round(($paid_so_far / $total_course_fee) * 100, 1); ?>% Clear
+                        <?php echo $total_course_fee > 0 ? round(($paid_so_far / $total_course_fee) * 100, 1) : 0; ?>% Clear
                     </span>
                 </p>
             </div>

@@ -80,7 +80,7 @@ if (!empty($profile_pic)) {
             <!-- User Card -->
             <div class="px-3 py-2.5 border-b border-slate-100 flex-shrink-0">
                 <div class="flex items-center space-x-2 p-2 bg-slate-50 rounded-lg">
-                    <img src="../assets/images/<?php echo htmlspecialchars($profile_pic_url); ?>" class="w-8 h-8 rounded-lg object-cover ring-1 ring-white shadow-sm" alt="Admin">
+                    <img src="<?php echo htmlspecialchars($profile_pic_url); ?>" class="w-8 h-8 rounded-lg object-cover ring-1 ring-white shadow-sm" alt="Admin">
                     <div class="min-w-0">
                         <p class="text-[12px] font-semibold text-slate-700 truncate leading-tight"><?php echo $_SESSION['full_name']; ?></p>
                         <p class="text-[10px] font-medium text-primary-600 capitalize"><?php echo $_SESSION['role']; ?></p>
@@ -118,6 +118,9 @@ if (!empty($profile_pic)) {
                         </a>
                         <a href="students-list.php" class="block py-1.5 px-2.5 text-[11px] rounded-md transition-all <?php echo $current_page === 'students-list.php' ? 'text-primary-600 font-semibold bg-primary-50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'; ?>">
                             <i class="fas fa-list text-[8px] mr-1.5"></i>Student List
+                        </a>
+                        <a href="verify-documents.php" class="block py-1.5 px-2.5 text-[11px] rounded-md transition-all <?php echo $current_page === 'verify-documents.php' ? 'text-primary-600 font-semibold bg-primary-50' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'; ?>">
+                            <i class="fas fa-shield-check text-[8px] mr-1.5"></i>Verify Documents
                         </a>
                     </div>
                 </div>
@@ -269,7 +272,7 @@ if (!empty($profile_pic)) {
                                 <p class="text-[11px] font-semibold text-slate-700 leading-tight"><?php echo $_SESSION['full_name']; ?></p>
                                 <p class="text-[9px] font-medium text-primary-600 capitalize"><?php echo $_SESSION['role']; ?></p>
                             </div>
-                            <img src="../assets/images/<?php echo htmlspecialchars($profile_pic_url); ?>"
+                            <img src="<?php echo htmlspecialchars($profile_pic_url); ?>"
                                 class="w-7 h-7 rounded-lg object-cover ring-1 ring-slate-100" alt="Profile">
                         </button>
                         <div id="profile-menu" class="absolute right-0 top-full mt-1 w-44 bg-white rounded-lg shadow-lg border border-slate-100 opacity-0 invisible transition-all duration-150 transform translate-y-1 py-1 z-50">

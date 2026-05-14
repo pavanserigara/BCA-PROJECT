@@ -130,7 +130,7 @@ foreach ($results as $res) {
                                 </td>
                                 <td class="py-12 px-10 text-right pr-10">
                                     <div class="flex flex-col items-end">
-                                        <div class="text-4xl font-black text-emerald-400 italic"><?php echo round(($total_obtain / $total_max) * 100, 1); ?>%</div>
+                                        <div class="text-4xl font-black text-emerald-400 italic"><?php echo $total_max > 0 ? round(($total_obtain / $total_max) * 100, 1) : 0; ?>%</div>
                                         <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-2 italic leading-none">Net Performance Index</p>
                                     </div>
                                 </td>

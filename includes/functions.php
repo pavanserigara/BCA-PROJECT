@@ -80,8 +80,15 @@ function redirect_if_logged_in()
             case 'parent':
                 header("Location: parent/dashboard.php");
                 break;
+            // Librarian, staff, accountant portals are under development
+            // Redirect to admin dashboard as a temporary fallback
+            case 'librarian':
+            case 'staff':
+            case 'accountant':
+                header("Location: admin/dashboard.php");
+                break;
             default:
-                header("Location: dashboard.php");
+                header("Location: login.php");
                 break;
         }
         exit();

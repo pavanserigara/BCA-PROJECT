@@ -164,4 +164,37 @@ $att_percent = $att_stats['total'] > 0 ? round(($att_stats['present'] / $att_sta
     </div>
 </div>
 
+<script>
+document.getElementById('profile_input').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('profile_pic', file);
+    formData.append('csrf_token', '<?php echo generate_csrf_token(); ?>');
+
+    const display = document.getElementById('profile_display');
+    display.classList.add('opacity-50');
+
+    fetch('../includes/handlers/profile_upload.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        display.classList.remove('opacity-50');
+        if (data.success) {
+            display.src = '../uploads/profiles/' + data.filename;
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        display.classList.remove('opacity-50');
+        console.error('Error:', error);
+        alert('An unexpected error occurred.');
+    });
+});
+</script>
+
 <?php require_once 'includes/footer.php'; ?>

@@ -124,6 +124,7 @@ if (!empty($profile_pic)) {
                     <div class="space-y-1">
                         <?php
                         $campus_links = [
+                            ['timetable.php', 'fa-calendar-days', 'Schedules'],
                             ['library.php', 'fa-book-bookmark', 'Library'],
                             ['placements.php', 'fa-briefcase', 'Placements'],
                             ['logistics.php', 'fa-truck-fast', 'Logistics'],
@@ -132,6 +133,7 @@ if (!empty($profile_pic)) {
                             ['id-card.php', 'fa-id-card', 'Digital ID'],
                             ['complaints.php', 'fa-hand-holding-heart', 'Support'],
                             ['notices.php', 'fa-bullhorn', 'Broadcasts'],
+                            ['messaging.php', 'fa-message', 'In-Box'],
                             ['documents.php', 'fa-vault', 'Digital Vault'],
                             ['profile.php', 'fa-user-gear', 'My Settings'],
                         ];

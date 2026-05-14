@@ -7,7 +7,11 @@ $student_id = $_SESSION['user_id'];
 // Fetch existing documents
 $stmt = $pdo->prepare("SELECT * FROM student_documents WHERE student_id = ?");
 $stmt->execute([$student_id]);
-$docs = $stmt->fetchAll(PDO::FETCH_UNIQUE | PDO::FETCH_ASSOC);
+$raw_docs = $stmt->fetchAll();
+$docs = [];
+foreach ($raw_docs as $d) {
+    $docs[$d['document_type']] = $d;
+}
 
 $doc_types = [
     'aadhaar' => 'Aadhaar Card',

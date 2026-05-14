@@ -12,6 +12,19 @@ $stmt = $pdo->prepare("SELECT u.*, t.*, d.name as department_name
                        WHERE u.id = ?");
 $stmt->execute([$teacher_id]);
 $faculty = $stmt->fetch();
+
+// Fetch dynamic stats
+$stmt_subs = $pdo->prepare("SELECT COUNT(*) FROM teacher_subjects WHERE teacher_id = ?");
+$stmt_subs->execute([$teacher_id]);
+$subject_count = $stmt_subs->fetchColumn();
+
+$stmt_sems = $pdo->prepare("SELECT DISTINCT s.semester 
+                             FROM teacher_subjects ts 
+                             JOIN subjects s ON ts.subject_id = s.id 
+                             WHERE ts.teacher_id = ?");
+$stmt_sems->execute([$teacher_id]);
+$semesters = $stmt_sems->fetchAll(PDO::FETCH_COLUMN);
+$sem_list = !empty($semesters) ? implode(', ', $semesters) : 'N/A';
 ?>
 
 <div class="mb-8">
@@ -48,7 +61,7 @@ $faculty = $stmt->fetch();
                 </div>
                 <div class="text-center">
                     <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Experience</p>
-                    <p class="text-sm font-black text-slate-700 dark:text-white">8+ Years</p>
+                    <p class="text-sm font-black text-slate-700 dark:text-white"><?php echo $faculty['experience'] ?: 'N/A'; ?></p>
                 </div>
             </div>
 
@@ -133,15 +146,15 @@ $faculty = $stmt->fetch();
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="p-5 bg-primary-50 dark:bg-primary-500/10 rounded-2xl border border-primary-100 dark:border-primary-500/20 text-center">
                     <p class="text-[9px] font-bold text-primary-600 uppercase tracking-widest mb-1">Subjects</p>
-                    <p class="text-xl font-black text-slate-800 dark:text-white">04</p>
+                    <p class="text-xl font-black text-slate-800 dark:text-white"><?php echo str_pad($subject_count, 2, '0', STR_PAD_LEFT); ?></p>
                 </div>
                 <div class="p-5 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl border border-indigo-100 dark:border-indigo-500/20 text-center">
                     <p class="text-[9px] font-bold text-indigo-600 uppercase tracking-widest mb-1">Weekly Lect.</p>
-                    <p class="text-xl font-black text-slate-800 dark:text-white">18</p>
+                    <p class="text-xl font-black text-slate-800 dark:text-white"><?php echo $subject_count * 4; // Mock calculation ?></p>
                 </div>
                 <div class="p-5 bg-emerald-50 dark:bg-emerald-500/10 rounded-2xl border border-emerald-100 dark:border-emerald-500/20 text-center">
                     <p class="text-[9px] font-bold text-emerald-600 uppercase tracking-widest mb-1">Assigned Sem</p>
-                    <p class="text-xl font-black text-slate-800 dark:text-white">II, IV, VI</p>
+                    <p class="text-xl font-black text-slate-800 dark:text-white"><?php echo $sem_list; ?></p>
                 </div>
             </div>
         </div>
