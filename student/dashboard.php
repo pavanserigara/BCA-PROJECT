@@ -1,5 +1,5 @@
 <?php
-$page_title = "My Academic Journey";
+$page_title = "Academic Dashboard";
 require_once 'includes/header.php';
 
 // Fetch Student Info
@@ -8,7 +8,7 @@ $stmt = $pdo->prepare("SELECT s.*, c.name as course_name FROM students s JOIN co
 $stmt->execute([$student_id]);
 $student = $stmt->fetch();
 
-// Attendance Stats (REAL)
+// Attendance Stats
 $stmt_att = $pdo->prepare("SELECT 
     COUNT(*) as total_lectures,
     SUM(CASE WHEN status = 'Present' OR status = 'Late' THEN 1 ELSE 0 END) as present_count
@@ -19,7 +19,7 @@ $att_total = (int) ($att['total_lectures'] ?? 0);
 $att_present = (int) ($att['present_count'] ?? 0);
 $attendance_rate = $att_total > 0 ? round(($att_present / $att_total) * 100, 1) : 0;
 
-// Fees (REAL: current semester total vs paid)
+// Fees
 $stmt_fee = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) FROM fees_structure WHERE course_id = ? AND semester = ?");
 $stmt_fee->execute([(int) $student['course_id'], (int) $student['semester']]);
 $sem_fee_total = (float) $stmt_fee->fetchColumn();
@@ -27,269 +27,202 @@ $sem_fee_total = (float) $stmt_fee->fetchColumn();
 $stmt_paid = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) FROM fee_payments WHERE student_id = ? AND status IN ('Paid','Partial')");
 $stmt_paid->execute([$student_id]);
 $paid_total = (float) $stmt_paid->fetchColumn();
-
 $fee_outstanding = max(0, $sem_fee_total - $paid_total);
 
-// GPA (REAL: derived from published marks)
+// GPA
 $stmt_gpa = $pdo->prepare("SELECT AVG(marks_obtained / NULLIF(max_marks,0)) * 10 FROM marks WHERE student_id = ?");
 $stmt_gpa->execute([$student_id]);
 $gpa10 = (float) $stmt_gpa->fetchColumn();
 $gpa10 = $gpa10 > 0 ? round($gpa10, 2) : null;
 
-// My Subjects
+// My Subjects & Attendance Map
 $stmt_subs = $pdo->prepare("SELECT * FROM subjects WHERE course_id = ? AND semester = ?");
 $stmt_subs->execute([$student['course_id'], $student['semester']]);
 $subjects = $stmt_subs->fetchAll();
 
-// Subject-wise attendance map (REAL)
 $stmt_sub_att = $pdo->prepare("SELECT subject_id,
     COUNT(*) as total,
     SUM(CASE WHEN status = 'Present' OR status = 'Late' THEN 1 ELSE 0 END) as present
-    FROM attendance
-    WHERE student_id = ?
-    GROUP BY subject_id");
+    FROM attendance WHERE student_id = ? GROUP BY subject_id");
 $stmt_sub_att->execute([$student_id]);
-$att_rows = $stmt_sub_att->fetchAll();
 $att_by_subject = [];
-foreach ($att_rows as $r) {
-    $t = (int) ($r['total'] ?? 0);
-    $p = (int) ($r['present'] ?? 0);
-    $att_by_subject[(int) $r['subject_id']] = [
-        'total' => $t,
-        'present' => $p,
-        'percent' => $t > 0 ? round(($p / $t) * 100, 1) : 0
-    ];
+foreach ($stmt_sub_att->fetchAll() as $r) {
+    $t = (int) $r['total'];
+    $p = (int) $r['present'];
+    $att_by_subject[(int) $r['subject_id']] = ['percent' => $t > 0 ? round(($p / $t) * 100, 1) : 0];
 }
 
-// Recent assignments (REAL)
+// Recent Assignments
 $stmt_asg = $pdo->prepare("SELECT a.id, a.title, a.deadline, s.name as subject_name, s.code,
     (SELECT COUNT(*) FROM submissions sub WHERE sub.assignment_id = a.id AND sub.student_id = ?) as submitted
-    FROM assignments a
-    JOIN subjects s ON a.subject_id = s.id
+    FROM assignments a JOIN subjects s ON a.subject_id = s.id
     WHERE s.course_id = ? AND s.semester = ?
-    ORDER BY a.deadline ASC
-    LIMIT 4");
-$stmt_asg->execute([$student_id, (int) $student['course_id'], (int) $student['semester']]);
+    ORDER BY a.deadline ASC LIMIT 3");
+$stmt_asg->execute([$student_id, (int)$student['course_id'], (int)$student['semester']]);
 $recent_assignments = $stmt_asg->fetchAll();
 ?>
 
-<!-- Hero Section -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
-    <div
-        class="bg-indigo-600 p-8 rounded-[2rem] text-white shadow-xl shadow-indigo-100 flex flex-col justify-between h-56 group active:scale-95 transition-all cursor-pointer overflow-hidden relative">
-        <div
-            class="absolute -right-4 -bottom-4 bg-indigo-500 w-24 h-24 rounded-full group-hover:scale-150 transition-transform flex items-center justify-center opacity-40">
-            <i class="fas fa-user-graduate text-3xl"></i>
-        </div>
-        <div>
-            <h4 class="text-indigo-100 text-[10px] font-black uppercase tracking-widest mb-1">My Status</h4>
-            <div class="text-xl font-bold leading-tight">Enrolled in
-                <?php echo $student['course_name']; ?>
+<div class="mb-10">
+    <h2 class="text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight">Welcome back, <?php echo explode(' ', $_SESSION['full_name'])[0]; ?>! 👋</h2>
+    <p class="text-slate-500 dark:text-slate-400 mt-2 font-medium">Here's an overview of your academic progress for Semester <?php echo $student['semester']; ?>.</p>
+</div>
+
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+    <!-- Profile Mini -->
+    <div class="bg-gradient-to-br from-primary-600 to-indigo-700 p-6 rounded-[2.5rem] text-white shadow-premium relative overflow-hidden group">
+        <div class="relative z-10">
+            <p class="text-[10px] font-bold uppercase tracking-[0.2em] opacity-80 mb-4 text-primary-100">Enrollment</p>
+            <h3 class="text-xl font-black leading-tight"><?php echo $student['course_name']; ?></h3>
+            <div class="mt-6 flex items-center space-x-2 bg-white/10 backdrop-blur-md w-fit px-3 py-1.5 rounded-xl border border-white/10">
+                <i class="fas fa-fingerprint text-[10px] text-primary-200"></i>
+                <span class="text-[10px] font-black uppercase tracking-widest"><?php echo $student['roll_no']; ?></span>
             </div>
         </div>
-        <div class="flex items-center space-x-2 text-indigo-100/60 font-medium text-xs">
-            <i class="fas fa-id-badge"></i>
-            <span>Roll:
-                <?php echo $student['roll_no']; ?>
-            </span>
+        <i class="fas fa-graduation-cap absolute -bottom-4 -right-4 text-7xl opacity-10 group-hover:scale-125 group-hover:-rotate-12 transition-all duration-500"></i>
+    </div>
+
+    <!-- Attendance Widget -->
+    <div class="bg-white dark:bg-slate-800 p-6 rounded-[2.5rem] shadow-premium border border-slate-100 dark:border-slate-700/50 group">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Attendance</span>
+        </div>
+        <h3 class="text-3xl font-black text-slate-800 dark:text-white"><?php echo $attendance_rate; ?>%</h3>
+        <div class="mt-4 flex items-center space-x-2">
+            <div class="flex-1 h-2 bg-slate-50 dark:bg-slate-900 rounded-full overflow-hidden">
+                <div class="h-full bg-emerald-500 rounded-full" style="width: <?php echo $attendance_rate; ?>%"></div>
+            </div>
+            <span class="text-[10px] font-bold text-emerald-600"><?php echo $attendance_rate >= 75 ? 'Safe' : 'Critical'; ?></span>
         </div>
     </div>
 
-    <!-- Attendance Card -->
-    <div
-        class="bg-white p-8 rounded-[2rem] border border-indigo-50 shadow-sm flex flex-col justify-between h-56 group active:scale-95 transition-all cursor-pointer">
-        <div class="flex items-center justify-between mb-2">
-            <h4 class="text-slate-400 text-[10px] font-black uppercase tracking-widest leading-none">Overall Attendance
-            </h4>
-            <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs">
-                <i class="fas fa-check"></i>
+    <!-- Fees Widget -->
+    <div class="bg-white dark:bg-slate-800 p-6 rounded-[2.5rem] shadow-premium border border-slate-100 dark:border-slate-700/50">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                <i class="fas fa-wallet text-sm"></i>
             </div>
+            <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Fee Status</span>
         </div>
-        <div>
-            <div class="text-4xl font-black text-slate-800 tracking-tight leading-none mb-1">
-                <?php echo $attendance_rate; ?>%
-            </div>
-            <div class="w-full h-2 bg-slate-50 rounded-full mt-4 overflow-hidden">
-                <div class="h-full bg-indigo-500 rounded-full group-hover:animate-pulse"
-                    style="width: <?php echo $attendance_rate; ?>%"></div>
-            </div>
-        </div>
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            <?php echo $attendance_rate >= 75 ? 'On Track (≥ 75%)' : 'Below Target (< 75%)'; ?>
+        <h3 class="text-2xl font-black text-slate-800 dark:text-white">
+            <?php echo $fee_outstanding <= 0 ? 'Fully Paid' : '₹' . number_format($fee_outstanding, 0); ?>
+        </h3>
+        <p class="text-[10px] font-bold <?php echo $fee_outstanding <= 0 ? 'text-emerald-500' : 'text-rose-500'; ?> uppercase tracking-widest mt-4 flex items-center">
+            <i class="fas <?php echo $fee_outstanding <= 0 ? 'fa-circle-check' : 'fa-circle-exclamation'; ?> mr-1.5"></i>
+            <?php echo $fee_outstanding <= 0 ? 'No Dues Pending' : 'Action Required'; ?>
         </p>
     </div>
 
-    <!-- Fee Card -->
-    <div
-        class="bg-white p-8 rounded-[2rem] border border-indigo-50 shadow-sm flex flex-col justify-between h-56 group active:scale-95 transition-all cursor-pointer">
-        <div class="flex items-center justify-between mb-2">
-            <h4 class="text-slate-400 text-[10px] font-black uppercase tracking-widest leading-none">Semester Fees</h4>
-            <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-xs">
-                <i class="fas fa-wallet"></i>
+    <!-- Performance Widget -->
+    <div class="bg-white dark:bg-slate-800 p-6 rounded-[2.5rem] shadow-premium border border-slate-100 dark:border-slate-700/50">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-10 h-10 rounded-2xl bg-primary-50 dark:bg-primary-500/10 text-primary-600 flex items-center justify-center">
+                <i class="fas fa-chart-line text-sm"></i>
             </div>
+            <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Avg GPA</span>
         </div>
-        <div>
-            <div class="text-4xl font-black text-slate-800 tracking-tight leading-none mb-1">
-                <?php echo $sem_fee_total <= 0 ? '—' : ($fee_outstanding <= 0 ? 'Cleared' : 'Due'); ?>
-            </div>
-            <p class="text-xs font-bold text-slate-400 mt-4 tracking-tight leading-relaxed">
-                <?php if ($sem_fee_total <= 0): ?>
-                    Fees not configured for this semester.
-                <?php else: ?>
-                    Total: ₹<?php echo number_format($sem_fee_total, 0); ?> • Paid: ₹<?php echo number_format($paid_total, 0); ?>
-                <?php endif; ?>
-            </p>
-        </div>
-        <p class="text-[10px] font-bold <?php echo ($sem_fee_total > 0 && $fee_outstanding <= 0) ? 'text-emerald-500' : 'text-slate-400'; ?> uppercase tracking-widest">
-            <?php
-            if ($sem_fee_total <= 0) echo 'No Fee Plan';
-            elseif ($fee_outstanding <= 0) echo 'No Dues Pending';
-            else echo 'Outstanding: ₹' . number_format($fee_outstanding, 0);
-            ?>
-        </p>
-    </div>
-
-    <!-- Results Card -->
-    <div
-        class="bg-white p-8 rounded-[2rem] border border-indigo-50 shadow-sm flex flex-col justify-between h-56 group active:scale-95 transition-all cursor-pointer">
-        <div class="flex items-center justify-between mb-2">
-            <h4 class="text-slate-400 text-[10px] font-black uppercase tracking-widest leading-none">GPA Performance
-            </h4>
-            <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-xs">
-                <i class="fas fa-chart-line"></i>
-            </div>
-        </div>
-        <div>
-            <div class="text-4xl font-black text-slate-800 tracking-tight leading-none mb-1">
-                <?php echo $gpa10 !== null ? ($gpa10 . '/10') : '—'; ?>
-            </div>
-            <p class="text-xs font-bold text-slate-400 mt-4 tracking-tight leading-relaxed">
-                <?php echo $gpa10 !== null ? 'Computed from published marks.' : 'No marks published yet.'; ?>
-            </p>
-        </div>
-        <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">Current Semester Profile</p>
+        <h3 class="text-3xl font-black text-slate-800 dark:text-white"><?php echo $gpa10 ?? 'N/A'; ?></h3>
+        <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-4">Current Progress</p>
     </div>
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
-    <!-- Active Subjects Table -->
-    <div class="lg:col-span-2 bg-white p-10 rounded-[2.5rem] border border-slate-50 shadow-sm">
-        <div class="flex items-center justify-between mb-8">
-            <h4 class="text-2xl font-black text-slate-800 tracking-tight">Active Subjects</h4>
-            <span
-                class="text-[10px] font-black text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 uppercase tracking-widest">Semester
-                <?php echo $student['semester']; ?>
-            </span>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+    <!-- Subjects List -->
+    <div class="lg:col-span-2 space-y-6">
+        <div class="flex items-center justify-between">
+            <h4 class="text-xl font-extrabold text-slate-800 dark:text-white">Active Courses</h4>
+            <a href="timetable.php" class="text-[10px] font-bold text-primary-600 uppercase tracking-widest hover:underline">Full Schedule</a>
         </div>
-
-        <div class="overflow-x-auto">
-            <table class="w-full text-left">
-                <thead>
-                    <tr
-                        class="text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50">
-                        <th class="pb-6 px-4">Subject</th>
-                        <th class="pb-6 px-4">Code</th>
-                        <th class="pb-6 px-4">Attendance</th>
-                        <th class="pb-6 px-4 text-right">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-50">
-                    <?php foreach ($subjects as $sub): ?>
-                        <tr class="group hover:bg-slate-50 transition-all">
-                            <td class="py-6 px-4">
-                                <span class="text-sm font-bold text-slate-700">
-                                    <?php echo $sub['name']; ?>
-                                </span>
-                            </td>
-                            <td class="py-6 px-4">
-                                <span
-                                    class="text-xs font-black text-indigo-500 bg-indigo-50 px-2 py-1 rounded-lg border border-indigo-100">
-                                    <?php echo $sub['code']; ?>
-                                </span>
-                            </td>
-                            <td class="py-6 px-4">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                        <?php
-                                        $sub_stats = $att_by_subject[(int) $sub['id']] ?? ['percent' => 0];
-                                        $pct = (float) $sub_stats['percent'];
-                                        ?>
-                                        <div class="h-full <?php echo $pct >= 75 ? 'bg-emerald-400' : 'bg-rose-400'; ?>"
-                                            style="width: <?php echo $pct; ?>%"></div>
-                                    </div>
-                                    <span class="text-xs font-bold text-slate-500"><?php echo $pct; ?>%</span>
-                                </div>
-                            </td>
-                            <td class="py-6 px-4 text-right">
-                                <button
-                                    class="w-10 h-10 rounded-xl bg-white border border-slate-100 text-slate-300 hover:text-indigo-600 transition-all">
-                                    <i class="fas fa-download text-xs"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <?php foreach ($subjects as $sub): 
+                $sub_pct = $att_by_subject[(int)$sub['id']]['percent'] ?? 0;
+            ?>
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-700/50 shadow-soft hover:shadow-premium transition-all group border-l-4 <?php echo $sub_pct < 75 ? 'border-l-rose-500' : 'border-l-emerald-500'; ?>">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <span class="text-[10px] font-black text-primary-600 dark:text-primary-400 uppercase tracking-[0.2em] mb-1 block"><?php echo $sub['code']; ?></span>
+                            <h5 class="font-extrabold text-slate-800 dark:text-white text-sm group-hover:text-primary-600 transition-colors"><?php echo $sub['name']; ?></h5>
+                        </div>
+                        <div class="text-[10px] font-black text-slate-400 bg-slate-50 dark:bg-slate-900 px-2 py-1 rounded-lg">SEM <?php echo $sub['semester']; ?></div>
+                    </div>
+                    
+                    <div class="mt-6 flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                             <div class="text-[10px] font-bold text-slate-500">Attendance</div>
+                             <div class="text-xs font-black text-slate-800 dark:text-white"><?php echo $sub_pct; ?>%</div>
+                        </div>
+                        <div class="w-20 h-1.5 bg-slate-50 dark:bg-slate-900 rounded-full overflow-hidden">
+                            <div class="h-full <?php echo $sub_pct >= 75 ? 'bg-emerald-500' : 'bg-rose-500'; ?>" style="width: <?php echo $sub_pct; ?>%"></div>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
         </div>
     </div>
 
-    <!-- Recent Assignments -->
-    <div class="bg-slate-900 p-10 rounded-[3rem] shadow-2xl flex flex-col">
-        <div class="flex items-center justify-between mb-8">
-            <h4 class="text-2xl font-black text-white tracking-tight">Assignments</h4>
-            <a href="assignments.php" class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">View
-                Portal</a>
-        </div>
-
-        <div class="space-y-6 flex-1 overflow-y-auto pr-2 scrollbar-hide">
-            <?php if (empty($recent_assignments)): ?>
-                <div class="p-6 bg-slate-800 rounded-[2rem] border border-slate-700/50 text-slate-400">
-                    <p class="font-bold">No assignments posted yet.</p>
-                    <p class="text-[12px] mt-1">When faculty posts assignments for your semester, they’ll appear here.</p>
-                </div>
-            <?php else: ?>
-                <?php foreach ($recent_assignments as $a): ?>
-                    <?php
-                    $is_submitted = (int) $a['submitted'] > 0;
-                    $deadline = $a['deadline'] ? strtotime($a['deadline']) : null;
-                    $deadline_label = $deadline ? date('M d, Y', $deadline) : 'No deadline';
-                    ?>
-                    <div
-                        class="p-6 bg-slate-800 rounded-[2rem] border border-slate-700/50 hover:border-indigo-500/50 transition-all group">
-                        <div class="flex items-center justify-between mb-4">
-                            <span
-                                class="px-3 py-1 bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase tracking-widest rounded-lg border border-indigo-500/20">
-                                <?php echo htmlspecialchars($a['code']); ?>
-                            </span>
-                            <span class="text-slate-500 text-[10px] font-black uppercase tracking-widest">
-                                <?php echo htmlspecialchars($deadline_label); ?>
-                            </span>
-                        </div>
-                        <h6 class="text-white font-bold leading-tight group-hover:text-indigo-400 transition-colors mb-2">
-                            <?php echo htmlspecialchars($a['title']); ?>
-                        </h6>
-                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">
-                            <?php echo htmlspecialchars($a['subject_name']); ?>
-                        </p>
-                        <div class="flex items-center justify-between pt-4 border-t border-slate-700/50">
-                            <div class="flex items-center space-x-2 text-[10px] font-bold <?php echo $is_submitted ? 'text-emerald-500' : 'text-slate-500'; ?>">
-                                <i class="fas <?php echo $is_submitted ? 'fa-check-double' : 'fa-paper-plane'; ?>"></i>
-                                <span><?php echo $is_submitted ? 'Submitted' : 'Not Submitted'; ?></span>
-                            </div>
-                            <a href="assignments.php"
-                                class="w-8 h-8 rounded-lg bg-indigo-500 text-white flex items-center justify-center hover:bg-indigo-600 transition-all uppercase font-black text-[10px]">
-                                <i class="fas fa-arrow-right"></i>
-                            </a>
-                        </div>
+    <!-- Sidebar Cards -->
+    <div class="space-y-8">
+        <!-- Announcements / Notices -->
+        <div class="bg-slate-900 dark:bg-slate-800/50 p-8 rounded-[2.5rem] text-white shadow-premium border border-slate-800 dark:border-slate-700 relative overflow-hidden">
+            <h4 class="text-lg font-black mb-6 flex items-center">
+                <i class="fas fa-bullhorn text-primary-400 mr-2"></i>
+                Latest Tasks
+            </h4>
+            
+            <div class="space-y-5">
+                <?php if (empty($recent_assignments)): ?>
+                    <div class="text-center py-6 opacity-40">
+                        <i class="fas fa-check-circle text-2xl mb-2 block"></i>
+                        <p class="text-[10px] font-bold uppercase tracking-widest">No pending tasks</p>
                     </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
+                <?php else: ?>
+                    <?php foreach ($recent_assignments as $asg): 
+                        $due = strtotime($asg['deadline']);
+                        $is_late = $due < time() && !$asg['submitted'];
+                    ?>
+                        <div class="flex items-start space-x-3 p-4 bg-white/5 dark:bg-slate-900 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors relative group">
+                            <div class="w-10 h-10 rounded-xl bg-primary-600 flex-shrink-0 flex items-center justify-center text-xs font-black italic shadow-lg shadow-primary-500/20">
+                                <?php echo date('d', $due); ?>
+                            </div>
+                            <div class="min-w-0">
+                                <h6 class="text-xs font-extrabold truncate"><?php echo $asg['title']; ?></h6>
+                                <div class="flex items-center space-x-2 mt-1">
+                                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest"><?php echo $asg['code']; ?></span>
+                                    <span class="w-1 h-1 rounded-full bg-slate-600"></span>
+                                    <span class="text-[9px] font-bold <?php echo $is_late ? 'text-rose-400' : 'text-primary-400'; ?> uppercase tracking-widest">
+                                        <?php echo $asg['submitted'] ? 'Done' : 'Due ' . date('M j', $due); ?>
+                                    </span>
+                                </div>
+                            </div>
+                            <a href="assignments.php" class="absolute inset-0 opacity-0 group-hover:opacity-100 bg-primary-600/10 rounded-2xl transition-all"></a>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+
+            <a href="assignments.php" class="mt-8 w-full block py-4 bg-primary-600 hover:bg-primary-700 text-white rounded-2xl text-center text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-primary-500/20 transition-all">
+                Open Workspace
+            </a>
         </div>
 
-        <button
-            class="mt-10 w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-indigo-900/40 hover:bg-indigo-700 transition-all">
-            Open Submissions Dashboard
-        </button>
+        <!-- Quick Links Card -->
+        <div class="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-700/50 shadow-premium">
+             <h4 class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-6">Discovery Hub</h4>
+             <div class="grid grid-cols-2 gap-3">
+                 <a href="library.php" class="flex flex-col items-center p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl hover:bg-primary-500 hover:text-white transition-all group">
+                     <i class="fas fa-book-open text-lg mb-2 text-primary-600 group-hover:text-white"></i>
+                     <span class="text-[10px] font-black uppercase tracking-widest">Library</span>
+                 </a>
+                 <a href="events.php" class="flex flex-col items-center p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl hover:bg-primary-500 hover:text-white transition-all group">
+                     <i class="fas fa-vr-cardboard text-lg mb-2 text-primary-600 group-hover:text-white"></i>
+                     <span class="text-[10px] font-black uppercase tracking-widest">Fests</span>
+                 </a>
+             </div>
+        </div>
     </div>
 </div>
 

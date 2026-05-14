@@ -8,174 +8,184 @@ if (!has_role('student')) {
 }
 
 $settings = get_college_settings($pdo);
-$page_title = isset($page_title) ? $page_title : 'Student Dashboard';
+$page_title = isset($page_title) ? $page_title : 'Student Portal';
 $current_page = basename($_SERVER['PHP_SELF']);
 $profile_pic = $_SESSION['profile_pic'] ?? '';
 $profile_pic_path = __DIR__ . '/../../assets/images/' . $profile_pic;
 $profile_pic_url = (!empty($profile_pic) && is_file($profile_pic_path)) ? $profile_pic : 'default_profile.svg';
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>
-        <?php echo $page_title; ?> | Student Portal
-    </title>
-    <!-- Tailwind CSS CDN -->
+    <title><?php echo $page_title; ?> | VidyaSetu CMS</title>
+    
+    <!-- Premium Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons & Styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: { 'inter': ['Inter', 'sans-serif'] },
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
                     colors: {
-                        primary: { 50:'#EEF2FF',100:'#E0E7FF',200:'#C7D2FE',300:'#A5B4FC',400:'#818CF8',500:'#6366F1',600:'#4F46E5',700:'#4338CA',800:'#3730A3',900:'#312E81' },
+                        primary: { 50:'#f0f4ff', 100:'#e0e8ff', 200:'#c7d2fe', 300:'#a5b4fc', 400:'#818cf8', 500:'#6366f1', 600:'#4f46e5', 700:'#4338ca', 800:'#3730a3', 900:'#312e81' },
+                        slate: { 950: '#020617' }
                     },
                     boxShadow: {
-                        'card': '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)',
-                        'card-hover': '0 2px 12px rgba(0,0,0,0.07)',
+                        'premium': '0 10px 40px -10px rgba(0,0,0,0.08), 0 20px 25px -5px rgba(0,0,0,0.03)',
+                        'soft': '0 2px 15px -3px rgba(0,0,0,0.07), 0 4px 6px -2px rgba(0,0,0,0.05)',
                     }
                 }
             }
         }
+
+        // Apply dark mode immediately
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
     </script>
-    <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        .custom-sidebar-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.05); border-radius: 20px; }
+        .dark .custom-sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); }
+        .glass-navbar { backdrop-filter: blur(12px); background-color: rgba(255, 255, 255, 0.8); }
+        .dark .glass-navbar { background-color: rgba(15, 23, 42, 0.8); }
+    </style>
 </head>
 
-<body class="bg-slate-50/80 font-inter text-slate-700 antialiased text-[13px]">
+<body class="bg-[#F8FAFC] dark:bg-[#0F172A] text-slate-700 dark:text-slate-300 antialiased font-medium text-sm">
 
-    <div id="sidebar-backdrop"
-        class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 hidden transition-opacity duration-300 opacity-0 lg:hidden">
-    </div>
-
-    <div class="flex min-h-screen">
-
-        <!-- Sidebar -->
-        <aside id="sidebar"
-            class="fixed lg:sticky inset-y-0 left-0 top-0 bg-white w-[230px] z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col border-r border-slate-100 h-screen overflow-hidden">
-
-            <!-- Logo -->
-            <div class="h-[52px] flex items-center px-4 border-b border-slate-100 flex-shrink-0">
-                <div class="flex items-center space-x-2">
-                    <div
-                        class="w-7 h-7 bg-gradient-to-br from-primary-600 to-primary-700 rounded-lg flex items-center justify-center text-white font-bold text-[11px] shadow-md">
-                        V</div>
-                    <span class="font-bold text-base tracking-tight text-slate-800">Vidya<span
-                            class="text-primary-600">Setu</span></span>
-                </div>
-                <button id="close-sidebar" class="lg:hidden ml-auto text-slate-400 hover:text-slate-600 p-0.5">
-                    <i class="fas fa-times text-sm"></i>
-                </button>
-            </div>
-
-            <!-- User Card -->
-            <div class="px-3 py-2.5 border-b border-slate-100 flex-shrink-0">
-                <div class="flex items-center space-x-2 p-2 bg-slate-50 rounded-lg">
-                    <img src="../assets/images/<?php echo htmlspecialchars($profile_pic_url); ?>"
-                        class="w-8 h-8 rounded-lg object-cover ring-1 ring-white shadow-sm" alt="Student">
-                    <div class="min-w-0">
-                        <p class="text-[12px] font-semibold text-slate-700 truncate leading-tight">
-                            <?php echo $_SESSION['full_name']; ?>
-                        </p>
-                        <p class="text-[10px] font-medium text-primary-600 capitalize">Student</p>
+    <div class="flex min-h-screen overflow-hidden">
+        <!-- Modern Sidebar -->
+        <aside id="sidebar" class="fixed lg:sticky top-0 left-0 h-screen w-72 bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 z-[60] flex flex-col transform -translate-x-full lg:translate-x-0 transition-all duration-300 ease-in-out shadow-2xl lg:shadow-none">
+            
+            <div class="h-24 flex items-center px-8 flex-shrink-0">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-tr from-primary-600 to-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary-500/30 font-black text-xl italic">V</div>
+                    <div>
+                        <h1 class="text-lg font-extrabold text-slate-800 dark:text-white leading-none tracking-tight">Vidya<span class="text-primary-600">Setu</span></h1>
+                        <p class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">Student Hub v2</p>
                     </div>
                 </div>
             </div>
 
-            <nav class="flex-1 overflow-y-auto py-2 px-2 sidebar-scroll">
-                <p class="px-2.5 text-[9px] font-semibold text-slate-400 uppercase tracking-[0.1em] mb-1.5 mt-1">Overview
-                </p>
-
-                <?php
-                $main_links = [
-                    ['dashboard.php', 'fa-home', 'Dashboard'],
-                    ['attendance.php', 'fa-chart-pie', 'Attendance'],
-                    ['timetable.php', 'fa-calendar-week', 'Timetable'],
-                    ['results.php', 'fa-graduation-cap', 'Results'],
-                    ['assignments.php', 'fa-tasks', 'Assignments'],
-                    ['fees.php', 'fa-credit-card', 'Fees'],
-                ];
-                foreach ($main_links as $link):
-                ?>
-                    <a href="<?php echo $link[0]; ?>"
-                        class="flex items-center space-x-2.5 px-2.5 py-[7px] rounded-lg mb-px transition-all duration-150 <?php echo $current_page === $link[0] ? 'bg-primary-600 text-white shadow-md shadow-primary-200' : 'text-slate-600 hover:bg-slate-50'; ?>">
-                        <div
-                            class="w-6 h-6 rounded-md flex items-center justify-center <?php echo $current_page === $link[0] ? 'bg-white/20' : 'bg-slate-100'; ?>">
-                            <i class="fas <?php echo $link[1]; ?> text-[10px]"></i>
-                        </div>
-                        <span class="font-medium text-[12px]"><?php echo $link[2]; ?></span>
-                    </a>
-                <?php endforeach; ?>
-
-                <p class="px-2.5 text-[9px] font-semibold text-slate-400 uppercase tracking-[0.1em] mt-4 mb-1.5">
-                    Campus</p>
-
-                <?php
-                $campus_links = [
-                    ['library.php', 'fa-book-open', 'Library'],
-                    ['events.php', 'fa-calendar-star', 'Events'],
-                    ['complaints.php', 'fa-hand-holding-hand', 'Grievances'],
-                    ['notices.php', 'fa-bullhorn', 'Notices'],
-                    ['profile.php', 'fa-user-circle', 'My Profile'],
-                ];
-                foreach ($campus_links as $link):
-                ?>
-                    <a href="<?php echo $link[0]; ?>"
-                        class="flex items-center space-x-2.5 px-2.5 py-[7px] rounded-lg mb-px transition-all duration-150 <?php echo $current_page === $link[0] ? 'bg-primary-600 text-white shadow-md shadow-primary-200' : 'text-slate-600 hover:bg-slate-50'; ?>">
-                        <div
-                            class="w-6 h-6 rounded-md flex items-center justify-center <?php echo $current_page === $link[0] ? 'bg-white/20' : 'bg-slate-100'; ?>">
-                            <i class="fas <?php echo $link[1]; ?> text-[10px]"></i>
-                        </div>
-                        <span class="font-medium text-[12px]"><?php echo $link[2]; ?></span>
-                    </a>
-                <?php endforeach; ?>
-
-            </nav>
-
-            <div class="px-3 py-2.5 border-t border-slate-100 flex-shrink-0">
-                <a href="../logout.php"
-                    class="flex items-center space-x-2.5 px-2.5 py-[7px] rounded-lg text-red-500 hover:bg-red-50 transition-all duration-150">
-                    <div class="w-6 h-6 rounded-md flex items-center justify-center bg-red-50">
-                        <i class="fas fa-sign-out-alt text-[10px]"></i>
+            <!-- Navigation Links -->
+            <div class="flex-1 overflow-y-auto px-4 pb-8 space-y-8 custom-sidebar-scroll">
+                <div>
+                    <p class="px-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-4">Core Center</p>
+                    <div class="space-y-1">
+                        <?php
+                        $main_links = [
+                            ['dashboard.php', 'fa-grip-vertical', 'Overview'],
+                            ['attendance.php', 'fa-calendar-day', 'Attendance'],
+                            ['timetable.php', 'fa-calendar-range', 'Schedule'],
+                            ['assignments.php', 'fa-file-signature', 'Assignments'],
+                            ['results.php', 'fa-award', 'Results'],
+                        ];
+                        foreach ($main_links as $link):
+                            $active = ($current_page === $link[0]);
+                        ?>
+                            <a href="<?php echo $link[0]; ?>" 
+                               class="flex items-center space-x-3 px-4 py-3 rounded-2xl transition-all duration-200 group <?php echo $active ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-primary-600'; ?>">
+                                <div class="w-8 flex justify-center">
+                                    <i class="fas <?php echo $link[1]; ?> text-sm"></i>
+                                </div>
+                                <span class="font-bold text-sm"><?php echo $link[2]; ?></span>
+                            </a>
+                        <?php endforeach; ?>
                     </div>
-                    <span class="font-medium text-[12px]">Logout</span>
+                </div>
+
+                <div>
+                    <p class="px-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-4">Campus Life</p>
+                    <div class="space-y-1">
+                        <?php
+                        $campus_links = [
+                            ['library.php', 'fa-book-bookmark', 'Library'],
+                            ['events.php', 'fa-sparkles', 'Festivals'],
+                            ['fees.php', 'fa-wallet', 'Billing'],
+                            ['complaints.php', 'fa-hand-holding-heart', 'Support'],
+                            ['notices.php', 'fa-bullhorn', 'Broadcasts'],
+                            ['profile.php', 'fa-user-gear', 'My Settings'],
+                        ];
+                        foreach ($campus_links as $link):
+                            $active = ($current_page === $link[0]);
+                        ?>
+                            <a href="<?php echo $link[0]; ?>" 
+                               class="flex items-center space-x-3 px-4 py-3 rounded-2xl transition-all duration-200 group <?php echo $active ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-primary-600'; ?>">
+                                <div class="w-8 flex justify-center">
+                                    <i class="fas <?php echo $link[1]; ?> text-sm text-[11px]"></i>
+                                </div>
+                                <span class="font-bold text-sm transition-all"><?php echo $link[2]; ?></span>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Widget -->
+            <div class="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                <a href="../logout.php" class="flex items-center justify-between p-3 rounded-2xl hover:bg-rose-50 dark:hover:bg-rose-500/10 group transition-colors">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-500/20 text-rose-600 flex items-center justify-center">
+                            <i class="fas fa-sign-out-alt text-xs"></i>
+                        </div>
+                        <span class="font-bold text-sm text-slate-600 dark:text-slate-400 group-hover:text-rose-600 transition-colors">Terminate</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-[10px] text-slate-300 dark:text-slate-700"></i>
                 </a>
             </div>
         </aside>
 
         <!-- Main Content Area -->
-        <main class="flex-1 flex flex-col min-h-screen min-w-0">
-
-            <!-- Top Navigation -->
-            <header class="h-[52px] bg-white border-b border-slate-100 flex items-center justify-between px-3 sm:px-4 lg:px-6 sticky top-0 z-30">
-                <div class="flex items-center space-x-3 min-w-0">
-                    <button id="toggle-sidebar"
-                        class="lg:hidden text-slate-500 hover:text-slate-700 p-1.5 -ml-1 rounded-md hover:bg-slate-50 transition-colors">
-                        <i class="fas fa-bars text-sm"></i>
+        <div class="flex-1 min-w-0 flex flex-col relative overflow-y-auto">
+            
+            <header id="top-nav" class="sticky top-0 z-50 glass-navbar border-b border-slate-100 dark:border-slate-800 px-6 lg:px-10 h-20 flex items-center justify-between transition-all duration-300">
+                <div class="flex items-center space-x-4">
+                    <button id="toggle-sidebar" class="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-slate-800 text-slate-500 shadow-soft border border-slate-100 dark:border-slate-700 active:scale-95 transition-all">
+                        <i class="fas fa-bars-staggered"></i>
                     </button>
-                    <div class="min-w-0">
-                        <p class="text-[12px] font-semibold text-slate-700 truncate leading-tight">
-                            <?php echo htmlspecialchars($page_title); ?>
-                        </p>
-                        <p class="text-[10px] text-slate-400 hidden sm:block">Student Portal</p>
+                    <div class="hidden sm:block">
+                        <h2 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider"><?php echo $page_title; ?></h2>
+                        <div class="flex items-center space-x-2 text-[10px] font-bold text-primary-600 uppercase tracking-widest mt-0.5">
+                            <span class="inline-block w-1 h-1 rounded-full bg-primary-600 animate-pulse"></span>
+                            <span>Student Portal</span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="flex items-center space-x-6">
-                    <button class="relative text-slate-500 hover:text-slate-700 p-1.5 rounded-md hover:bg-slate-50 transition-colors">
-                        <i class="fas fa-bell text-[11px]"></i>
-                        <span class="absolute top-1 right-1 w-1.5 h-1.5 bg-red-500 rounded-full ring-1 ring-white"></span>
+                <div class="flex items-center space-x-3 md:space-x-4">
+                    <!-- Theme Toggle -->
+                    <button id="theme-toggle" class="w-11 h-11 flex items-center justify-center rounded-2xl bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 shadow-soft border border-slate-100 dark:border-slate-700 hover:text-primary-600 dark:hover:text-primary-400 transition-all active:scale-90 relative">
+                        <i id="theme-toggle-dark-icon" class="hidden fas fa-moon text-sm"></i>
+                        <i id="theme-toggle-light-icon" class="hidden fas fa-sun text-sm"></i>
                     </button>
 
-                    <a href="profile.php" class="flex items-center space-x-2 ml-1 pl-3 border-l border-slate-100">
-                        <img src="../assets/images/<?php echo htmlspecialchars($profile_pic_url); ?>"
-                            class="w-7 h-7 rounded-lg object-cover ring-1 ring-slate-100" alt="Profile">
+                    <div class="hidden md:flex flex-col items-end mr-2">
+                        <p class="text-xs font-black text-slate-800 dark:text-white"><?php echo $_SESSION['full_name']; ?></p>
+                        <p class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">Active Session</p>
+                    </div>
+
+                    <a href="profile.php" class="relative group">
+                        <div class="absolute -inset-1 bg-gradient-to-tr from-primary-600 to-indigo-600 rounded-2xl opacity-20 group-hover:opacity-40 blur transition-all duration-300"></div>
+                        <img src="../assets/images/<?php echo htmlspecialchars($profile_pic_url); ?>" class="relative w-11 h-11 rounded-2xl object-cover border-2 border-white dark:border-slate-800 ring-1 ring-slate-100 dark:ring-slate-800 shadow-premium" alt="Student Profile">
+                        <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-4 border-white dark:border-slate-900 rounded-full shadow-lg"></div>
                     </a>
                 </div>
             </header>
 
-            <div class="flex-1 p-3 sm:p-4 lg:p-6">
+            <main class="flex-1 p-6 lg:p-10">

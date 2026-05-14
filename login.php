@@ -11,8 +11,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = sanitize($_POST['username']);
     $password = $_POST['password'];
     $remember = isset($_POST['remember']);
+    $csrf_token = $_POST['csrf_token'] ?? '';
 
-    if (empty($username) || empty($password)) {
+    if (!verify_csrf_token($csrf_token)) {
+        $error_message = "CSRF validation failed. Please try again.";
+    } elseif (empty($username) || empty($password)) {
         $error_message = "Please fill in all fields.";
     } else {
         if (authenticate($pdo, $username, $password)) {
@@ -268,6 +271,7 @@ $settings = get_college_settings($pdo);
                     <?php endif; ?>
 
                     <form action="login.php" method="POST" class="space-y-7">
+                        <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
                         <div>
                             <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3"
                                 for="username">

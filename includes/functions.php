@@ -2,6 +2,50 @@
 session_start();
 
 /**
+ * Generate a CSRF token and store it in the session if not already present.
+ */
+function generate_csrf_token()
+{
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+/**
+ * Verify a CSRF token against the session.
+ */
+function verify_csrf_token($token)
+{
+    if (!isset($_SESSION['csrf_token']) || $token !== $_SESSION['csrf_token']) {
+        return false;
+    }
+    return true;
+}
+
+/**
+ * CSRF protection middleware for POST requests.
+ */
+function csrf_guard()
+{
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (!isset($_POST['csrf_token']) || !verify_csrf_token($_POST['csrf_token'])) {
+            die("CSRF validation failed. Possible cross-site request forgery.");
+        }
+    }
+}
+
+
+// Define the base path for the project. 
+// If running in a subdirectory like /bca-project/, this should be /bca-project/
+if (!defined('BASE_URL')) {
+    $script_name = $_SERVER['SCRIPT_NAME'];
+    $base_dir = str_replace('\\', '/', dirname(dirname($script_name)));
+    define('BASE_URL', rtrim($base_dir, '/') . '/');
+}
+
+
+/**
  * Check if the user is logged in.
  */
 function is_logged_in()
@@ -47,13 +91,13 @@ function redirect_if_logged_in()
 function require_login($role = null)
 {
     if (!is_logged_in()) {
-        header("Location: /login.php");
+        header("Location: " . BASE_URL . "login.php");
         exit();
     }
 
     if ($role && $_SESSION['role'] !== $role) {
         set_flash_message('error', 'Access Denied: You do not have permission to view this page.');
-        header("Location: /login.php");
+        header("Location: " . BASE_URL . "login.php");
         exit();
     }
 }
@@ -71,7 +115,7 @@ function sanitize($input)
  */
 function asset($path)
 {
-    return "/assets/" . ltrim($path, '/');
+    return BASE_URL . "assets/" . ltrim($path, '/');
 }
 
 /**
@@ -90,9 +134,15 @@ function display_flash_message()
     if (isset($_SESSION['flash'])) {
         $flash = $_SESSION['flash'];
         unset($_SESSION['flash']);
-        echo "<div class='p-4 mb-4 text-sm rounded-lg " .
-            ($flash['type'] === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800') .
-            "' role='alert'>{$flash['message']}</div>";
+        $type = $flash['type'];
+        $message = $flash['message'];
+        $bg = $type === 'success' ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-500/20 text-emerald-600' : 'bg-rose-50 dark:bg-rose-500/10 border-rose-500/20 text-rose-600';
+        $icon = $type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation';
+
+        echo "<div class='flex items-center p-4 mb-6 rounded-2xl border {$bg} transition-all duration-500 transform animate-in fade-in slide-in-from-top-4' role='alert'>
+                <i class='fas {$icon} mr-3 text-lg'></i>
+                <span class='text-xs font-bold uppercase tracking-widest'>{$message}</span>
+              </div>";
     }
 }
 

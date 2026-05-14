@@ -1,10 +1,46 @@
 <?php
-$page_title = "Assignment Desk";
-require_once 'includes/header.php';
+require_once '../includes/db.php';
+require_once '../includes/functions.php';
+
+if (!has_role('teacher')) {
+    header("Location: ../login.php");
+    exit();
+}
 
 $teacher_id = $_SESSION['user_id'];
-$success_message = '';
-$error_message = '';
+
+// Handle New Assignment Upload before any HTML output
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_assignment'])) {
+    $title = sanitize($_POST['title']);
+    $description = $_POST['description'];
+    $subject_id = (int)$_POST['subject_id'];
+    $deadline = $_POST['deadline'];
+    
+    $file_path = NULL;
+    if (isset($_FILES['assignment_file']) && $_FILES['assignment_file']['error'] === 0) {
+        $upload_dir = '../uploads/assignments/';
+        if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
+        
+        $filename = 'assignment_' . time() . '_' . $_FILES['assignment_file']['name'];
+        $dest = $upload_dir . $filename;
+        if (move_uploaded_file($_FILES['assignment_file']['tmp_name'], $dest)) {
+            $file_path = 'assignments/' . $filename;
+        }
+    }
+
+    try {
+        $stmt = $pdo->prepare("INSERT INTO assignments (teacher_id, subject_id, title, description, file_path, deadline) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$teacher_id, $subject_id, $title, $description, $file_path, $deadline]);
+        set_flash_message('success', 'Assignment published successfully!');
+        header("Location: assignments.php");
+        exit();
+    } catch (PDOException $e) {
+        set_flash_message('error', "Failed to create assignment: " . $e->getMessage());
+    }
+}
+
+$page_title = "Assignments";
+require_once 'includes/header.php';
 
 // Fetch assigned subjects
 $subjects = $pdo->prepare("SELECT s.*, c.name as course_name 
@@ -15,25 +51,6 @@ $subjects = $pdo->prepare("SELECT s.*, c.name as course_name
 $subjects->execute([$teacher_id]);
 $my_subjects = $subjects->fetchAll();
 
-// Handle New Assignment Upload
-if (isset($_POST['upload_assignment'])) {
-    $title = sanitize($_POST['title']);
-    $description = $_POST['description'];
-    $subject_id = $_POST['subject_id'];
-    $deadline = $_POST['deadline'];
-
-    // In a real app, handle file upload here. For now, we'll store a placeholder or dummy path.
-    $file_path = 'assignments/doc_' . time() . '.pdf';
-
-    try {
-        $stmt = $pdo->prepare("INSERT INTO assignments (teacher_id, subject_id, title, description, file_path, deadline) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$teacher_id, $subject_id, $title, $description, $file_path, $deadline]);
-        $success_message = "Assignment published successfully!";
-    } catch (PDOException $e) {
-        $error_message = "Failed to create assignment: " . $e->getMessage();
-    }
-}
-
 // Fetch published assignments
 $stmt_published = $pdo->prepare("SELECT a.*, s.name as subject_name, (SELECT COUNT(*) FROM submissions WHERE assignment_id = a.id) as submission_count 
                                   FROM assignments a 
@@ -43,74 +60,56 @@ $stmt_published->execute([$teacher_id]);
 $published_assignments = $stmt_published->fetchAll();
 ?>
 
-<div class="flex items-center justify-between mb-10">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
     <div>
-        <h2 class="text-3xl font-black text-slate-800 tracking-tight">Assignment Management</h2>
-        <p class="text-slate-500 font-medium">Distribute tasks and manage student submissions.</p>
+        <h2 class="text-2xl font-extrabold text-slate-800 dark:text-white">Assignments</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage tasks and evaluate student submissions.</p>
     </div>
-
     <button onclick="document.getElementById('upload_modal').classList.remove('hidden')"
-        class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3.5 rounded-2xl font-bold flex items-center space-x-2 shadow-lg shadow-indigo-100 transition-all hover:-translate-y-0.5 transform active:scale-95">
-        <i class="fas fa-file-circle-plus"></i>
-        <span>Publish Assignment</span>
+        class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-2xl font-bold flex items-center space-x-2 shadow-premium transition-all transform active:scale-95">
+        <i class="fas fa-plus-circle"></i>
+        <span>Post New Task</span>
     </button>
 </div>
 
-<?php if ($success_message): ?>
-    <div
-        class="bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 p-6 rounded-2xl mb-8 flex items-center animate__animated animate__fadeInDown">
-        <i class="fas fa-check-circle text-2xl mr-4"></i>
-        <p class="text-sm font-bold">
-            <?php echo $success_message; ?>
-        </p>
-    </div>
-<?php endif; ?>
+<?php display_flash_message(); ?>
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-12">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     <?php if (empty($published_assignments)): ?>
-        <div class="lg:col-span-3 py-20 bg-white rounded-[3rem] text-center border border-indigo-50">
-            <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-200">
-                <i class="fas fa-file-lines text-3xl"></i>
+        <div class="md:col-span-2 lg:col-span-3 py-20 bg-white dark:bg-slate-800 rounded-3xl text-center border border-dashed border-slate-200 dark:border-slate-700">
+            <div class="w-16 h-16 bg-slate-50 dark:bg-slate-900 rounded-2xl flex items-center justify-center mx-auto mb-4 text-slate-300">
+                <i class="fas fa-file-invoice text-2xl"></i>
             </div>
-            <h4 class="text-xl font-bold text-slate-800">No Assignments Yet</h4>
-            <p class="text-slate-500 mt-2">Create and assign tasks to your students.</p>
+            <p class="text-slate-500 dark:text-slate-400 font-medium">No assignments posted yet.</p>
         </div>
     <?php else: ?>
         <?php foreach ($published_assignments as $assign): ?>
-            <div
-                class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-indigo-100/50 hover:shadow-xl hover:shadow-indigo-50/50 transition-all duration-300 group flex flex-col justify-between">
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-soft border border-slate-100 dark:border-slate-700 flex flex-col justify-between hover:border-primary-500 transition-all group">
                 <div>
-                    <div class="flex items-center justify-between mb-8">
-                        <span
-                            class="text-[10px] font-black tracking-widest uppercase px-3 py-1.5 bg-indigo-50 border border-indigo-100 text-indigo-500 rounded-lg">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-[10px] font-bold text-primary-600 uppercase tracking-widest bg-primary-50 dark:bg-primary-500/10 px-2.5 py-1 rounded-lg">
                             <?php echo $assign['subject_name']; ?>
                         </span>
-                        <span class="text-[10px] font-black text-rose-500 uppercase tracking-widest"><i
-                                class="fas fa-clock mr-1"></i> Due
-                            <?php echo date('M d', strtotime($assign['deadline'])); ?>
+                        <span class="text-[10px] font-bold text-rose-500 uppercase tracking-widest flex items-center">
+                            <i class="fas fa-calendar-times mr-1"></i>
+                            Due <?php echo date('M d', strtotime($assign['deadline'])); ?>
                         </span>
                     </div>
-
-                    <h3
-                        class="text-2xl font-black text-slate-800 leading-tight mb-4 group-hover:text-indigo-600 transition-colors">
+                    <h3 class="text-lg font-extrabold text-slate-800 dark:text-white leading-snug mb-2 group-hover:text-primary-600 transition-colors">
                         <?php echo $assign['title']; ?>
                     </h3>
-                    <p class="text-sm text-slate-500 line-clamp-2 leading-relaxed italic mb-8">
+                    <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-6">
                         <?php echo strip_tags($assign['description']); ?>
                     </p>
                 </div>
 
-                <div class="pt-8 border-t border-slate-50 flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <div
-                            class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-indigo-600 font-black text-sm">
-                            <?php echo $assign['submission_count']; ?>
-                        </div>
-                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Submissions</div>
+                <div class="pt-6 border-t border-slate-50 dark:border-slate-700 flex items-center justify-between">
+                    <div class="flex items-center space-x-2 text-slate-400">
+                        <i class="fas fa-users text-[10px]"></i>
+                        <span class="text-[10px] font-bold uppercase tracking-widest"><span class="text-slate-700 dark:text-white"><?php echo $assign['submission_count']; ?></span> Submissions</span>
                     </div>
-                    <a href="submissions-view.php?id=<?php echo $assign['id']; ?>"
-                        class="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-600 hover:shadow-lg hover:shadow-indigo-50 transition-all">
-                        <i class="fas fa-arrow-right"></i>
+                    <a href="submissions-view.php?id=<?php echo $assign['id']; ?>" class="w-9 h-9 bg-slate-50 dark:bg-slate-900 text-slate-400 rounded-xl flex items-center justify-center hover:bg-primary-600 hover:text-white transition-all shadow-sm">
+                        <i class="fas fa-chevron-right text-xs"></i>
                     </a>
                 </div>
             </div>
@@ -119,60 +118,57 @@ $published_assignments = $stmt_published->fetchAll();
 </div>
 
 <!-- Upload Modal -->
-<div id="upload_modal"
-    class="fixed inset-0 bg-slate-900/60 z-[100] hidden items-center justify-center p-4 backdrop-blur-sm transition-all flex">
-    <div class="bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl p-12 animate__animated animate__zoomIn">
-        <div class="flex items-center justify-between mb-10">
-            <h3 class="text-3xl font-black text-slate-800 tracking-tight">Post Assignment</h3>
-            <button onclick="document.getElementById('upload_modal').classList.add('hidden')"
-                class="text-slate-400 hover:text-slate-600 bg-slate-50 w-10 h-10 rounded-full flex items-center justify-center transition-all">
+<div id="upload_modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 w-full max-w-lg rounded-[2.5rem] shadow-premium p-8 lg:p-10 transform transition-all">
+        <div class="flex items-center justify-between mb-8">
+            <h3 class="text-2xl font-extrabold text-slate-800 dark:text-white">New Assignment</h3>
+            <button onclick="document.getElementById('upload_modal').classList.add('hidden')" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-500">
                 <i class="fas fa-times"></i>
             </button>
         </div>
 
-        <form action="assignments.php" method="POST" class="space-y-8">
+        <form action="" method="POST" enctype="multipart/form-data" class="space-y-6">
             <input type="hidden" name="upload_assignment" value="1">
+            
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Title</label>
+                <input type="text" name="title" required placeholder="Enter task title"
+                    class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-primary-500">
+            </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-bold text-slate-700 mb-3">Assignment Title *</label>
-                    <input type="text" name="title" required placeholder="e.g. Database Normalization 1NF to 3NF"
-                        class="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all outline-none font-medium text-slate-800">
-                </div>
-
+            <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-3">Target Subject *</label>
-                    <select name="subject_id" required
-                        class="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all outline-none font-medium text-slate-800">
-                        <option value="">Select Subject</option>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Subject</label>
+                    <select name="subject_id" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-primary-500">
+                        <option value="">Select</option>
                         <?php foreach ($my_subjects as $sub): ?>
-                            <option value="<?php echo $sub['id']; ?>">
-                                <?php echo $sub['name']; ?>
-                            </option>
+                            <option value="<?php echo $sub['id']; ?>"><?php echo $sub['name']; ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
-
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-3">Submission Deadline *</label>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Deadline</label>
                     <input type="datetime-local" name="deadline" required
-                        class="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all outline-none font-medium text-slate-800">
-                </div>
-
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-bold text-slate-700 mb-3">Instructions / Description</label>
-                    <textarea name="description" rows="4" placeholder="Brief about the task and grading criteria..."
-                        class="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all outline-none font-medium text-slate-800"></textarea>
+                        class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-primary-500">
                 </div>
             </div>
 
-            <div class="flex items-center gap-6 pt-4">
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Attachment (PDF/Image)</label>
+                <input type="file" name="assignment_file"
+                    class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-primary-500">
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Instructions</label>
+                <textarea name="description" rows="4" placeholder="Assignment details..."
+                    class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"></textarea>
+            </div>
+
+            <div class="flex gap-4 pt-2">
                 <button type="button" onclick="document.getElementById('upload_modal').classList.add('hidden')"
-                    class="flex-1 py-5 bg-slate-50 text-slate-500 font-bold rounded-2xl hover:bg-slate-100 transition-all uppercase tracking-widest text-xs">Cancel</button>
-                <button type="submit"
-                    class="flex-1 py-5 bg-indigo-600 text-white font-black rounded-2xl shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all uppercase tracking-widest text-xs">
-                    Publish to Class
-                </button>
+                    class="flex-1 py-4 bg-slate-100 dark:bg-slate-900 text-slate-500 font-bold rounded-2xl">Cancel</button>
+                <button type="submit" class="flex-1 py-4 bg-primary-600 text-white font-bold rounded-2xl shadow-premium hover:bg-primary-700 transition-all">Publish</button>
             </div>
         </form>
     </div>

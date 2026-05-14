@@ -6,6 +6,7 @@ $success_message = '';
 $error_message = '';
 
 if (isset($_POST['update_settings'])) {
+    csrf_guard();
     $college_name = sanitize($_POST['college_name']);
     $college_email = sanitize($_POST['college_email']);
     $college_phone = sanitize($_POST['college_phone']);
@@ -62,6 +63,7 @@ if (isset($_POST['update_settings'])) {
     <?php endif; ?>
 
     <form action="settings.php" method="POST" class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
         <input type="hidden" name="update_settings" value="1">
 
         <!-- Left Column: Branding -->

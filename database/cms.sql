@@ -102,6 +102,7 @@ CREATE TABLE `attendance` (
   `marked_by` int(11) NOT NULL,
   `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_attendance` (`student_id`, `subject_id`, `date`),
   FOREIGN KEY (`student_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`subject_id`) REFERENCES `subjects`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`marked_by`) REFERENCES `users`(`id`)
