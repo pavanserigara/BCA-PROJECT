@@ -7,6 +7,7 @@ $error_message = '';
 
 // Handle Slot Creation
 if (isset($_POST['create_slot'])) {
+    csrf_guard();
     $course_id = (int) $_POST['course_id'];
     $semester = (int) $_POST['semester'];
     $day = $_POST['day'];
@@ -18,6 +19,22 @@ if (isset($_POST['create_slot'])) {
 
     try {
         $pdo->beginTransaction();
+
+        // 1. Check for Teacher Conflict
+        $stmt_t_check = $pdo->prepare("SELECT id FROM timetable WHERE teacher_id = ? AND day = ? AND ((start_time <= ? AND end_time > ?) OR (start_time < ? AND end_time >= ?))");
+        $stmt_t_check->execute([$teacher_id, $day, $start_time, $start_time, $end_time, $end_time]);
+        if ($stmt_t_check->fetch()) throw new Exception("Conflict: This teacher is already scheduled for another lecture during this time.");
+
+        // 2. Check for Room Conflict
+        $stmt_r_check = $pdo->prepare("SELECT id FROM timetable WHERE room_no = ? AND day = ? AND ((start_time <= ? AND end_time > ?) OR (start_time < ? AND end_time >= ?))");
+        $stmt_r_check->execute([$room_no, $day, $start_time, $start_time, $end_time, $end_time]);
+        if ($stmt_r_check->fetch()) throw new Exception("Conflict: The room '$room_no' is already occupied during this time.");
+
+        // 3. Check for Class/Semester Conflict
+        $stmt_c_check = $pdo->prepare("SELECT id FROM timetable WHERE course_id = ? AND semester = ? AND day = ? AND ((start_time <= ? AND end_time > ?) OR (start_time < ? AND end_time >= ?))");
+        $stmt_c_check->execute([$course_id, $semester, $day, $start_time, $start_time, $end_time, $end_time]);
+        if ($stmt_c_check->fetch()) throw new Exception("Conflict: This class/semester already has a lecture scheduled during this time.");
+
         $stmt = $pdo->prepare("INSERT INTO timetable (course_id, semester, day, subject_id, teacher_id, start_time, end_time, room_no) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([$course_id, $semester, $day, $subject_id, $teacher_id, $start_time, $end_time, $room_no]);
         // Ensure faculty can mark attendance for allocated subjects
@@ -208,6 +225,7 @@ if ($sel_course && $sel_sem) {
         </div>
 
         <form action="timetable.php" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
             <input type="hidden" name="create_slot" value="1">
 
             <div>

@@ -6,9 +6,11 @@ $teacher_role = 'teachers';
 $notices = $pdo->prepare("SELECT n.*, u.full_name as author 
                           FROM notices n 
                           JOIN users u ON n.posted_by = u.id 
+                          LEFT JOIN teachers t ON t.user_id = ?
                           WHERE n.role_target IN ('all', ?) 
+                          AND (n.department_id IS NULL OR n.department_id = t.dept_id)
                           ORDER BY n.created_at DESC");
-$notices->execute([$teacher_role]);
+$notices->execute([$_SESSION['user_id'], $teacher_role]);
 $all_notices = $notices->fetchAll();
 ?>
 
@@ -52,6 +54,20 @@ $all_notices = $notices->fetchAll();
 
                 <div class="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-6 border border-slate-50 dark:border-slate-700">
                     <?php echo nl2br($n['content']); ?>
+                    <?php if ($n['attachment']): ?>
+                        <div class="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-primary-600 shadow-sm border border-slate-100 dark:border-slate-700">
+                                    <i class="fas fa-file-pdf"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-800 dark:text-white">Resource Attachment</p>
+                                    <p class="text-[10px] font-medium text-slate-400 dark:text-slate-500">Official Document</p>
+                                </div>
+                            </div>
+                            <a href="../assets/attachments/notices/<?php echo $n['attachment']; ?>" download class="px-5 py-2 bg-white dark:bg-slate-800 text-primary-600 border border-slate-200 dark:border-slate-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-600 hover:text-white transition-all shadow-sm">Download</a>
+                        </div>
+                    <?php endif; ?>
                 </div>
 
                 <div class="flex items-center justify-between pt-6 border-t border-slate-50 dark:border-slate-700">

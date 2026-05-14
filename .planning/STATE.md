@@ -4,15 +4,15 @@
 See: [.planning/PROJECT.md](file:///home/pavan-serigara/Documents/bca-project/.planning/PROJECT.md) (updated 2026-05-14)
 
 **Core value**: A modern, secure, scalable, and mobile-friendly College ERP system that digitizes and automates all academic and administrative operations in one unified platform.
-**Current focus**: Phase 1: Optimization & Attendance
+**Current focus**: Phase 2: Scheduling & Communication
 
 ---
 
 ## Active Milestone: Milestone 1: Core Academic Foundation
 **Objective**: Stabilizing existing modules and implementing essential daily academic operations.
 
-### Active Phase: Phase 1: Optimization & Attendance
-**Goal**: Audit existing code and implement Attendance Management.
+### Active Phase: Phase 2: Scheduling & Communication
+**Goal**: Implement Timetable scheduling, targeted notices, and leave management.
 
 **Status**: ✅ Done
 **Completion**: 100%

@@ -131,6 +131,7 @@ $profile_pic_url = (!empty($profile_pic) && is_file($profile_pic_path)) ? $profi
                         $campus_links = [
                             ['timetable.php', 'fa-calendar-days', 'Schedules'],
                             ['notices.php', 'fa-bullhorn', 'Notice Board'],
+                            ['leave-apply.php', 'fa-paper-plane', 'Absence Request'],
                             ['messaging.php', 'fa-message', 'In-Box'],
                             ['profile.php', 'fa-circle-user', 'My Settings'],
                         ];

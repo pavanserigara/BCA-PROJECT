@@ -4,17 +4,40 @@ require_once 'includes/header.php';
 
 $success_message = '';
 if (isset($_POST['post_notice'])) {
+    csrf_guard();
     $title = sanitize($_POST['title']);
-    $content = $_POST['content']; // Expecting HTML from a rich text editor if possible, but standard for now
+    $content = $_POST['content'];
     $target = $_POST['role_target'];
+    $dept_id = !empty($_POST['department_id']) ? (int) $_POST['department_id'] : null;
     $admin_id = $_SESSION['user_id'];
+    $attachment_path = null;
 
-    $stmt = $pdo->prepare("INSERT INTO notices (title, content, role_target, posted_by) VALUES (?, ?, ?, ?)");
-    $stmt->execute([$title, $content, $target, $admin_id]);
+    // Handle File Upload
+    if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
+        $upload_dir = '../assets/attachments/notices/';
+        if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
+        
+        $file_ext = pathinfo($_FILES['attachment']['name'], PATHINFO_EXTENSION);
+        $file_name = uniqid('notice_') . '.' . $file_ext;
+        $target_file = $upload_dir . $file_name;
+
+        if (move_uploaded_file($_FILES['attachment']['tmp_name'], $target_file)) {
+            $attachment_path = $file_name;
+        }
+    }
+
+    $stmt = $pdo->prepare("INSERT INTO notices (title, content, role_target, department_id, attachment, posted_by) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$title, $content, $target, $dept_id, $attachment_path, $admin_id]);
     $success_message = "Notice published successfully!";
 }
 
-$notices = $pdo->query("SELECT n.*, u.full_name as author FROM notices n JOIN users u ON n.posted_by = u.id ORDER BY n.created_at DESC")->fetchAll();
+$notices = $pdo->query("SELECT n.*, u.full_name as author, d.name as dept_name 
+                      FROM notices n 
+                      JOIN users u ON n.posted_by = u.id 
+                      LEFT JOIN departments d ON n.department_id = d.id
+                      ORDER BY n.created_at DESC")->fetchAll();
+
+$departments = $pdo->query("SELECT * FROM departments ORDER BY name ASC")->fetchAll();
 ?>
 
 <div class="flex items-center justify-between mb-10">
@@ -80,11 +103,30 @@ $notices = $pdo->query("SELECT n.*, u.full_name as author FROM notices n JOIN us
                             Target:
                             <?php echo ucfirst($notice['role_target']); ?>
                         </span>
+                        <?php if ($notice['dept_name']): ?>
+                            <span class="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-indigo-100">
+                                Dept: <?php echo $notice['dept_name']; ?>
+                            </span>
+                        <?php endif; ?>
                     </div>
                 </div>
 
                 <div class="text-slate-600 leading-loose text-lg mb-8 bg-slate-50/50 p-8 rounded-3xl border border-slate-100">
                     <?php echo nl2br($notice['content']); ?>
+                    <?php if ($notice['attachment']): ?>
+                        <div class="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-primary-600 shadow-sm border border-slate-100">
+                                    <i class="fas fa-file-pdf"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-800">Attached Resource</p>
+                                    <p class="text-[10px] font-medium text-slate-400">PDF / Document Reference</p>
+                                </div>
+                            </div>
+                            <a href="../assets/attachments/notices/<?php echo $notice['attachment']; ?>" download class="px-4 py-2 bg-white text-primary-600 border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-600 hover:text-white transition-all shadow-sm">Download</a>
+                        </div>
+                    <?php endif; ?>
                 </div>
 
                 <div class="flex items-center justify-end space-x-4">
@@ -111,7 +153,8 @@ $notices = $pdo->query("SELECT n.*, u.full_name as author FROM notices n JOIN us
             </button>
         </div>
 
-        <form action="notices.php" method="POST" class="space-y-8">
+        <form action="notices.php" method="POST" enctype="multipart/form-data" class="space-y-8">
+            <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
             <input type="hidden" name="post_notice" value="1">
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -130,6 +173,23 @@ $notices = $pdo->query("SELECT n.*, u.full_name as author FROM notices n JOIN us
                         <option value="teachers">Faculty Only</option>
                         <option value="staff">Staff Only</option>
                     </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-3">Target Department (Optional)</label>
+                    <select name="department_id"
+                        class="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all outline-none font-medium text-slate-700">
+                        <option value="">All Departments</option>
+                        <?php foreach ($departments as $dept): ?>
+                            <option value="<?php echo $dept['id']; ?>"><?php echo $dept['name']; ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-3">Attachment (PDF/Image)</label>
+                    <input type="file" name="attachment" 
+                        class="w-full px-6 py-3.5 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all outline-none font-medium text-slate-700">
                 </div>
 
                 <div>

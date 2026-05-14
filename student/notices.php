@@ -6,9 +6,12 @@ $student_role = 'students';
 $notices = $pdo->prepare("SELECT n.*, u.full_name as author 
                           FROM notices n 
                           JOIN users u ON n.posted_by = u.id 
+                          LEFT JOIN students s ON s.user_id = ?
+                          LEFT JOIN courses c ON s.course_id = c.id
                           WHERE n.role_target IN ('all', ?) 
+                          AND (n.department_id IS NULL OR n.department_id = c.dept_id)
                           ORDER BY n.created_at DESC");
-$notices->execute([$student_role]);
+$notices->execute([$_SESSION['user_id'], $student_role]);
 $all_notices = $notices->fetchAll();
 ?>
 
@@ -61,6 +64,20 @@ $all_notices = $notices->fetchAll();
 
                 <div class="bg-[#F8FAFC] dark:bg-slate-900/50 p-10 rounded-[2.5rem] border border-slate-50 dark:border-slate-800/50 text-slate-600 dark:text-slate-400 text-lg leading-relaxed italic relative shadow-inner">
                     <?php echo nl2br($n['content']); ?>
+                    <?php if ($n['attachment']): ?>
+                        <div class="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center text-primary-600 shadow-premium border border-slate-50 dark:border-slate-800">
+                                    <i class="fas fa-file-pdf text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-black text-slate-800 dark:text-white italic">Attached Resource</p>
+                                    <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none mt-1">Official Reference</p>
+                                </div>
+                            </div>
+                            <a href="../assets/attachments/notices/<?php echo $n['attachment']; ?>" download class="px-8 py-3 bg-white dark:bg-slate-800 text-primary-600 border-2 border-primary-600/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-600 hover:text-white transition-all shadow-premium">Save File</a>
+                        </div>
+                    <?php endif; ?>
                 </div>
 
                 <div class="mt-10 flex flex-wrap items-center justify-between gap-6 pt-6 border-t border-slate-50 dark:border-slate-800/50">
@@ -68,9 +85,15 @@ $all_notices = $notices->fetchAll();
                         <i class="fas fa-fingerprint"></i>
                         <span>Ref #NS-0<?php echo $n['id']; ?>-2026</span>
                     </div>
-                    <button class="bg-primary-600 hover:bg-primary-700 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all transform active:scale-95 shadow-lg shadow-primary-500/20">
-                        <i class="fas fa-file-arrow-down mr-2"></i>Download Resource
-                    </button>
+                    <?php if ($n['attachment']): ?>
+                        <a href="../assets/attachments/notices/<?php echo $n['attachment']; ?>" download class="bg-primary-600 hover:bg-primary-700 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all transform active:scale-95 shadow-lg shadow-primary-500/20">
+                            <i class="fas fa-file-arrow-down mr-2"></i>Download Resource
+                        </a>
+                    <?php else: ?>
+                        <button class="bg-slate-100 dark:bg-slate-900 text-slate-400 px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest cursor-not-allowed opacity-50">
+                            <i class="fas fa-circle-info mr-2"></i>Information Only
+                        </button>
+                    <?php endif; ?>
                 </div>
             </div>
         <?php endforeach; ?>

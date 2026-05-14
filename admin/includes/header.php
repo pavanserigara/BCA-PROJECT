@@ -171,6 +171,7 @@ $profile_pic_url = (!empty($profile_pic) && is_file($profile_pic_path)) ? $profi
                     ['library.php', 'fa-book-open', 'Library'],
                     ['placements.php', 'fa-briefcase', 'Placements'],
                     ['events.php', 'fa-calendar-star', 'Events'],
+                    ['leave-approvals.php', 'fa-hand-holding-heart', 'Leave Approvals'],
                     ['complaints.php', 'fa-hand-holding-hand', 'Grievances'],
                 ];
                 foreach ($inst_links as $link):
