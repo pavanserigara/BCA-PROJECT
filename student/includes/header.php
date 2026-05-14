@@ -118,6 +118,7 @@ $profile_pic_url = (!empty($profile_pic) && is_file($profile_pic_path)) ? $profi
                             ['library.php', 'fa-book-bookmark', 'Library'],
                             ['events.php', 'fa-sparkles', 'Festivals'],
                             ['fees.php', 'fa-wallet', 'Billing'],
+                            ['id-card.php', 'fa-id-card', 'Digital ID'],
                             ['complaints.php', 'fa-hand-holding-heart', 'Support'],
                             ['notices.php', 'fa-bullhorn', 'Broadcasts'],
                             ['profile.php', 'fa-user-gear', 'My Settings'],

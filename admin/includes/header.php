@@ -171,6 +171,8 @@ $profile_pic_url = (!empty($profile_pic) && is_file($profile_pic_path)) ? $profi
                     ['library.php', 'fa-book-open', 'Library'],
                     ['placements.php', 'fa-briefcase', 'Placements'],
                     ['events.php', 'fa-calendar-star', 'Events'],
+                    ['id-cards.php', 'fa-id-card', 'Identity Protocol'],
+                    ['logistics.php', 'fa-truck-ramp-box', 'Logistics'],
                     ['leave-approvals.php', 'fa-hand-holding-heart', 'Leave Approvals'],
                     ['complaints.php', 'fa-hand-holding-hand', 'Grievances'],
                 ];

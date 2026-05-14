@@ -11,8 +11,16 @@ See: [.planning/PROJECT.md](file:///home/pavan-serigara/Documents/bca-project/.p
 ## Active Milestone: Milestone 1: Core Academic Foundation
 **Objective**: Stabilizing existing modules and implementing essential daily academic operations.
 
-### Active Phase: Phase 2: Scheduling & Communication
-**Goal**: Implement Timetable scheduling, targeted notices, and leave management.
+### Active Phase: Phase 4: LMS & Academic Enrichment
+**Goal**: Implement Assignments, Study Materials, and Result aggregation.
+
+**Status**: 📋 Planned
+**Completion**: 0%
+
+---
+
+### Phase 3: Financials & Identity
+**Goal**: Implement Fees Management, ID Card generation, and basic Hostel/Transport logistics.
 
 **Status**: ✅ Done
 **Completion**: 100%

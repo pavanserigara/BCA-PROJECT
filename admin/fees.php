@@ -41,11 +41,11 @@ $payments = $pdo->query("SELECT p.*, u.full_name, s.roll_no, c.name as course_na
     </div>
 
     <div class="flex items-center space-x-4">
-        <button
+        <a href="fees-structure.php"
             class="bg-white border border-indigo-100 text-slate-600 px-6 py-3.5 rounded-2xl font-bold flex items-center space-x-2 transition-all hover:bg-slate-50">
-            <i class="fas fa-file-export"></i>
-            <span>Export Report</span>
-        </button>
+            <i class="fas fa-cog text-xs"></i>
+            <span>Configure Structure</span>
+        </a>
         <a href="fees-collect.php"
             class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3.5 rounded-2xl font-bold flex items-center space-x-2 shadow-lg shadow-indigo-100 transition-all hover:-translate-y-0.5">
             <i class="fas fa-hand-holding-dollar"></i>

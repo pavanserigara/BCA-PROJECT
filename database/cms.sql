@@ -348,6 +348,52 @@ CREATE TABLE `complaints` (
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- Table structure for `hostels`
+CREATE TABLE `hostels` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `location` varchar(255) DEFAULT NULL,
+  `capacity` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Table structure for `hostel_rooms`
+CREATE TABLE `hostel_rooms` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `hostel_id` int(11) NOT NULL,
+  `room_no` varchar(20) NOT NULL,
+  `capacity` int(11) NOT NULL,
+  `current_occupancy` int(11) DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`hostel_id`) REFERENCES `hostels`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Table structure for `bus_routes`
+CREATE TABLE `bus_routes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `route_name` varchar(100) NOT NULL,
+  `vehicle_no` varchar(20) NOT NULL,
+  `driver_name` varchar(100) DEFAULT NULL,
+  `capacity` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Table structure for `logistics_assignments`
+CREATE TABLE `logistics_assignments` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `hostel_room_id` int(11) DEFAULT NULL,
+  `bus_route_id` int(11) DEFAULT NULL,
+  `assigned_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`hostel_room_id`) REFERENCES `hostel_rooms`(`id`) ON DELETE SET NULL,
+  FOREIGN KEY (`bus_route_id`) REFERENCES `bus_routes`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 -- Table structure for `leave_requests`
 CREATE TABLE `leave_requests` (
   `id` int(11) NOT NULL AUTO_INCREMENT,

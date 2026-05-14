@@ -51,12 +51,11 @@ $outstanding = max(0, $total_course_fee - $paid_so_far);
             class="bg-indigo-600 p-10 rounded-[3rem] text-white shadow-2xl shadow-indigo-100 relative overflow-hidden group">
             <div class="relative z-10">
                 <h4 class="text-indigo-100 text-[10px] font-black uppercase tracking-widest mb-1 leading-none italic">
-                    Total Course Fee</h4>
+                    Current Semester Payable</h4>
                 <div class="text-5xl font-black tracking-tight mt-4">₹
                     <?php echo number_format($total_course_fee, 2); ?>
                 </div>
-                <p class="text-[10px] font-bold text-indigo-200 uppercase tracking-widest mt-6 italic">Batch 2024-27
-                    (Full Program)</p>
+                <p class="text-[10px] font-bold text-indigo-200 uppercase tracking-widest mt-6 italic">Semester <?php echo $student['semester']; ?> Protocol</p>
             </div>
             <div
                 class="absolute -right-8 -bottom-8 w-40 h-40 bg-indigo-500 rounded-full opacity-30 group-hover:scale-150 transition-transform flex items-center justify-center italic text-4xl font-black">
