@@ -1,0 +1,16 @@
+{
+  "workflow": {
+    "parallel_execution": true,
+    "require_uat": true,
+    "auto_commit": true,
+    "style": "modern"
+  },
+  "tech_stack": {
+    "backend": "PHP",
+    "database": "MySQL",
+    "frontend": "Tailwind CSS",
+    "css_mode": "CDN"
+  },
+  "project_id": "vidyasetu-erp",
+  "version": "1.0.0"
+}
