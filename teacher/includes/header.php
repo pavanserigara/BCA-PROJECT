@@ -11,8 +11,17 @@ $settings = get_college_settings($pdo);
 $page_title = isset($page_title) ? $page_title : 'Faculty Dashboard';
 $current_page = basename($_SERVER['PHP_SELF']);
 $profile_pic = $_SESSION['profile_pic'] ?? '';
-$profile_pic_path = __DIR__ . '/../../assets/images/' . $profile_pic;
-$profile_pic_url = (!empty($profile_pic) && is_file($profile_pic_path)) ? $profile_pic : 'default_profile.svg';
+$profile_pic_url = 'default_profile.svg';
+
+if (!empty($profile_pic)) {
+    if (is_file(__DIR__ . '/../../uploads/profiles/' . $profile_pic)) {
+        $profile_pic_url = '../uploads/profiles/' . $profile_pic;
+    } elseif (is_file(__DIR__ . '/../../assets/images/' . $profile_pic)) {
+        $profile_pic_url = '../assets/images/' . $profile_pic;
+    }
+} else {
+    $profile_pic_url = '../assets/images/default_profile.svg';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
@@ -87,7 +96,7 @@ $profile_pic_url = (!empty($profile_pic) && is_file($profile_pic_path)) ? $profi
             <div class="px-6 mb-8">
                 <div class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700/50">
                     <div class="flex items-center space-x-3">
-                        <img src="../assets/images/<?php echo htmlspecialchars($profile_pic_url); ?>" class="w-10 h-10 rounded-xl object-cover" alt="Faculty">
+                        <img src="<?php echo htmlspecialchars($profile_pic_url); ?>" class="w-10 h-10 rounded-xl object-cover" alt="Faculty">
                         <div class="min-w-0">
                             <p class="text-sm font-bold text-slate-800 dark:text-white truncate"><?php echo explode(' ', $_SESSION['full_name'])[0]; ?></p>
                             <p class="text-[10px] font-bold text-primary-600 uppercase tracking-widest">Faculty</p>
@@ -192,7 +201,7 @@ $profile_pic_url = (!empty($profile_pic) && is_file($profile_pic_path)) ? $profi
                         </div>
                         <div class="relative">
                             <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden ring-2 ring-primary-500/10 group-hover:ring-primary-500 transition-all">
-                                <img src="../assets/images/<?php echo htmlspecialchars($profile_pic_url); ?>" class="w-full h-full object-cover" alt="Profile">
+                                <img src="<?php echo htmlspecialchars($profile_pic_url); ?>" class="w-full h-full object-cover" alt="Profile">
                             </div>
                             <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-[#0F172A] rounded-full"></div>
                         </div>

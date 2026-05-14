@@ -15,10 +15,28 @@ $recent_students = $pdo->query("SELECT u.full_name, u.created_at, s.roll_no, s.g
 
 $notices = $pdo->query("SELECT * FROM notices ORDER BY created_at DESC LIMIT 5")->fetchAll();
 
-$attendance_data = [
-    'labels' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    'data' => [88, 92, 85, 91, 89, 94]
-];
+// Real attendance data for last 6 months
+$attendance_data = ['labels' => [], 'data' => []];
+for ($i = 5; $i >= 0; $i--) {
+    $month = date('Y-m', strtotime("-$i months"));
+    $month_label = date('M', strtotime("-$i months"));
+    $stmt = $pdo->prepare("SELECT 
+        COUNT(*) as total,
+        SUM(CASE WHEN status IN ('Present', 'Late') THEN 1 ELSE 0 END) as present
+        FROM attendance WHERE DATE_FORMAT(date, '%Y-%m') = ?");
+    $stmt->execute([$month]);
+    $res = $stmt->fetch();
+    $attendance_data['labels'][] = $month_label;
+    $attendance_data['data'][] = $res['total'] > 0 ? round(($res['present'] / $res['total']) * 100, 1) : 0;
+}
+
+// Real gender distribution
+$gender_counts = $pdo->query("SELECT gender, COUNT(*) as count FROM students GROUP BY gender")->fetchAll(PDO::FETCH_KEY_PAIR);
+$male_count = $gender_counts['Male'] ?? 0;
+$female_count = $gender_counts['Female'] ?? 0;
+$total_gender = $male_count + $female_count;
+$male_percent = $total_gender > 0 ? round(($male_count / $total_gender) * 100) : 0;
+$female_percent = $total_gender > 0 ? round(($female_count / $total_gender) * 100) : 0;
 
 $today = date('l, F j, Y');
 $hour = date('H');
@@ -355,7 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
             type: 'doughnut',
             data: {
                 labels: ['Male','Female'],
-                datasets: [{ data:[65,35], backgroundColor:['#4F46E5','#F43F5E'], borderWidth:0, borderRadius:3, spacing:2 }]
+                datasets: [{ data:[<?php echo $male_count; ?>, <?php echo $female_count; ?>], backgroundColor:['#4F46E5','#F43F5E'], borderWidth:0, borderRadius:3, spacing:2 }]
             },
             options: {
                 responsive: true,

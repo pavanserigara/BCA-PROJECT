@@ -11,6 +11,7 @@ $teacher_id = $_SESSION['user_id'];
 
 // Handle New Assignment Upload before any HTML output
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_assignment'])) {
+    csrf_guard();
     $title = sanitize($_POST['title']);
     $description = $_POST['description'];
     $subject_id = (int)$_POST['subject_id'];
@@ -18,13 +19,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_assignment']))
     
     $file_path = NULL;
     if (isset($_FILES['assignment_file']) && $_FILES['assignment_file']['error'] === 0) {
-        $upload_dir = '../uploads/assignments/';
-        if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
+        $allowed = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'zip'];
+        $ext = strtolower(pathinfo($_FILES['assignment_file']['name'], PATHINFO_EXTENSION));
         
-        $filename = 'assignment_' . time() . '_' . $_FILES['assignment_file']['name'];
-        $dest = $upload_dir . $filename;
-        if (move_uploaded_file($_FILES['assignment_file']['tmp_name'], $dest)) {
-            $file_path = 'assignments/' . $filename;
+        if (in_array($ext, $allowed)) {
+            $upload_dir = '../uploads/assignments/';
+            if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
+            
+            $filename = 'assignment_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+            $dest = $upload_dir . $filename;
+            if (move_uploaded_file($_FILES['assignment_file']['tmp_name'], $dest)) {
+                $file_path = 'assignments/' . $filename;
+            }
         }
     }
 

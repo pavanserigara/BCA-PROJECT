@@ -16,17 +16,24 @@ $student = $stmt_std->fetch();
 
 // Handle Submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_task'])) {
+    csrf_guard();
     $assignment_id = (int)$_POST['assignment_id'];
     $submission_text = sanitize($_POST['submission_text']);
     
     $file_path = NULL;
     if (isset($_FILES['submission_file']) && $_FILES['submission_file']['error'] === 0) {
-        $upload_dir = '../uploads/submissions/';
-        if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
+        $allowed = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'zip'];
+        $ext = strtolower(pathinfo($_FILES['submission_file']['name'], PATHINFO_EXTENSION));
         
-        $filename = 'sub_' . $student_id . '_' . time() . '_' . $_FILES['submission_file']['name'];
-        if (move_uploaded_file($_FILES['submission_file']['tmp_name'], $upload_dir . $filename)) {
-            $file_path = 'submissions/' . $filename;
+        if (in_array($ext, $allowed)) {
+            $upload_dir = '../uploads/submissions/';
+            if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
+            
+            $filename = 'sub_' . $assignment_id . '_' . $_SESSION['user_id'] . '_' . time() . '.' . $ext;
+            $dest = $upload_dir . $filename;
+            if (move_uploaded_file($_FILES['submission_file']['tmp_name'], $dest)) {
+                $file_path = 'submissions/' . $filename;
+            }
         }
     }
 
@@ -160,6 +167,7 @@ $assignments = $stmt_assign->fetchAll();
         </div>
 
         <form action="" method="POST" enctype="multipart/form-data" class="space-y-6">
+            <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
             <input type="hidden" name="submit_task" value="1">
             <input type="hidden" name="assignment_id" id="modal_assignment_id">
 

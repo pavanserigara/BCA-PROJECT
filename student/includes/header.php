@@ -11,8 +11,17 @@ $settings = get_college_settings($pdo);
 $page_title = isset($page_title) ? $page_title : 'Student Portal';
 $current_page = basename($_SERVER['PHP_SELF']);
 $profile_pic = $_SESSION['profile_pic'] ?? '';
-$profile_pic_path = __DIR__ . '/../../assets/images/' . $profile_pic;
-$profile_pic_url = (!empty($profile_pic) && is_file($profile_pic_path)) ? $profile_pic : 'default_profile.svg';
+$profile_pic_url = 'default_profile.svg';
+
+if (!empty($profile_pic)) {
+    if (is_file(__DIR__ . '/../../uploads/profiles/' . $profile_pic)) {
+        $profile_pic_url = '../uploads/profiles/' . $profile_pic;
+    } elseif (is_file(__DIR__ . '/../../assets/images/' . $profile_pic)) {
+        $profile_pic_url = '../assets/images/' . $profile_pic;
+    }
+} else {
+    $profile_pic_url = '../assets/images/default_profile.svg';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
@@ -116,11 +125,14 @@ $profile_pic_url = (!empty($profile_pic) && is_file($profile_pic_path)) ? $profi
                         <?php
                         $campus_links = [
                             ['library.php', 'fa-book-bookmark', 'Library'],
+                            ['placements.php', 'fa-briefcase', 'Placements'],
+                            ['logistics.php', 'fa-truck-fast', 'Logistics'],
                             ['events.php', 'fa-sparkles', 'Festivals'],
                             ['fees.php', 'fa-wallet', 'Billing'],
                             ['id-card.php', 'fa-id-card', 'Digital ID'],
                             ['complaints.php', 'fa-hand-holding-heart', 'Support'],
                             ['notices.php', 'fa-bullhorn', 'Broadcasts'],
+                            ['documents.php', 'fa-vault', 'Digital Vault'],
                             ['profile.php', 'fa-user-gear', 'My Settings'],
                         ];
                         foreach ($campus_links as $link):
@@ -183,7 +195,7 @@ $profile_pic_url = (!empty($profile_pic) && is_file($profile_pic_path)) ? $profi
 
                     <a href="profile.php" class="relative group">
                         <div class="absolute -inset-1 bg-gradient-to-tr from-primary-600 to-indigo-600 rounded-2xl opacity-20 group-hover:opacity-40 blur transition-all duration-300"></div>
-                        <img src="../assets/images/<?php echo htmlspecialchars($profile_pic_url); ?>" class="relative w-11 h-11 rounded-2xl object-cover border-2 border-white dark:border-slate-800 ring-1 ring-slate-100 dark:ring-slate-800 shadow-premium" alt="Student Profile">
+                        <img src="<?php echo htmlspecialchars($profile_pic_url); ?>" class="relative w-11 h-11 rounded-2xl object-cover border-2 border-white dark:border-slate-800 ring-1 ring-slate-100 dark:ring-slate-800 shadow-premium" alt="Student Profile">
                         <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-4 border-white dark:border-slate-900 rounded-full shadow-lg"></div>
                     </a>
                 </div>

@@ -16,6 +16,7 @@ $selected_user_id = isset($_GET['user']) ? (int) $_GET['user'] : 0;
 
 // Send message
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_message'])) {
+    csrf_guard();
     $receiver_id = (int) ($_POST['receiver_id'] ?? 0);
     $text = trim($_POST['message'] ?? '');
 

@@ -25,11 +25,17 @@ $faculty = $stmt->fetch();
         <div class="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-soft border border-slate-100 dark:border-slate-700 text-center relative overflow-hidden">
             <div class="absolute top-0 right-0 w-32 h-32 bg-primary-500/5 rounded-full -mr-16 -mt-16"></div>
             
-            <div class="relative mb-6">
-                <div class="w-32 h-32 rounded-full mx-auto p-1 bg-gradient-to-tr from-primary-500 to-indigo-500 shadow-xl">
-                    <img src="../assets/images/<?php echo $faculty['profile_pic']; ?>" class="w-full h-full object-cover rounded-full border-4 border-white dark:border-slate-800" alt="Avatar">
+            <div class="relative mb-6 group/img">
+                <div class="w-32 h-32 rounded-full mx-auto p-1 bg-gradient-to-tr from-primary-500 to-indigo-500 shadow-xl overflow-hidden">
+                    <?php 
+                        $pic_path = !empty($faculty['profile_pic']) ? "../uploads/profiles/" . $faculty['profile_pic'] : "../assets/images/default_profile.svg";
+                    ?>
+                    <img id="profile_display" src="<?php echo $pic_path; ?>" class="w-full h-full object-cover rounded-full border-4 border-white dark:border-slate-800" alt="Avatar">
                 </div>
-                <div class="absolute bottom-1 right-1/2 translate-x-12 w-6 h-6 bg-emerald-500 border-4 border-white dark:border-slate-800 rounded-full"></div>
+                <label for="profile_input" class="absolute bottom-1 right-1/2 translate-x-12 w-8 h-8 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-full flex items-center justify-center text-primary-600 shadow-lg cursor-pointer hover:scale-110 transition-transform">
+                    <i class="fas fa-camera text-[10px]"></i>
+                </label>
+                <input type="file" id="profile_input" class="hidden" accept="image/*">
             </div>
 
             <h3 class="text-xl font-extrabold text-slate-800 dark:text-white"><?php echo $faculty['full_name']; ?></h3>
@@ -46,9 +52,38 @@ $faculty = $stmt->fetch();
                 </div>
             </div>
 
-            <button class="w-full py-3 bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 font-bold rounded-xl text-[10px] uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-700 transition-all border border-slate-100 dark:border-slate-700">
-                Update Profile Picture
-            </button>
+            <script>
+            document.getElementById('profile_input').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const formData = new FormData();
+                formData.append('profile_pic', file);
+                formData.append('csrf_token', '<?php echo generate_csrf_token(); ?>');
+
+                const display = document.getElementById('profile_display');
+                display.classList.add('opacity-50');
+
+                fetch('../includes/handlers/profile_upload.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    display.classList.remove('opacity-50');
+                    if (data.success) {
+                        display.src = '../uploads/profiles/' + data.filename;
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    display.classList.remove('opacity-50');
+                    console.error('Error:', error);
+                    alert('An unexpected error occurred.');
+                });
+            });
+            </script>
         </div>
 
         <div class="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-soft border border-slate-100 dark:border-slate-700">

@@ -12,6 +12,7 @@ $teacher_id = $_SESSION['user_id'];
 
 // Handle Grading before any HTML output
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['grade_submission'])) {
+    csrf_guard();
     $submission_id = (int)$_POST['submission_id'];
     $grade = sanitize($_POST['grade']);
     $feedback = sanitize($_POST['feedback']);

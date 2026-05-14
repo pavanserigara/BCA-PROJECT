@@ -9,6 +9,7 @@ $success_message = '';
 $error_message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_guard();
     // Basic Details
     $full_name = sanitize($_POST['full_name']);
     $email = sanitize($_POST['email']);
@@ -73,6 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endif; ?>
 
     <form action="faculty-add.php" method="POST" class="space-y-8 pb-20">
+        <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
         <!-- Account Information -->
         <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-indigo-100/50">
             <div class="flex items-center space-x-4 mb-8">

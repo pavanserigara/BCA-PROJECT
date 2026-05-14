@@ -1,78 +1,57 @@
-# REQUIREMENTS.md
+# Requirements - Milestone 2: ERP Feature Completion & System Enhancement
 
-## High-Level Vision
-Create a production-ready, unified College ERP (VidyaSetu) that digitizes institution-wide operations with a focus on usability, security, and mobile responsiveness.
+## 1. Profile System Improvements
+- **Goal**: Implement a robust profile management system with photo support.
+- **Functional Requirements**:
+    - Users (all roles) can upload a profile picture.
+    - Real-time image preview before saving.
+    - Image editing/cropping capability (optional/bonus) or at least simple replacement.
+    - Secure storage in `uploads/profiles/` with sanitized filenames.
+    - Default avatar fallback (`default_profile.svg`) if no photo exists.
+    - Validation: Max size 2MB, formats (JPG, PNG, WEBP).
 
----
+## 2. Student Document Vault
+- **Goal**: digitize student documentation for institutional records.
+- **Functional Requirements**:
+    - Students can upload: Aadhaar Card, SSLC Marks Card, PUC Marks Card, Transfer Certificate, Passport Size Photo.
+    - Support for PDF and Image formats.
+    - File size validation (Max 5MB per file).
+    - Student Panel: "My Documents" to view and replace files.
+    - Admin Panel: "Verify Documents" view to approve/reject student uploads.
+    - Secure file handling (unpredictable filenames, restricted access).
 
-## 1. Academic Management
-### 1.1 Attendance Management
-- Teachers can take daily/hourly attendance for their subjects.
-- Students can view their attendance percentage and history.
-- Admins/HODs can generate low attendance reports.
+## 3. Teacher Attendance 2.0
+- **Goal**: Move beyond simple "take attendance" to a management workflow.
+- **Functional Requirements**:
+    - **Edit Attendance**: Teachers can correct attendance for the current day or previous days (within a threshold, e.g., 3 days).
+    - **Monthly Reports**: Subject-wise and class-wise monthly attendance reports.
+    - **Export**: PDF and Excel export for attendance records.
+    - **Analytics**: Dashboard widget showing attendance trends.
 
-### 1.2 Timetable Scheduling
-- Dynamic timetable generation for classes and teachers.
-- Conflict detection (teacher/classroom overlap).
-- Viewable by Students and Teachers on their respective dashboards.
+## 4. Missing Module Implementation
+- **Goal**: Full implementation of roles that currently lack portals.
+- **Portals to Create**:
+    - **Library Portal (`library/`)**: Librarian can manage books, issue/return logs, and overdue fines (separate from admin).
+    - **Staff/Accountant Portal (`staff/`)**: Staff can manage non-academic complaints or tasks; Accountant manages fee collection.
+- **Functional Requirements**:
+    - Dashboard for each role.
+    - Redirection logic in `login.php` and `functions.php`.
+    - Sidebar/Header integration.
 
-### 1.3 Assignment Submission
-- Teachers can create assignments with deadlines and attachments.
-- Students can upload files (PDF/Images) as submissions.
-- Teachers can grade and provide feedback online.
+## 5. System-Wide Audit & Auto-Completion
+- **Goal**: Ensure all modules meet professional ERP standards.
+- **Functional Requirements**:
+    - **Search/Filter**: Add advanced filtering to all lists (Students, Faculty, Staff, Books).
+    - **Pagination**: Implement consistent pagination for all data-heavy tables.
+    - **Export**: Export capability for all major lists.
+    - **UI/UX**: Fix broken routes and inconsistent Tailwind classes.
+    - **Validation**: Ensure all forms have client-side and server-side validation.
 
-### 1.4 Internal Marks Management
-- Entry of internal marks (Sessional, Class Tests, Labs).
-- Automatic calculation of averages and weighted scores.
-- Integration with the Reports module.
-
----
-
-## 2. Administrative Operations
-### 2.1 Fees Management
-- Categorization of fees (Tuition, Hostel, Transport, Library).
-- Recording manual payments and generating receipts.
-- Defaulter tracking and notification.
-
-### 2.2 Leave Management
-- Staff/Teachers can apply for leave online.
-- HODs/Admins can approve/reject with comments.
-- Leave balance tracking.
-
-### 2.3 ID Card Generation
-- Automated generation of ID cards based on student/staff profiles.
-- Printable PDF format.
-
-### 2.4 Role-Based Access Control (RBAC)
-- Fine-grained permissions for Super Admin, HOD, Teacher, Student, etc.
-- Menu items and actions restricted based on role.
-
----
-
-## 3. Communication & Services
-### 3.1 Notifications & Announcements
-- Global notice board for college-wide announcements.
-- Targeted notifications (e.g., to a specific class or department).
-
-### 3.2 Chat/Messaging System
-- Internal messaging between Teachers and Students/Admins.
-- Real-time or near real-time (AJAX polling) interaction.
-
-### 3.3 Hostel & Transport Management
-- Room allocation and hostel attendance.
-- Bus route management and student assignment.
-
----
-
-## 4. Insights & Reporting
-### 4.1 Reports & Analytics Dashboard
-- Visual representation of student performance, attendance, and fee collection.
-- Exportable reports (CSV/PDF) for management.
-
----
-
-## 5. Technical Requirements (Non-Functional)
-- **Security**: SQL Injection prevention (PDO), XSS prevention (Sanitization), CSRF protection (Tokens to be added).
-- **Performance**: Optimized SQL queries and AJAX for smooth UX.
-- **Responsiveness**: Fully mobile-responsive UI using Tailwind CSS.
-- **Maintainability**: Clean, modular code following the existing structure.
+## 6. Security & Optimization
+- **Goal**: Production-level hardening.
+- **Functional Requirements**:
+    - Verify all DB interactions use PDO prepared statements.
+    - Global CSRF verification on all forms.
+    - Role-based route protection (`has_role()`) on all directory levels.
+    - Database query optimization.
+    - Responsive design audit.

@@ -7,6 +7,7 @@ $user_id = $_SESSION['user_id'];
 // Handle Leave Application
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['apply_leave'])) {
     csrf_guard();
+    csrf_guard();
     $type = $_POST['leave_type'];
     $start = $_POST['start_date'];
     $end = $_POST['end_date'];

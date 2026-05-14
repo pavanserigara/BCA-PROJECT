@@ -14,6 +14,7 @@ $selected_user_id = isset($_GET['user']) ? (int) $_GET['user'] : 0;
 
 // Send message
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_message'])) {
+    csrf_guard();
     $receiver_id = (int) ($_POST['receiver_id'] ?? 0);
     $text = trim($_POST['message'] ?? '');
 
@@ -170,6 +171,7 @@ if ($selected_user) {
             <div class="p-6 border-t border-slate-50 dark:border-slate-700">
                 <form method="POST" class="flex gap-3">
                     <input type="hidden" name="send_message" value="1">
+                    <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
                     <input type="hidden" name="receiver_id" value="<?php echo $selected_user_id; ?>">
                     <input type="text" name="message" required autocomplete="off" placeholder="Type your message..."
                         class="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-semibold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-primary-500">

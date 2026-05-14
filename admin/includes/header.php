@@ -11,8 +11,17 @@ $settings = get_college_settings($pdo);
 $page_title = isset($page_title) ? $page_title : 'Admin Dashboard';
 $current_page = basename($_SERVER['PHP_SELF']);
 $profile_pic = $_SESSION['profile_pic'] ?? '';
-$profile_pic_path = __DIR__ . '/../../assets/images/' . $profile_pic;
-$profile_pic_url = (!empty($profile_pic) && is_file($profile_pic_path)) ? $profile_pic : 'default_profile.svg';
+$profile_pic_url = 'default_profile.svg';
+
+if (!empty($profile_pic)) {
+    if (is_file(__DIR__ . '/../../uploads/profiles/' . $profile_pic)) {
+        $profile_pic_url = '../uploads/profiles/' . $profile_pic;
+    } elseif (is_file(__DIR__ . '/../../assets/images/' . $profile_pic)) {
+        $profile_pic_url = '../assets/images/' . $profile_pic;
+    }
+} else {
+    $profile_pic_url = '../assets/images/default_profile.svg';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -170,6 +179,7 @@ $profile_pic_url = (!empty($profile_pic) && is_file($profile_pic_path)) ? $profi
                 $inst_links = [
                     ['library.php', 'fa-book-open', 'Library'],
                     ['placements.php', 'fa-briefcase', 'Placements'],
+                    ['parents.php', 'fa-users-viewfinder', 'Guardians'],
                     ['events.php', 'fa-calendar-star', 'Events'],
                     ['id-cards.php', 'fa-id-card', 'Identity Protocol'],
                     ['logistics.php', 'fa-truck-ramp-box', 'Logistics'],

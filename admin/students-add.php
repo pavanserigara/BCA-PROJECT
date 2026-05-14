@@ -10,6 +10,7 @@ $success_message = '';
 $error_message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_guard();
     // Basic Details
     $full_name = sanitize($_POST['full_name']);
     $email = sanitize($_POST['email']);
@@ -115,6 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endif; ?>
 
     <form action="students-add.php" method="POST" class="space-y-12" id="enrollmentForm">
+        <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
 
         <!-- Step Indicator -->
         <div class="flex items-center justify-center gap-4 mb-8">

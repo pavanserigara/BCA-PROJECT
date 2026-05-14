@@ -1,71 +1,42 @@
-# Phase 1: Optimization & Attendance
+# Phase 1 Plan: Identity & Document Vault
 
-## Objective
-Stabilize the existing foundation, implement robust Attendance Management, and harden system security with CSRF protection.
+## 1. Database & Directory Setup
+- [ ] Create `student_documents` table in the database.
+- [ ] Initialize upload directories: `uploads/profiles/` and `uploads/documents/`.
+- [ ] Ensure `uploads/` has correct write permissions (via `.htaccess` or directory check).
 
----
+## 2. Profile Picture System
+- [ ] **Backend Handler**: Create `includes/handlers/profile_upload.php`.
+    - Implement file size (max 2MB) and type (jpg, png, webp) validation.
+    - Sanitize filenames (e.g., `profile_[user_id]_[timestamp].webp`).
+    - Update `users` table `profile_pic` field.
+    - Delete old profile pic if it exists.
+- [ ] **Frontend Integration**: Update `profile.php` in `admin/`, `teacher/`, `student/`, and `parent/`.
+    - Replace placeholder camera button with a hidden file input and label.
+    - Add AJAX logic (JavaScript) to handle image upload on selection.
+    - Update the UI image preview immediately upon success.
 
-## 1. Security Hardening (CSRF Protection)
-### 1.1 Core CSRF Logic
-- Implement `generate_csrf_token()` and `verify_csrf_token()` in `includes/functions.php`.
-- Store tokens in the PHP session.
+## 3. Student Document Vault
+- [ ] **Main UI**: Create `student/documents.php`.
+    - Use the Sci-Fi aesthetic: Grid of document cards (Aadhaar, SSLC, PUC, TC, Photo, Other).
+    - Status badges: "Pending Verification", "Verified", "Rejected".
+- [ ] **Upload Handler**: Create `student/includes/handlers/document_upload.php`.
+    - Support PDF and common image formats.
+    - Validate file size (max 5MB).
+    - Map uploads to `student_documents` table.
+- [ ] **Navigation**: Add "Document Vault" link to student sidebar.
 
-### 1.2 Form Integration
-- Add CSRF hidden inputs to all POST forms in:
-    - `login.php`
-    - `admin/` modules (Settings, Users, etc.)
-    - `teacher/` modules (Attendance, Marks, Assignments)
-    - `student/` modules (Profile, Submissions)
+## 4. Admin Verification Interface
+- [ ] **List View**: Create `admin/verify-documents.php`.
+    - Show list of students with pending document uploads.
+    - Filter by department/course.
+- [ ] **Detail View**: Add a modal or separate page to view document details.
+    - Embedded PDF viewer/Image preview.
+    - Approve/Reject buttons with remarks field.
+- [ ] **Navigation**: Add "Document Verification" link to admin sidebar under "Students".
 
----
-
-## 2. Database Optimization
-### 2.1 Schema Fixes
-- Add a unique index to the `attendance` table on `(student_id, subject_id, date)` to prevent duplicate entries.
-- Audit other tables for missing constraints (e.g., `marks`).
-
----
-
-## 3. Attendance Management (Complete & Optimize)
-### 3.1 Teacher: Attendance Taking
-- Refine `teacher/attendance-take.php` with:
-    - CSRF protection.
-    - Improved UI (better radio button groups, sticky headers).
-    - AJAX-based auto-save (optional but preferred for UX).
-    - Validation to ensure attendance isn't marked for future dates.
-
-### 3.2 Teacher: Attendance Reports
-- Optimize `teacher/attendance-report.php`:
-    - Performance audit of SQL queries.
-    - Add "Low Attendance" highlighting (red for < 75%).
-    - Export to CSV/PDF functionality.
-
-### 3.3 Student: Attendance View
-- Refine `student/attendance.php`:
-    - Detailed subject-wise breakdown.
-    - Visual progress bars for attendance percentage.
-    - "Days needed to reach 75%" calculator.
-
----
-
-## 4. General Optimization
-### 4.1 UI Consistency
-- Ensure all dashboards use the latest Tailwind classes and components from `teacher/includes/header.php`.
-- Standardize "No Data Found" states across all modules.
-
-### 4.2 Code Quality
-- Centralize common SQL queries into `includes/functions.php` where appropriate.
-- Ensure all forms use consistent error/success handling via `set_flash_message()`.
-
----
-
-## Verification Plan
-
-### Automated Tests (Manual Check for now)
-- [ ] Verify CSRF token rejection on form submission without token.
-- [ ] Attempt to mark duplicate attendance for the same day/student (should fail or update).
-
-### Manual UAT
-- [ ] **Teacher**: Mark attendance for a class → Verify success message → Check report.
-- [ ] **Student**: View attendance → Verify percentage matches teacher's entry.
-- [ ] **Mobile**: Test attendance taking UI on a small screen (responsiveness).
+## 5. Verification & Security
+- [ ] Verify all new file upload handlers have `csrf_guard()`.
+- [ ] Ensure `student_id` is validated against `$_SESSION['user_id']` for all student-side operations.
+- [ ] Implement `has_role('admin')` for the verification interface.
+- [ ] Test the fallback mechanism for missing profile pictures.

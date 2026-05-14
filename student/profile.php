@@ -36,10 +36,15 @@ $att_percent = $att_stats['total'] > 0 ? round(($att_stats['present'] / $att_sta
             <div class="relative z-10">
                 <div class="relative w-40 h-40 mx-auto mb-10 group/img">
                     <div class="absolute -inset-2 bg-gradient-to-tr from-primary-600 to-indigo-600 rounded-[3.5rem] opacity-20 blur group-hover/img:opacity-40 transition-all"></div>
-                    <img src="../assets/images/<?php echo $student['profile_pic'] ?: 'default_profile.svg'; ?>" class="relative w-full h-full object-cover rounded-[3rem] border-4 border-white/10 shadow-2xl" alt="Profile pic">
-                    <button class="absolute -bottom-2 -right-2 w-12 h-12 bg-white dark:bg-slate-900 rounded-2xl flex items-center justify-center text-primary-600 shadow-xl border border-slate-100 dark:border-slate-800 hover:scale-110 transition-transform">
+                    <?php 
+                        $pic_path = !empty($student['profile_pic']) ? "../uploads/profiles/" . $student['profile_pic'] : "../assets/images/default_profile.svg";
+                    ?>
+                    <img id="profile_display" src="<?php echo $pic_path; ?>" class="relative w-full h-full object-cover rounded-[3rem] border-4 border-white/10 shadow-2xl" alt="Profile pic">
+                    
+                    <label for="profile_input" class="absolute -bottom-2 -right-2 w-12 h-12 bg-white dark:bg-slate-900 rounded-2xl flex items-center justify-center text-primary-600 shadow-xl border border-slate-100 dark:border-slate-800 hover:scale-110 transition-transform cursor-pointer">
                         <i class="fas fa-camera"></i>
-                    </button>
+                    </label>
+                    <input type="file" id="profile_input" class="hidden" accept="image/*">
                 </div>
 
                 <div class="text-center space-y-2 mb-10">

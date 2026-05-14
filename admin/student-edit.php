@@ -27,6 +27,7 @@ $success_message = '';
 $error_message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_student'])) {
+    csrf_guard();
     $full_name = sanitize($_POST['full_name']);
     $email = sanitize($_POST['email']);
     $username = sanitize($_POST['username']);
@@ -87,6 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_student'])) {
     <?php endif; ?>
 
     <form method="POST" class="bg-white border border-slate-100 rounded-2xl shadow-sm p-6 space-y-6">
+        <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
         <input type="hidden" name="update_student" value="1">
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

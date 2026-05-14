@@ -40,10 +40,17 @@ $admin = $stmt->fetch();
         <div class="space-y-12">
             <div class="bg-slate-900 p-15 rounded-[4rem] shadow-2xl relative overflow-hidden group">
                 <div class="relative z-10 text-center">
-                    <div
-                        class="w-44 h-44 rounded-[4rem] mx-auto mb-10 overflow-hidden ring-4 ring-indigo-500/20 p-2 shadow-2xl">
-                        <img src="../assets/images/<?php echo $admin['profile_pic']; ?>"
+                    <div class="relative w-44 h-44 rounded-[4rem] mx-auto mb-10 overflow-hidden ring-4 ring-indigo-500/20 p-2 shadow-2xl group/img">
+                        <?php 
+                            $pic_path = !empty($admin['profile_pic']) ? "../uploads/profiles/" . $admin['profile_pic'] : "../assets/images/default_profile.svg";
+                        ?>
+                        <img id="profile_display" src="<?php echo $pic_path; ?>"
                             class="w-full h-full object-cover rounded-[3.5rem]" alt="Profile">
+                        
+                        <label for="profile_input" class="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-opacity cursor-pointer">
+                            <i class="fas fa-camera text-white text-3xl"></i>
+                        </label>
+                        <input type="file" id="profile_input" class="hidden" accept="image/*">
                     </div>
                     <h4 class="text-2xl font-black text-white italic tracking-tight mb-2 uppercase">
                         <?php echo $admin['full_name']; ?>

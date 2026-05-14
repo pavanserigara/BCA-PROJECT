@@ -77,6 +77,9 @@ function redirect_if_logged_in()
             case 'teacher':
                 header("Location: teacher/dashboard.php");
                 break;
+            case 'parent':
+                header("Location: parent/dashboard.php");
+                break;
             default:
                 header("Location: dashboard.php");
                 break;

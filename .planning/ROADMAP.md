@@ -1,46 +1,35 @@
-# ROADMAP.md
+# ROADMAP.md - Milestone 2: ERP Feature Completion & System Enhancement
 
-## Milestone 1: Core Academic Foundation
-*Focus: Stabilizing existing modules and implementing essential daily academic operations.*
+## Phase 1: Identity & Document Vault
+*Focus: Enhancing student records and user profiles.*
+- [ ] Implement Profile Picture system (Upload, Preview, Default fallback) for all roles.
+- [ ] Build Student Document Vault (Aadhaar, Marks cards upload).
+- [ ] Create Admin Verification interface for student documents.
 
-### Phase 1: Optimization & Attendance (Current)
-- [ ] Audit and optimize existing Admin, Teacher, and Student base modules.
-- [ ] Implement robust Attendance Management (Taking, Viewing, Reporting).
-- [ ] Hardening Security: Add CSRF protection and audit PDO usage across all files.
+## Phase 2: Academic Management 2.0
+*Focus: Advanced attendance tracking and reporting.*
+- [ ] Implement Attendance Edit/Correction workflow for teachers.
+- [ ] Build Monthly Attendance Report generator (Subject-wise/Class-wise).
+- [ ] Add PDF/Excel export capability for attendance records.
+- [ ] Implement Attendance Analytics Dashboard for teachers.
 
-### Phase 2: Scheduling & Communication
-- [ ] Implement Timetable Scheduling (Admin control + Teacher/Student view).
-- [ ] Enhance Notice Board with targeted announcements and file attachments.
-- [ ] Implement base Leave Management system.
+## Phase 3: Module Expansion
+*Focus: Completing institutional roles.*
+- [ ] Implement Librarian Portal (`library/`) with full book and log management.
+- [ ] Implement Staff/Accountant Portal (`staff/`) for non-academic management.
+- [ ] Update `login.php` and `includes/functions.php` for new role routing.
+- [ ] Integrate new portals into the global navigation system.
 
-### Phase 3: Assignments & Internal Marks
-- [ ] Build Assignment Submission & Grading module.
-- [ ] Implement Internal Marks Management (Gradebook).
-- [ ] Integrated Dashboard: Overview metrics for each role.
+## Phase 4: Audit & Auto-Completion
+*Focus: Professional polishing and production readiness.*
+- [ ] Implement advanced Search and Filtering for all major data tables.
+- [ ] Add Pagination to all list views.
+- [ ] Implement generic Export (CSV/PDF) for Student and Faculty lists.
+- [ ] Audit and fix broken routes and UI inconsistencies.
 
----
-
-## Milestone 2: Administrative & Institutional Expansion
-*Focus: Automating non-academic institutional operations.*
-
-### Phase 4: Fees & Financials
-- [ ] Implement Fees Management (Structure, Payments, Receipts).
-- [ ] Defaulter tracking and reporting.
-
-### Phase 5: Services & Identity
-- [ ] Implement ID Card Generation.
-- [ ] Implement Hostel & Transport Management modules.
-- [ ] Refine RBAC (Role-Based Access Control) across all new modules.
-
----
-
-## Milestone 3: Advanced Features & Analytics
-*Focus: Insights, Communication, and Production Readiness.*
-
-### Phase 6: Communication Hub
-- [ ] Implement Internal Chat/Messaging system.
-- [ ] Parent Portal: Limited access for parents to view student progress.
-
-### Phase 7: Reports & Analytics
-- [ ] Build Analytics Dashboard for management.
-- [ ] Final production audit, performance optimization, and cleanup.
+## Phase 5: Security & Optimization
+*Focus: Hardening the system for deployment.*
+- [ ] Global audit of PDO usage to ensure 100% prepared statement coverage.
+- [ ] Verify CSRF protection and role-based access on all new files.
+- [ ] Optimize database queries and add necessary indexes.
+- [ ] Final Responsive Design audit and polishing.

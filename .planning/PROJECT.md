@@ -9,24 +9,20 @@ A modern, secure, scalable, and mobile-friendly College ERP system that digitize
 ## Requirements
 
 ### Validated
-<!-- Inferred from existing codebase -->
 - ✓ Base role-based architecture (Admin, Teacher, Student, Library, Staff) — v0.1
 - ✓ Centralized database connection using PDO — v0.1
 - ✓ Tailwind CSS based modern UI — v0.1
 - ✓ Session-based authentication — v0.1
-- ✓ Core helper functions for sanitization and role guarding — v0.1
+- ✓ Phase 1-5 Implementation (Attendance, Timetable, Exams, Fees, Services, Portals) — v0.5
 
 ### Active
-<!-- Milestone 1: Core Operations & Academic Hub -->
-- [ ] Complete and optimize existing modules (Library, Staff, etc.)
-- [ ] Implement Attendance Management
-- [ ] Implement Timetable Scheduling
-- [ ] Implement Assignment Submission system
-- [ ] Implement Notifications & Announcements (Notice Board)
-- [ ] Implement Exams & Internal Marks Management
-- [ ] Implement Fees Management
-- [ ] Implement Leave Management
-- [ ] Implement Role-Based Access Control (RBAC) expansion
+<!-- Milestone 2: ERP Feature Completion & System Enhancement -->
+- [ ] Profile System: Profile picture upload, preview, fallback for all roles.
+- [ ] Student Document Vault: Secure upload and management of academic documents (Aadhaar, Marks cards, etc.).
+- [ ] Teacher Attendance 2.0: Edit/Correction workflow, monthly reports, export to PDF/Excel.
+- [ ] Institutional Audit: Identify and fix missing CRUD, broken routes, and UI inconsistencies.
+- [ ] Auto-Completion: Implement missing forms, APIs, and reports based on ERP standards.
+- [ ] Security Hardening: Global form validation audit and RBAC verification.
 
 ### Out of Scope
 - Native Android/iOS apps — Focus on web-based ERP first

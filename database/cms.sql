@@ -10,7 +10,7 @@ CREATE TABLE `users` (
   `username` varchar(50) NOT NULL UNIQUE,
   `email` varchar(100) NOT NULL UNIQUE,
   `password` varchar(255) NOT NULL,
-  `role` enum('admin','student','teacher','librarian','accountant','staff') NOT NULL,
+  `role` enum('admin','student','teacher','librarian','accountant','staff','parent') NOT NULL,
   `full_name` varchar(100) NOT NULL,
   `profile_pic` varchar(255) DEFAULT 'default_profile.png',
   `status` enum('active','inactive') DEFAULT 'active',
@@ -189,16 +189,38 @@ CREATE TABLE `fee_payments` (
   FOREIGN KEY (`student_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Table structure for `library_books`
-CREATE TABLE `library_books` (
+-- Table structure for `settings`
+CREATE TABLE `settings` (
+  `id` int(1) NOT NULL,
+  `college_name` varchar(255) NOT NULL,
+  `college_email` varchar(100) DEFAULT NULL,
+  `college_phone` varchar(20) DEFAULT NULL,
+  `college_address` text,
+  `academic_year` varchar(20) DEFAULT NULL,
+  `current_semester` int(11) DEFAULT NULL,
+  `logo` varchar(255) DEFAULT NULL,
+  `favicon` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Insert initial admin user (password: admin123)
+INSERT INTO `users` (`username`, `email`, `password`, `role`, `full_name`) VALUES 
+('admin', 'admin@vidyasetu.com', '$2y$10$mC7pW9T6P4wFv.N8y8y8yuq2Z0u/mZ.Q.Z.Q.Z.Q.Z.Q.Z.Q.Z.Q', 'admin', 'System Administrator');
+
+-- Insert initial settings
+INSERT INTO `settings` (`id`, `college_name`, `college_email`, `college_phone`, `college_address`, `academic_year`, `current_semester`) VALUES 
+(1, 'VidyaSetu Institute of Technology', 'info@vidyasetu.ac.in', '+91 9988776655', 'Bangalore, Karnataka, India', '2025-26', 1);
+
+-- Table structure for `books`
+CREATE TABLE `books` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `title` varchar(255) NOT NULL,
   `author` varchar(255) NOT NULL,
-  `isbn` varchar(20) DEFAULT NULL,
+  `isbn` varchar(50) DEFAULT NULL,
   `category` varchar(100) DEFAULT NULL,
-  `quantity` int(11) NOT NULL DEFAULT 1,
-  `available_qty` int(11) NOT NULL DEFAULT 1,
-  `location` varchar(100) DEFAULT NULL,
+  `quantity` int(11) DEFAULT 1,
+  `available` int(11) DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -208,12 +230,12 @@ CREATE TABLE `issued_books` (
   `book_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `issue_date` date NOT NULL,
-  `due_date` date NOT NULL,
   `return_date` date DEFAULT NULL,
-  `fine` decimal(10,2) DEFAULT '0.00',
   `status` enum('Issued','Returned','Overdue') DEFAULT 'Issued',
+  `fine_amount` decimal(10,2) DEFAULT 0.00,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
-  FOREIGN KEY (`book_id`) REFERENCES `library_books`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`book_id`) REFERENCES `books`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -236,96 +258,6 @@ CREATE TABLE `notices` (
 CREATE TABLE `events` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `title` varchar(255) NOT NULL,
-  `description` text,
-  `event_date` date NOT NULL,
-  `location` varchar(255) DEFAULT NULL,
-  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Table structure for `messages`
-CREATE TABLE `messages` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `sender_id` int(11) NOT NULL,
-  `receiver_id` int(11) NOT NULL,
-  `subject` varchar(255) DEFAULT NULL,
-  `message` text NOT NULL,
-  `is_read` tinyint(1) DEFAULT 0,
-  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  FOREIGN KEY (`sender_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`receiver_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Table structure for `complaints`
-CREATE TABLE `complaints` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `student_id` int(11) NOT NULL,
-  `subject` varchar(255) NOT NULL,
-  `description` text NOT NULL,
-  `status` enum('Pending','Resolved','In-Progress') DEFAULT 'Pending',
-  `resolution` text,
-  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  FOREIGN KEY (`student_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Table structure for `settings`
-CREATE TABLE `settings` (
-  `id` int(1) NOT NULL,
-  `college_name` varchar(255) NOT NULL,
-  `college_email` varchar(100) DEFAULT NULL,
-  `college_phone` varchar(20) DEFAULT NULL,
-  `college_address` text,
-  `academic_year` varchar(20) DEFAULT NULL,
-  `current_semester` int(11) DEFAULT NULL,
-  `logo` varchar(255) DEFAULT NULL,
-  `favicon` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Insert initial admin user (password: admin123)
--- Using PHP password_hash('admin123', PASSWORD_BCRYPT) gives something like: $2y$10$8W3bC.J9D9B9J.O5u.U9O.O5u.U9O.O5u.U9O.O5u.U9O.O5u.U9O
--- For simplicity in this demo, let's pre-generate a hash.
-INSERT INTO `users` (`username`, `email`, `password`, `role`, `full_name`) VALUES 
-('admin', 'admin@vidyasetu.com', '$2y$10$mC7pW9T6P4wFv.N8y8y8yuq2Z0u/mZ.Q.Z.Q.Z.Q.Z.Q.Z.Q.Z.Q', 'admin', 'System Administrator');
-
--- Insert initial settings
-INSERT INTO `settings` (`id`, `college_name`, `college_email`, `college_phone`, `college_address`, `academic_year`, `current_semester`) VALUES 
-(1, 'VidyaSetu Institute of Technology', 'info@vidyasetu.ac.in', '+91 9988776655', 'Bangalore, Karnataka, India', '2025-26', 1);
-
--- Table structure for `books`
-CREATE TABLE `books` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `title` varchar(255) NOT NULL,
-  `author` varchar(255) NOT NULL,
-  `isbn` varchar(50) DEFAULT NULL,
-  `category` varchar(100) DEFAULT NULL,
-  `quantity` int(11) DEFAULT 1,
-  `available` int(11) DEFAULT 1,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- Table structure for `issued_books`
-CREATE TABLE `issued_books` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `book_id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `issue_date` date NOT NULL,
-  `return_date` date DEFAULT NULL,
-  `status` enum('Issued','Returned','Overdue') DEFAULT 'Issued',
-  `fine_amount` decimal(10,2) DEFAULT 0.00,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  FOREIGN KEY (`book_id`) REFERENCES `books`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- Table structure for `events`
-CREATE TABLE `events` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `title` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
   `event_date` date NOT NULL,
   `location` varchar(255) DEFAULT NULL,
@@ -333,7 +265,7 @@ CREATE TABLE `events` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   FOREIGN KEY (`posted_by`) REFERENCES `users`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Table structure for `complaints`
 CREATE TABLE `complaints` (
@@ -346,7 +278,7 @@ CREATE TABLE `complaints` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Table structure for `hostels`
 CREATE TABLE `hostels` (
@@ -424,6 +356,45 @@ CREATE TABLE `study_materials` (
   PRIMARY KEY (`id`),
   FOREIGN KEY (`subject_id`) REFERENCES `subjects`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`teacher_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Table structure for `placements`
+CREATE TABLE `placements` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `company` varchar(100) NOT NULL,
+  `role` varchar(100) NOT NULL,
+  `package` varchar(50) DEFAULT NULL,
+  `description` text DEFAULT NULL,
+  `requirements` text DEFAULT NULL,
+  `deadline` date NOT NULL,
+  `status` enum('Open','Closed') DEFAULT 'Open',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Table structure for `placement_applications`
+CREATE TABLE `placement_applications` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `placement_id` int(11) NOT NULL,
+  `student_id` int(11) NOT NULL,
+  `resume_path` varchar(255) DEFAULT NULL,
+  `status` enum('Applied','Shortlisted','Rejected','Hired') DEFAULT 'Applied',
+  `applied_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`placement_id`) REFERENCES `placements`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`student_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Table structure for `parents`
+CREATE TABLE `parents` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `student_id` int(11) NOT NULL,
+  `relation` varchar(50) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`student_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 COMMIT;

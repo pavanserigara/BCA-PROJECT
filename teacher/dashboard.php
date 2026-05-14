@@ -29,8 +29,12 @@ $today_total = (int) ($today_stats['total'] ?? 0);
 $today_present = (int) ($today_stats['present'] ?? 0);
 $avg_today = $today_total > 0 ? round(($today_present / $today_total) * 100, 1) : 0;
 
-// Pending submissions (mocked for now or from submissions table)
-$pending_submissions = 12; // Example value
+// Real pending submissions count (not yet graded)
+$stmt_pending = $pdo->prepare("SELECT COUNT(*) FROM submissions s 
+                               JOIN assignments a ON s.assignment_id = a.id 
+                               WHERE a.teacher_id = ? AND s.grade IS NULL");
+$stmt_pending->execute([$teacher_id]);
+$pending_submissions = $stmt_pending->fetchColumn();
 ?>
 
 <!-- Welcome Section -->
