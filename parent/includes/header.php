@@ -116,6 +116,9 @@ $_SESSION['linked_student_name'] = $student_data['full_name'];
                             ['dashboard.php', 'fa-grip-vertical', 'Health Check'],
                             ['attendance.php', 'fa-calendar-check', 'Attendance'],
                             ['results.php', 'fa-award', 'Performance'],
+                            ['fees.php', 'fa-receipt', 'Treasury'],
+                            ['notices.php', 'fa-bullhorn', 'Notice Board'],
+                            ['messaging.php', 'fa-message', 'Direct Box'],
                         ];
                         foreach ($main_links as $link):
                             $active = ($current_page === $link[0]);

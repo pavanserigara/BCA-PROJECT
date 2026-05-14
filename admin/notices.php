@@ -1,9 +1,16 @@
 <?php
-$page_title = "Notice Board";
-require_once 'includes/header.php';
+require_once '../includes/db.php';
+require_once '../includes/functions.php';
+
+if (!has_role('admin')) {
+    header("Location: ../login.php");
+    exit();
+}
 
 $success_message = '';
-if (isset($_POST['post_notice'])) {
+$error_message = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['post_notice'])) {
     csrf_guard();
     $title = sanitize($_POST['title']);
     $content = $_POST['content'];
@@ -12,7 +19,6 @@ if (isset($_POST['post_notice'])) {
     $admin_id = $_SESSION['user_id'];
     $attachment_path = null;
 
-    // Handle File Upload
     if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
         $upload_dir = '../assets/attachments/notices/';
         if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
@@ -28,7 +34,15 @@ if (isset($_POST['post_notice'])) {
 
     $stmt = $pdo->prepare("INSERT INTO notices (title, content, role_target, department_id, attachment, posted_by) VALUES (?, ?, ?, ?, ?, ?)");
     $stmt->execute([$title, $content, $target, $dept_id, $attachment_path, $admin_id]);
-    $success_message = "Notice published successfully!";
+    $success_message = "Broadcast Protocol Active: Notice synchronized.";
+}
+
+if (isset($_GET['delete'])) {
+    csrf_guard();
+    $id = (int)$_GET['delete'];
+    $stmt = $pdo->prepare("DELETE FROM notices WHERE id = ?");
+    $stmt->execute([$id]);
+    $success_message = "Broadcast terminated successfully.";
 }
 
 $notices = $pdo->query("SELECT n.*, u.full_name as author, d.name as dept_name 
@@ -38,6 +52,9 @@ $notices = $pdo->query("SELECT n.*, u.full_name as author, d.name as dept_name
                       ORDER BY n.created_at DESC")->fetchAll();
 
 $departments = $pdo->query("SELECT * FROM departments ORDER BY name ASC")->fetchAll();
+
+$page_title = "Global Notice Board";
+require_once 'includes/header.php';
 ?>
 
 <div class="flex items-center justify-between mb-10">
@@ -133,8 +150,9 @@ $departments = $pdo->query("SELECT * FROM departments ORDER BY name ASC")->fetch
                     <button class="text-slate-400 hover:text-indigo-600 font-bold text-sm transition-all"><i
                             class="fas fa-edit mr-2"></i>Edit</button>
                     <div class="w-1.5 h-1.5 bg-slate-200 rounded-full"></div>
-                    <button class="text-slate-400 hover:text-rose-600 font-bold text-sm transition-all"><i
-                            class="fas fa-trash mr-2"></i>Archive</button>
+                    <a href="notices.php?delete=<?php echo $notice['id']; ?>" onclick="return confirm('Terminate this broadcast?')" class="text-slate-400 hover:text-rose-600 font-bold text-sm transition-all">
+                        <i class="fas fa-trash mr-2"></i>Archive
+                    </a>
                 </div>
             </div>
         <?php endforeach; ?>

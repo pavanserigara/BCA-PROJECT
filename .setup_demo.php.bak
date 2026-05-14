@@ -1,0 +1,161 @@
+<?php
+require_once 'includes/db.php';
+require_once 'includes/functions.php';
+
+// Check if user is admin or if running from CLI
+if (php_sapi_name() !== 'cli' && !has_role('admin')) {
+    die("Unauthorized Access.");
+}
+
+echo "Starting System Purge & Demo Synchronization...\n";
+
+try {
+    $pdo->beginTransaction();
+
+    // Disable foreign key checks to truncate tables
+    $pdo->exec("SET FOREIGN_KEY_CHECKS = 0");
+
+    $tables_to_clear = [
+        'departments', 'courses', 'subjects', 'students', 'teachers', 'teacher_subjects',
+        'attendance', 'exams', 'marks', 'assignments', 'submissions', 'fees_structure',
+        'fee_payments', 'books', 'issued_books', 'notices', 'events', 'complaints',
+        'hostels', 'hostel_rooms', 'bus_routes', 'logistics_assignments', 'leave_requests',
+        'study_materials', 'placements', 'placement_applications', 'parents', 'timetable',
+        'messages', 'student_documents'
+    ];
+
+    foreach ($tables_to_clear as $table) {
+        $pdo->exec("DELETE FROM `$table` ");
+    }
+
+    // Remove users except the main admin
+    $pdo->exec("DELETE FROM users WHERE username != 'admin'");
+
+    echo "Purge Complete. Starting Demo Injection...\n";
+
+    // 1. Departments
+    $depts = ['Computer Science', 'Electronic Engineering', 'Mathematics', 'Business Administration', 'Mechanical Arts'];
+    foreach ($depts as $d) {
+        $pdo->prepare("INSERT INTO departments (name, description) VALUES (?, ?)")->execute([$d, "$d Institutional Division"]);
+    }
+    $dept_ids = $pdo->query("SELECT id FROM departments")->fetchAll(PDO::FETCH_COLUMN);
+
+    // 2. Courses
+    $courses = [
+        ['BCA', '3 Years / 6 Semesters', $dept_ids[0]],
+        ['B.Tech CSE', '4 Years / 8 Semesters', $dept_ids[0]],
+        ['B.Sc Math', '3 Years / 6 Semesters', $dept_ids[2]],
+        ['MBA', '2 Years / 4 Semesters', $dept_ids[3]],
+        ['B.E Mechanical', '4 Years / 8 Semesters', $dept_ids[4]]
+    ];
+    foreach ($courses as $c) {
+        $pdo->prepare("INSERT INTO courses (name, duration, dept_id) VALUES (?, ?, ?)")->execute($c);
+    }
+    $course_ids = $pdo->query("SELECT id FROM courses")->fetchAll(PDO::FETCH_COLUMN);
+
+    // 3. Subjects (5 for BCA)
+    $subjects = [
+        ['Programming in C', 'CS101', 1, $course_ids[0]],
+        ['Data Structures', 'CS201', 2, $course_ids[0]],
+        ['Database Systems', 'CS301', 3, $course_ids[0]],
+        ['Web Architecture', 'CS401', 4, $course_ids[0]],
+        ['Machine Intelligence', 'CS501', 5, $course_ids[0]]
+    ];
+    foreach ($subjects as $s) {
+        $pdo->prepare("INSERT INTO subjects (name, code, semester, course_id) VALUES (?, ?, ?, ?)")->execute($s);
+    }
+    $subject_ids = $pdo->query("SELECT id FROM subjects")->fetchAll(PDO::FETCH_COLUMN);
+
+    // 4. Teachers (5)
+    $teacher_data = [
+        ['dr_smith', 'Dr. Alistair Smith', 'smith@vidyasetu.com', $dept_ids[0]],
+        ['prof_jane', 'Prof. Jane Doe', 'jane@vidyasetu.com', $dept_ids[1]],
+        ['dr_jones', 'Dr. Robert Jones', 'jones@vidyasetu.com', $dept_ids[2]],
+        ['prof_clark', 'Prof. Sarah Clark', 'clark@vidyasetu.com', $dept_ids[3]],
+        ['dr_brown', 'Dr. Michael Brown', 'brown@vidyasetu.com', $dept_ids[4]]
+    ];
+    $pass = password_hash('password123', PASSWORD_DEFAULT);
+    foreach ($teacher_data as $i => $t) {
+        $pdo->prepare("INSERT INTO users (username, full_name, email, password, role) VALUES (?, ?, ?, ?, 'teacher')")->execute([$t[0], $t[1], $t[2], $pass]);
+        $uid = $pdo->lastInsertId();
+        $pdo->prepare("INSERT INTO teachers (user_id, employee_id, dept_id, designation, joining_date) VALUES (?, ?, ?, 'Senior Faculty', '2020-01-01')")->execute([$uid, "EMP00" . ($i+1), $t[3]]);
+    }
+    $teacher_uids = $pdo->query("SELECT user_id FROM teachers")->fetchAll(PDO::FETCH_COLUMN);
+
+    // 5. Students (5)
+    $student_data = [
+        ['std_pavan', 'Pavan Serigara', 'pavan@example.com', $course_ids[0]],
+        ['std_arjun', 'Arjun Reddy', 'arjun@example.com', $course_ids[0]],
+        ['std_sneha', 'Sneha Kapoor', 'sneha@example.com', $course_ids[1]],
+        ['std_rahul', 'Rahul Verma', 'rahul@example.com', $course_ids[3]],
+        ['std_priya', 'Priya Singh', 'priya@example.com', $course_ids[4]]
+    ];
+    foreach ($student_data as $i => $s) {
+        $pdo->prepare("INSERT INTO users (username, full_name, email, password, role) VALUES (?, ?, ?, ?, 'student')")->execute([$s[0], $s[1], $s[2], $pass]);
+        $uid = $pdo->lastInsertId();
+        $pdo->prepare("INSERT INTO students (user_id, roll_no, course_id, semester, admission_date, gender) VALUES (?, ?, ?, 1, '2024-06-01', 'Male')")->execute([$uid, "2024CS00" . ($i+1), $s[3]]);
+    }
+    $student_uids = $pdo->query("SELECT user_id FROM students")->fetchAll(PDO::FETCH_COLUMN);
+
+    // 6. Events (5)
+    $events = [
+        ['TechFest 2025', 'Annual technological symposium and hackathon.', date('Y-m-d', strtotime('+30 days')), 'Innovation Hub'],
+        ['Cultural Gala', 'Showcasing the diverse heritage of our institute.', date('Y-m-d', strtotime('+45 days')), 'Main Auditorium'],
+        ['Alumni Meet', 'Networking session with distinguished alumni.', date('Y-m-d', strtotime('+60 days')), 'Conference Hall'],
+        ['Sports Week', 'Inter-departmental sports championship.', date('Y-m-d', strtotime('+15 days')), 'Sports Complex'],
+        ['Workshop: AI/ML', 'Hands-on session on modern intelligence systems.', date('Y-m-d', strtotime('+10 days')), 'CS Lab 04']
+    ];
+    foreach ($events as $e) {
+        $pdo->prepare("INSERT INTO events (title, description, event_date, location, posted_by) VALUES (?, ?, ?, ?, ?)")->execute(array_merge($e, [1]));
+    }
+
+    // 7. Notices (5)
+    $notices = [
+        ['Semester Registration', 'Registration for the upcoming semester starts next Monday.', 1, 'all'],
+        ['Holiday Announcement', 'The institute will remain closed on Friday for National Festival.', 1, 'all'],
+        ['Exam Schedule Update', 'Revised timetable for internal assessment has been uploaded.', 1, 'students'],
+        ['Faculty Meeting', 'Urgent meeting regarding the new research policy.', 1, 'teachers'],
+        ['Library Maintenance', 'The central library will be closed for system updates this Sunday.', 1, 'all']
+    ];
+    foreach ($notices as $n) {
+        $pdo->prepare("INSERT INTO notices (title, content, posted_by, role_target) VALUES (?, ?, ?, ?)")->execute($n);
+    }
+
+    // 8. Books (5)
+    $books = [
+        ['Clean Code', 'Robert C. Martin', '978-0132350884', 'Software Engineering', 10],
+        ['Design Patterns', 'Erich Gamma', '978-0201633610', 'Software Engineering', 5],
+        ['Introduction to Algorithms', 'Thomas H. Cormen', '978-0262033848', 'Computer Science', 8],
+        ['Modern Operating Systems', 'Andrew S. Tanenbaum', '978-0133591620', 'Operating Systems', 6],
+        ['Artificial Intelligence', 'Stuart Russell', '978-0136042594', 'Artificial Intelligence', 4]
+    ];
+    foreach ($books as $b) {
+        $pdo->prepare("INSERT INTO books (title, author, isbn, category, quantity, available) VALUES (?, ?, ?, ?, ?, ?)")->execute(array_merge($b, [$b[4]]));
+    }
+
+    // 9. Fee Structure (5)
+    foreach ($course_ids as $cid) {
+        $pdo->prepare("INSERT INTO fees_structure (course_id, semester, amount, title) VALUES (?, 1, 45000.00, 'Tuition Fee')")->execute([$cid]);
+    }
+
+    // 10. Timetable (5 entries for Monday)
+    $times = [
+        ['09:00:00', '10:00:00', $subject_ids[0], $teacher_uids[0], 'Room 101'],
+        ['10:00:00', '11:00:00', $subject_ids[1], $teacher_uids[0], 'Room 102'],
+        ['11:15:00', '12:15:00', $subject_ids[2], $teacher_uids[0], 'Room 103'],
+        ['13:00:00', '14:00:00', $subject_ids[3], $teacher_uids[0], 'Room 104'],
+        ['14:00:00', '15:00:00', $subject_ids[4], $teacher_uids[0], 'Room 105']
+    ];
+    foreach ($times as $t) {
+        $pdo->prepare("INSERT INTO timetable (course_id, semester, day, start_time, end_time, subject_id, teacher_id, room_no) VALUES (?, 1, 'Monday', ?, ?, ?, ?, ?)")->execute(array_merge([$course_ids[0]], $t));
+    }
+
+    $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
+    $pdo->commit();
+
+    echo "System Synchronized Successfully with 5 entries per module.\n";
+} catch (Exception $e) {
+    if ($pdo->inTransaction()) $pdo->rollBack();
+    $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
+    echo "Sync Failed: " . $e->getMessage() . "\n";
+}

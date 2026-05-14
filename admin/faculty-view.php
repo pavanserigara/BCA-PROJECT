@@ -132,12 +132,12 @@ $available_subjects = $stmt_avail->fetchAll();
                     <div class="bg-white/5 border border-white/10 px-6 py-3 rounded-2xl">
                         <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1 italic">Experience
                         </p>
-                        <p class="text-sm font-black text-white italic">8.5 Years</p>
+                        <p class="text-sm font-black text-white italic"><?php echo $faculty['experience'] ?: '8.5 Years'; ?></p>
                     </div>
                     <div class="bg-white/5 border border-white/10 px-6 py-3 rounded-2xl">
                         <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1 italic">
-                            Publications</p>
-                        <p class="text-sm font-black text-white italic">12 Papers</p>
+                            Status</p>
+                        <p class="text-sm font-black text-white italic">Verified</p>
                     </div>
                 </div>
             </div>
@@ -200,9 +200,9 @@ $available_subjects = $stmt_avail->fetchAll();
                 </div>
                 <div>
                     <label
-                        class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 italic">University
-                        of Provision</label>
-                    <p class="text-lg font-black text-indigo-600 tracking-tight italic">Oxford University Research</p>
+                        class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 italic">Certification
+                        Authority</label>
+                    <p class="text-lg font-black text-indigo-600 tracking-tight italic">Institutional Verified Registry</p>
                 </div>
                 <div>
                     <label

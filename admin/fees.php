@@ -64,8 +64,8 @@ $payments = $pdo->query("SELECT p.*, u.full_name, s.roll_no, c.name as course_na
                 <?php echo number_format($total_collected, 2); ?>
             </div>
             <div class="mt-10 flex items-center space-x-2 text-indigo-100/60 font-bold text-xs">
-                <i class="fas fa-chart-line"></i>
-                <span>+8.2% Growth This Academic Year</span>
+                <i class="fas fa-bullseye"></i>
+                <span>Institutional Revenue Target Reached: <?php echo number_format($total_collected + $pending_dues > 0 ? ($total_collected / ($total_collected + $pending_dues)) * 100 : 0, 1); ?>%</span>
             </div>
         </div>
         <div
@@ -87,7 +87,11 @@ $payments = $pdo->query("SELECT p.*, u.full_name, s.roll_no, c.name as course_na
                 <?php echo number_format($pending_dues, 2); ?>
             </div>
             <div class="w-full h-2.5 bg-slate-50 rounded-full mt-6 overflow-hidden">
-                <div class="h-full bg-rose-400 rounded-full" style="width: 35%"></div>
+                <?php 
+                    $total_potential = $total_collected + $pending_dues;
+                    $pending_percentage = $total_potential > 0 ? ($pending_dues / $total_potential) * 100 : 0;
+                ?>
+                <div class="h-full bg-rose-400 rounded-full" style="width: <?php echo $pending_percentage; ?>%"></div>
             </div>
         </div>
         <div

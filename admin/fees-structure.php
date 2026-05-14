@@ -57,7 +57,7 @@ $structures = $pdo->query("SELECT fs.*, c.name as course_name FROM fees_structur
         ?>
             <div class="bg-white p-20 rounded-[4rem] text-center border border-slate-100 shadow-premium">
                 <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-200">
-                    <i class="fas fa-vault text-3xl"></i>
+                    <i class="fas fa-box-archive text-3xl"></i>
                 </div>
                 <h3 class="text-xl font-black text-slate-800 italic uppercase">Treasury Empty</h3>
                 <p class="text-slate-400 mt-2 italic">No fee components have been architected yet.</p>

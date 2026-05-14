@@ -128,13 +128,13 @@ if (!empty($profile_pic)) {
                             ['library.php', 'fa-book-bookmark', 'Library'],
                             ['placements.php', 'fa-briefcase', 'Placements'],
                             ['logistics.php', 'fa-truck-fast', 'Logistics'],
-                            ['events.php', 'fa-sparkles', 'Festivals'],
+                            ['events.php', 'fa-wand-magic-sparkles', 'Festivals'],
                             ['fees.php', 'fa-wallet', 'Billing'],
                             ['id-card.php', 'fa-id-card', 'Digital ID'],
                             ['complaints.php', 'fa-hand-holding-heart', 'Support'],
                             ['notices.php', 'fa-bullhorn', 'Broadcasts'],
                             ['messaging.php', 'fa-message', 'In-Box'],
-                            ['documents.php', 'fa-vault', 'Digital Vault'],
+                            ['documents.php', 'fa-box-archive', 'Digital Vault'],
                             ['profile.php', 'fa-user-gear', 'My Settings'],
                         ];
                         foreach ($campus_links as $link):

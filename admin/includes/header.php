@@ -96,7 +96,7 @@ if (!empty($profile_pic)) {
                 <a href="dashboard.php"
                     class="flex items-center space-x-2.5 px-2.5 py-[7px] rounded-lg mb-px transition-all duration-150 <?php echo $current_page === 'dashboard.php' ? 'bg-primary-600 text-white shadow-md shadow-primary-200' : 'text-slate-600 hover:bg-slate-50'; ?>">
                     <div class="w-6 h-6 rounded-md flex items-center justify-center <?php echo $current_page === 'dashboard.php' ? 'bg-white/20' : 'bg-slate-100'; ?>">
-                        <i class="fas fa-grid-2 text-[10px]"></i>
+                        <i class="fas fa-grip text-[10px]"></i>
                     </div>
                     <span class="font-medium text-[12px]">Dashboard</span>
                 </a>
@@ -182,8 +182,8 @@ if (!empty($profile_pic)) {
                 $inst_links = [
                     ['library.php', 'fa-book-open', 'Library'],
                     ['placements.php', 'fa-briefcase', 'Placements'],
-                    ['parents.php', 'fa-users-viewfinder', 'Guardians'],
-                    ['events.php', 'fa-calendar-star', 'Events'],
+                    ['parents.php', 'fa-user-group', 'Guardians'],
+                    ['events.php', 'fa-calendar-days', 'Events'],
                     ['id-cards.php', 'fa-id-card', 'Identity Protocol'],
                     ['logistics.php', 'fa-truck-ramp-box', 'Logistics'],
                     ['leave-approvals.php', 'fa-hand-holding-heart', 'Leave Approvals'],

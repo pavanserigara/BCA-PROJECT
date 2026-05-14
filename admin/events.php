@@ -1,23 +1,49 @@
 <?php
-$page_title = "Events & Cultural Programs";
-require_once 'includes/header.php';
+require_once '../includes/db.php';
+require_once '../includes/functions.php';
+
+if (!has_role('admin')) {
+    header("Location: ../login.php");
+    exit();
+}
 
 $success_message = '';
+$error_message = '';
 
 // Add Event
-if (isset($_POST['add_event'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_event'])) {
+    csrf_guard();
     $title = sanitize($_POST['title']);
     $description = $_POST['description'];
     $event_date = $_POST['event_date'];
     $location = sanitize($_POST['location']);
     $posted_by = $_SESSION['user_id'];
 
-    $stmt = $pdo->prepare("INSERT INTO events (title, description, event_date, location, posted_by) VALUES (?, ?, ?, ?, ?)");
-    $stmt->execute([$title, $description, $event_date, $location, $posted_by]);
-    $success_message = "'$title' has been added to the institutional calendar.";
+    if (!empty($title) && !empty($event_date)) {
+        try {
+            $stmt = $pdo->prepare("INSERT INTO events (title, description, event_date, location, posted_by) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$title, $description, $event_date, $location, $posted_by]);
+            $success_message = "'$title' has been successfully broadcasted.";
+        } catch (PDOException $e) {
+            $error_message = "Protocol Error: " . $e->getMessage();
+        }
+    } else {
+        $error_message = "Data Insufficiency: Title and Date are mandatory.";
+    }
+}
+
+// Delete Event
+if (isset($_GET['delete'])) {
+    $id = (int)$_GET['delete'];
+    $stmt = $pdo->prepare("DELETE FROM events WHERE id = ?");
+    $stmt->execute([$id]);
+    $success_message = "Event transmission terminated.";
 }
 
 $events = $pdo->query("SELECT e.*, u.full_name as author FROM events e JOIN users u ON e.posted_by = u.id ORDER BY e.event_date ASC")->fetchAll();
+
+$page_title = "Institutional Events Hub";
+require_once 'includes/header.php';
 ?>
 
 <div class="flex items-center justify-between mb-10">
@@ -34,11 +60,16 @@ $events = $pdo->query("SELECT e.*, u.full_name as author FROM events e JOIN user
 </div>
 
 <?php if ($success_message): ?>
-    <div class="bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 p-6 rounded-2xl mb-8 flex items-center">
+    <div class="bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 p-6 rounded-2xl mb-8 flex items-center shadow-sm">
         <i class="fas fa-check-circle text-2xl mr-4"></i>
-        <p class="text-sm font-bold">
-            <?php echo $success_message; ?>
-        </p>
+        <p class="text-sm font-black uppercase tracking-tight"><?php echo $success_message; ?></p>
+    </div>
+<?php endif; ?>
+
+<?php if ($error_message): ?>
+    <div class="bg-rose-50 border-l-4 border-rose-500 text-rose-700 p-6 rounded-2xl mb-8 flex items-center shadow-sm">
+        <i class="fas fa-circle-exclamation text-2xl mr-4"></i>
+        <p class="text-sm font-black uppercase tracking-tight"><?php echo $error_message; ?></p>
     </div>
 <?php endif; ?>
 
@@ -78,18 +109,18 @@ $events = $pdo->query("SELECT e.*, u.full_name as author FROM events e JOIN user
                     </div>
 
                     <div class="pt-8 border-t border-slate-50 flex items-center justify-between">
-                        <div class="flex -space-x-3">
-                            <div
-                                class="w-8 h-8 rounded-full bg-slate-100 border border-white flex items-center justify-center text-[10px] font-black text-slate-400 font-black">
-                                CS</div>
-                            <div
-                                class="w-8 h-8 rounded-full bg-indigo-500 border border-white flex items-center justify-center text-[10px] font-black text-white font-black">
-                                BCA</div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] font-black text-white italic shadow-lg">
+                                <?php echo strtoupper(substr($e['author'], 0, 1)); ?>
+                            </div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic"><?php echo $e['author']; ?></p>
                         </div>
-                        <button class="text-slate-300 hover:text-indigo-600 transition-all transform active:scale-95"><i
-                                class="fas fa-edit mr-3"></i></button>
-                        <button class="text-slate-300 hover:text-rose-600 transition-all transform active:scale-95"><i
-                                class="fas fa-trash-alt"></i></button>
+                        <div class="flex items-center space-x-4">
+                            <button class="text-slate-300 hover:text-indigo-600 transition-all transform active:scale-95"><i class="fas fa-edit"></i></button>
+                            <a href="events.php?delete=<?php echo $e['id']; ?>" onclick="return confirm('Terminate this event stream?')" class="text-slate-300 hover:text-rose-600 transition-all transform active:scale-95">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -111,6 +142,7 @@ $events = $pdo->query("SELECT e.*, u.full_name as author FROM events e JOIN user
 
         <form action="events.php" method="POST" class="space-y-8">
             <input type="hidden" name="add_event" value="1">
+            <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="md:col-span-2">

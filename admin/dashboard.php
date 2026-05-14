@@ -43,6 +43,26 @@ $hour = date('H');
 if ($hour < 12) $greeting = 'Good Morning';
 elseif ($hour < 17) $greeting = 'Good Afternoon';
 else $greeting = 'Good Evening';
+
+// Financial Overview Telemetry
+$total_collected = $pdo->query("SELECT SUM(amount) FROM fee_payments")->fetchColumn() ?: 0;
+$pending_dues = 0;
+try {
+    $rows = $pdo->query("
+        SELECT st.user_id,
+               COALESCE(SUM(fs.amount), 0) AS expected_amount,
+               COALESCE((SELECT SUM(fp.amount) FROM fee_payments fp WHERE fp.student_id = st.user_id AND fp.status IN ('Paid','Partial')), 0) AS paid_amount
+        FROM students st
+        LEFT JOIN fees_structure fs ON fs.course_id = st.course_id AND fs.semester = st.semester
+        GROUP BY st.user_id
+    ")->fetchAll();
+    foreach ($rows as $r) {
+        $pending_dues += max(0, (float) $r['expected_amount'] - (float) $r['paid_amount']);
+    }
+} catch (PDOException $e) {}
+$total_potential = $total_collected + $pending_dues;
+$target_percent = $total_potential > 0 ? round(($total_collected / $total_potential) * 100) : 0;
+$pending_percent = 100 - $target_percent;
 ?>
 
 <!-- Welcome Banner -->
@@ -249,9 +269,9 @@ else $greeting = 'Good Evening';
         <div class="flex items-end justify-between mb-4">
             <div>
                 <p class="text-[9px] font-medium text-slate-400 uppercase tracking-wider mb-0.5">Total Collected</p>
-                <div class="text-2xl font-bold text-slate-800">₹ 2,45,000</div>
+                <div class="text-2xl font-bold text-slate-800">₹ <?php echo number_format($total_collected, 0); ?></div>
             </div>
-            <span class="text-[9px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-100">+15% vs Last</span>
+            <span class="text-[9px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-100">Live Sync</span>
         </div>
 
         <div class="flex items-center justify-center mb-4">
@@ -267,18 +287,18 @@ else $greeting = 'Good Evening';
         <div class="space-y-3 mb-4">
             <div>
                 <div class="flex justify-between text-[10px] font-medium text-slate-600 mb-1">
-                    <span>Target Achievement</span><span class="text-primary-600">85%</span>
+                    <span>Target Achievement</span><span class="text-primary-600"><?php echo $target_percent; ?>%</span>
                 </div>
                 <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div class="h-full bg-gradient-to-r from-primary-500 to-violet-500 rounded-full" style="width:85%"></div>
+                    <div class="h-full bg-gradient-to-r from-primary-500 to-violet-500 rounded-full" style="width:<?php echo $target_percent; ?>%"></div>
                 </div>
             </div>
             <div>
                 <div class="flex justify-between text-[10px] font-medium text-slate-600 mb-1">
-                    <span>Pending Dues</span><span class="text-rose-500">15%</span>
+                    <span>Pending Dues</span><span class="text-rose-500"><?php echo $pending_percent; ?>%</span>
                 </div>
                 <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div class="h-full bg-gradient-to-r from-rose-400 to-rose-500 rounded-full" style="width:15%"></div>
+                    <div class="h-full bg-gradient-to-r from-rose-400 to-rose-500 rounded-full" style="width:<?php echo $pending_percent; ?>%"></div>
                 </div>
             </div>
         </div>

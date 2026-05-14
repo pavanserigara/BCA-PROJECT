@@ -28,6 +28,25 @@ $stmt_att = $pdo->prepare("SELECT
 $stmt_att->execute([$id]);
 $att_stats = $stmt_att->fetch();
 $att_percent = $att_stats['total'] > 0 ? round(($att_stats['present'] / $att_stats['total']) * 100) : 0;
+
+// Financial Telemetry
+$stmt_pay = $pdo->prepare("SELECT SUM(amount) FROM fee_payments WHERE student_id = ? AND status IN ('Paid', 'Partial')");
+$stmt_pay->execute([$id]);
+$paid_so_far = (float) $stmt_pay->fetchColumn();
+
+$stmt_total = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) FROM fees_structure WHERE course_id = ? AND semester = ?");
+$stmt_total->execute([(int) $student['course_id'], (int) $student['semester']]);
+$total_course_fee = (float) $stmt_total->fetchColumn();
+$outstanding = max(0, $total_course_fee - $paid_so_far);
+
+// Fetch Academic Performance
+$stmt_marks = $pdo->prepare("SELECT m.*, s.name as subject_name, s.code 
+                             FROM marks m 
+                             JOIN subjects s ON m.subject_id = s.id 
+                             WHERE m.student_id = ? 
+                             ORDER BY s.semester ASC");
+$stmt_marks->execute([$id]);
+$performance = $stmt_marks->fetchAll();
 ?>
 
 <div class="flex items-center justify-between mb-15">
@@ -92,12 +111,11 @@ $att_percent = $att_stats['total'] > 0 ? round(($att_stats['present'] / $att_sta
             <h4
                 class="text-xl font-black text-slate-800 tracking-tight italic mb-10 border-b border-indigo-50 pb-6 leading-none">
                 Institutional Treasury</h4>
-            <div class="space-y-8">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1 italic">Total
                             Tuition</p>
-                        <p class="text-lg font-black text-slate-800 leading-none">₹85,000</p>
+                        <p class="text-lg font-black text-slate-800 leading-none">₹<?php echo number_format($total_course_fee, 0); ?></p>
                     </div>
                     <span
                         class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center font-black italic text-[10px] leading-none">TR</span>
@@ -106,7 +124,7 @@ $att_percent = $att_stats['total'] > 0 ? round(($att_stats['present'] / $att_sta
                     <div>
                         <p class="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1 italic">Cleared
                             Flow</p>
-                        <p class="text-lg font-black text-emerald-500 leading-none">₹50,000</p>
+                        <p class="text-lg font-black text-emerald-500 leading-none">₹<?php echo number_format($paid_so_far, 0); ?></p>
                     </div>
                     <span
                         class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center font-black italic text-[10px] leading-none">CL</span>
@@ -115,12 +133,11 @@ $att_percent = $att_stats['total'] > 0 ? round(($att_stats['present'] / $att_sta
                     <div>
                         <p class="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1 italic">Remaining
                             Balance</p>
-                        <p class="text-lg font-black text-rose-500 leading-none">₹35,000</p>
+                        <p class="text-lg font-black text-rose-500 leading-none">₹<?php echo number_format($outstanding, 0); ?></p>
                     </div>
                     <span
                         class="w-10 h-10 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center font-black italic text-[10px] leading-none">RM</span>
                 </div>
-            </div>
         </div>
     </div>
 
@@ -212,26 +229,22 @@ $att_percent = $att_stats['total'] > 0 ? round(($att_stats['present'] / $att_sta
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-indigo-50/20">
-                    <tr class="group hover:bg-slate-50 transition-all">
-                        <td class="py-6 px-4">
-                            <p class="text-sm font-black text-slate-800 italic uppercase">Advanced Java Programming</p>
-                        </td>
-                        <td class="py-6 px-4"><span class="text-sm font-bold text-slate-500">22/25</span></td>
-                        <td class="py-6 px-4"><span class="text-sm font-bold text-slate-500">68/75</span></td>
-                        <td class="py-6 px-4 text-right"><span
-                                class="text-[10px] font-black text-emerald-500 uppercase tracking-widest italic font-black">Qualified</span>
-                        </td>
-                    </tr>
-                    <tr class="group hover:bg-slate-50 transition-all">
-                        <td class="py-6 px-4">
-                            <p class="text-sm font-black text-slate-800 italic uppercase">Cloud Infrastructure</p>
-                        </td>
-                        <td class="py-6 px-4"><span class="text-sm font-bold text-slate-500">24/25</span></td>
-                        <td class="py-6 px-4"><span class="text-sm font-bold text-slate-500">72/75</span></td>
-                        <td class="py-6 px-4 text-right"><span
-                                class="text-[10px] font-black text-emerald-500 uppercase tracking-widest italic font-black">Qualified</span>
-                        </td>
-                    </tr>
+                    <?php if (empty($performance)): ?>
+                        <tr><td colspan="4" class="py-10 text-center text-slate-400 italic font-bold">No academic evaluation records synchronized.</td></tr>
+                    <?php else: ?>
+                        <?php foreach ($performance as $p): ?>
+                            <tr class="group hover:bg-slate-50 transition-all">
+                                <td class="py-6 px-4">
+                                    <p class="text-sm font-black text-slate-800 italic uppercase"><?php echo $p['subject_name']; ?></p>
+                                </td>
+                                <td class="py-6 px-4"><span class="text-sm font-bold text-slate-500"><?php echo $p['marks_obtained']; ?> / <?php echo $p['max_marks']; ?></span></td>
+                                <td class="py-6 px-4"><span class="text-sm font-bold text-slate-500"><?php echo $p['grade'] ?: 'N/A'; ?></span></td>
+                                <td class="py-6 px-4 text-right"><span
+                                        class="text-[10px] font-black text-emerald-500 uppercase tracking-widest italic font-black"><?php echo $p['marks_obtained'] >= ($p['max_marks'] * 0.4) ? 'Qualified' : 'Re-eval'; ?></span>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
