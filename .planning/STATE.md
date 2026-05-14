@@ -11,11 +11,19 @@ See: [.planning/PROJECT.md](file:///home/pavan-serigara/Documents/bca-project/.p
 ## Active Milestone: Milestone 1: Core Academic Foundation
 **Objective**: Stabilizing existing modules and implementing essential daily academic operations.
 
-### Active Phase: Phase 4: LMS & Academic Enrichment
-**Goal**: Implement Assignments, Study Materials, and Result aggregation.
+### Active Phase: Phase 5: Advanced Portals
+**Goal**: Implement Placement Cell, Parent Portal, and Hostel/Transport UI.
 
 **Status**: 📋 Planned
 **Completion**: 0%
+
+---
+
+### Phase 4: LMS & Academic Enrichment
+**Goal**: Implement Assignments, Study Materials, and Result aggregation.
+
+**Status**: ✅ Done
+**Completion**: 100%
 
 ---
 

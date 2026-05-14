@@ -29,9 +29,16 @@ foreach ($results as $res) {
 }
 ?>
 
-<div class="mb-10">
-    <h2 class="text-3xl font-black text-slate-800 dark:text-white tracking-tight">Academic Performance</h2>
-    <p class="text-slate-500 dark:text-slate-400 mt-2 font-medium italic">Validated assessment reports and examination transcripts.</p>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div>
+        <h2 class="text-3xl font-black text-slate-800 dark:text-white tracking-tight leading-none italic uppercase">Academic Performance</h2>
+        <p class="text-slate-500 dark:text-slate-400 mt-4 font-medium italic">Validated assessment reports and synchronized examination transcripts.</p>
+    </div>
+    <div class="w-full md:w-72 h-32 bg-white dark:bg-slate-800 rounded-[2rem] p-6 shadow-soft border border-slate-50 dark:border-slate-700/50">
+        <canvas id="miniTrendChart"></canvas>
+    </div>
 </div>
 
 <div class="space-y-12 mb-20 pb-10">
@@ -134,5 +141,49 @@ foreach ($results as $res) {
         <?php endforeach; ?>
     <?php endif; ?>
 </div>
+
+<?php 
+// Prepare chart data
+$chart_labels = [];
+$chart_data = [];
+foreach (array_reverse($grouped_results) as $exam) {
+    $chart_labels[] = $exam['exam_name'];
+    $total_obs = 0; $total_mxs = 0;
+    foreach($exam['marks'] as $m) {
+        $total_obs += $m['marks_obtained'];
+        $total_mxs += $m['max_marks'];
+    }
+    $chart_data[] = $total_mxs > 0 ? round(($total_obs / $total_mxs) * 100, 1) : 0;
+}
+?>
+
+<script>
+const ctx = document.getElementById('miniTrendChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: <?php echo json_encode($chart_labels); ?>,
+        datasets: [{
+            label: 'Aggregate %',
+            data: <?php echo json_encode($chart_data); ?>,
+            borderColor: '#4f46e5',
+            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { display: false },
+            y: { display: false, min: 0, max: 100 }
+        }
+    }
+});
+</script>
 
 <?php require_once 'includes/footer.php'; ?>

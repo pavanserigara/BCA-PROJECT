@@ -91,9 +91,9 @@ $profile_pic_url = (!empty($profile_pic) && is_file($profile_pic_path)) ? $profi
                         <?php
                         $main_links = [
                             ['dashboard.php', 'fa-grip-vertical', 'Overview'],
-                            ['attendance.php', 'fa-calendar-day', 'Attendance'],
-                            ['timetable.php', 'fa-calendar-range', 'Schedule'],
-                            ['assignments.php', 'fa-file-signature', 'Assignments'],
+                            ['attendance.php', 'fa-calendar-check', 'Attendance'],
+                            ['materials.php', 'fa-book-open-reader', 'Study Vault'],
+                            ['assignments.php', 'fa-laptop-code', 'Workspace'],
                             ['results.php', 'fa-award', 'Results'],
                         ];
                         foreach ($main_links as $link):

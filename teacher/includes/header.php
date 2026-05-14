@@ -106,6 +106,7 @@ $profile_pic_url = (!empty($profile_pic) && is_file($profile_pic_path)) ? $profi
                             ['dashboard.php', 'fa-grip-vertical', 'Overview'],
                             ['attendance-take.php', 'fa-calendar-check', 'Attendance'],
                             ['attendance-report.php', 'fa-chart-pie', 'Reports'],
+                            ['materials.php', 'fa-book-open-reader', 'Study Vault'],
                             ['subjects.php', 'fa-book-bookmark', 'My Subjects'],
                             ['assignments.php', 'fa-cloud-arrow-up', 'Assignments'],
                             ['marks-entry.php', 'fa-chart-simple', 'Gradebook'],
