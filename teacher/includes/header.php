@@ -11,7 +11,7 @@ $settings = get_college_settings($pdo);
 $page_title = isset($page_title) ? $page_title : 'Faculty Dashboard';
 $current_page = basename($_SERVER['PHP_SELF']);
 $profile_pic = $_SESSION['profile_pic'] ?? '';
-$profile_pic_url = 'default_profile.svg';
+$profile_pic_url = '../assets/images/default_profile.svg';
 
 if (!empty($profile_pic)) {
     if (is_file(__DIR__ . '/../../uploads/profiles/' . $profile_pic)) {
@@ -19,8 +19,6 @@ if (!empty($profile_pic)) {
     } elseif (is_file(__DIR__ . '/../../assets/images/' . $profile_pic)) {
         $profile_pic_url = '../assets/images/' . $profile_pic;
     }
-} else {
-    $profile_pic_url = '../assets/images/default_profile.svg';
 }
 ?>
 <!DOCTYPE html>
@@ -30,6 +28,9 @@ if (!empty($profile_pic)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $page_title; ?> | Faculty Portal</title>
+    <?php if (!empty($settings['favicon'])): ?>
+        <link rel="icon" type="image/x-icon" href="../assets/images/<?php echo $settings['favicon']; ?>">
+    <?php endif; ?>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -46,7 +47,13 @@ if (!empty($profile_pic)) {
                 extend: {
                     fontFamily: { 'inter': ['Inter', 'sans-serif'] },
                     colors: {
-                        primary: { 50:'#EEF2FF',100:'#E0E7FF',200:'#C7D2FE',300:'#A5B4FC',400:'#818CF8',500:'#6366F1',600:'#4F46E5',700:'#4338CA',800:'#3730A3',900:'#312E81' },
+                        primary: { 
+                            50:'#EEF2FF',100:'#E0E7FF',200:'#C7D2FE',300:'#A5B4FC',400:'#818CF8',
+                            500:'<?php echo $settings['primary_color'] ?? "#6366F1"; ?>',
+                            600:'<?php echo $settings['primary_color'] ?? "#4F46E5"; ?>',
+                            700:'<?php echo $settings['secondary_color'] ?? "#4338CA"; ?>',
+                            800:'#3730A3',900:'#312E81' 
+                        },
                     },
                     boxShadow: {
                         'soft': '0 4px 20px -2px rgba(0,0,0,0.05)',
@@ -85,8 +92,12 @@ if (!empty($profile_pic)) {
             
             <div class="p-8 flex items-center justify-between">
                 <div class="flex items-center space-x-3">
-                    <div class="w-9 h-9 bg-primary-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg shadow-primary-500/40 italic">V</div>
-                    <span class="font-bold text-xl tracking-tight text-slate-800 dark:text-white">VidyaSetu</span>
+                    <?php if (!empty($settings['logo'])): ?>
+                        <img src="../assets/images/<?php echo $settings['logo']; ?>" class="w-9 h-9 rounded-xl object-contain shadow-lg" alt="Logo">
+                    <?php else: ?>
+                        <div class="w-9 h-9 bg-primary-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg shadow-primary-500/40 italic">V</div>
+                    <?php endif; ?>
+                    <span class="font-bold text-xl tracking-tight text-slate-800 dark:text-white"><?php echo $settings['college_name']; ?></span>
                 </div>
                 <button id="close-sidebar" class="lg:hidden text-slate-400 hover:text-slate-600 dark:hover:text-white">
                     <i class="fas fa-times"></i>
@@ -96,7 +107,7 @@ if (!empty($profile_pic)) {
             <div class="px-6 mb-8">
                 <div class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700/50">
                     <div class="flex items-center space-x-3">
-                        <img src="<?php echo htmlspecialchars($profile_pic_url); ?>" class="w-10 h-10 rounded-xl object-cover" alt="Faculty">
+                        <img src="<?php echo htmlspecialchars($profile_pic_url); ?>" class="w-10 h-10 rounded-xl object-cover" alt="Faculty" onerror="this.src='../assets/images/default_profile.svg'">
                         <div class="min-w-0">
                             <p class="text-sm font-bold text-slate-800 dark:text-white truncate"><?php echo explode(' ', $_SESSION['full_name'])[0]; ?></p>
                             <p class="text-[10px] font-bold text-primary-600 uppercase tracking-widest">Faculty</p>
@@ -192,6 +203,11 @@ if (!empty($profile_pic)) {
                         <i id="theme-toggle-light-icon" class="hidden fas fa-sun text-sm"></i>
                     </button>
 
+                    <!-- Mobile Logout -->
+                    <a href="../logout.php" class="lg:hidden w-9 h-9 bg-rose-50 dark:bg-rose-500/10 rounded-xl shadow-soft text-rose-600 flex items-center justify-center border border-rose-100 dark:border-rose-500/20 active:scale-95 transition-all">
+                        <i class="fas fa-sign-out-alt text-xs"></i>
+                    </a>
+
                     <div class="h-5 w-px bg-slate-200 dark:bg-slate-700"></div>
 
                     <a href="profile.php" class="flex items-center space-x-3 group active:scale-95 transition-transform">
@@ -201,7 +217,7 @@ if (!empty($profile_pic)) {
                         </div>
                         <div class="relative">
                             <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden ring-2 ring-primary-500/10 group-hover:ring-primary-500 transition-all">
-                                <img src="<?php echo htmlspecialchars($profile_pic_url); ?>" class="w-full h-full object-cover" alt="Profile">
+                                <img src="<?php echo htmlspecialchars($profile_pic_url); ?>" class="w-full h-full object-cover" alt="Profile" onerror="this.src='../assets/images/default_profile.svg'">
                             </div>
                             <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-[#0F172A] rounded-full"></div>
                         </div>

@@ -41,7 +41,14 @@ $sem_list = !empty($semesters) ? implode(', ', $semesters) : 'N/A';
             <div class="relative mb-6 group/img">
                 <div class="w-32 h-32 rounded-full mx-auto p-1 bg-gradient-to-tr from-primary-500 to-indigo-500 shadow-xl overflow-hidden">
                     <?php 
-                        $pic_path = !empty($faculty['profile_pic']) ? "../uploads/profiles/" . $faculty['profile_pic'] : "../assets/images/default_profile.svg";
+                        $pic_path = '../assets/images/default_profile.svg';
+                        if (!empty($faculty['profile_pic'])) {
+                            if (is_file(__DIR__ . '/../../uploads/profiles/' . $faculty['profile_pic'])) {
+                                $pic_path = '../uploads/profiles/' . $faculty['profile_pic'];
+                            } elseif (is_file(__DIR__ . '/../../assets/images/' . $faculty['profile_pic'])) {
+                                $pic_path = '../assets/images/' . $faculty['profile_pic'];
+                            }
+                        }
                     ?>
                     <img id="profile_display" src="<?php echo $pic_path; ?>" class="w-full h-full object-cover rounded-full border-4 border-white dark:border-slate-800" alt="Avatar">
                 </div>

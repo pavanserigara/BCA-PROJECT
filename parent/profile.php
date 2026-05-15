@@ -72,7 +72,17 @@ $student = $stmt->fetch();
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div class="flex items-center space-x-6">
-                    <img src="../assets/images/<?php echo $student['profile_pic'] ?: 'default_profile.svg'; ?>" class="w-20 h-20 rounded-3xl object-cover border-4 border-slate-50 dark:border-slate-900 shadow-soft" alt="">
+                    <?php 
+                        $stu_pic_url = '../assets/images/default_profile.svg';
+                        if (!empty($student['profile_pic'])) {
+                            if (is_file(__DIR__ . '/../../uploads/profiles/' . $student['profile_pic'])) {
+                                $stu_pic_url = '../uploads/profiles/' . $student['profile_pic'];
+                            } elseif (is_file(__DIR__ . '/../../assets/images/' . $student['profile_pic'])) {
+                                $stu_pic_url = '../assets/images/' . $student['profile_pic'];
+                            }
+                        }
+                    ?>
+                    <img src="<?php echo $stu_pic_url; ?>" class="w-20 h-20 rounded-3xl object-cover border-4 border-slate-50 dark:border-slate-900 shadow-soft" alt="">
                     <div>
                         <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest italic mb-1">Full Name</p>
                         <p class="text-lg font-black text-slate-800 dark:text-white italic uppercase"><?php echo $student['full_name']; ?></p>

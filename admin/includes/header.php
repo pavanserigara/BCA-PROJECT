@@ -11,7 +11,7 @@ $settings = get_college_settings($pdo);
 $page_title = isset($page_title) ? $page_title : 'Admin Dashboard';
 $current_page = basename($_SERVER['PHP_SELF']);
 $profile_pic = $_SESSION['profile_pic'] ?? '';
-$profile_pic_url = 'default_profile.svg';
+$profile_pic_url = '../assets/images/default_profile.svg';
 
 if (!empty($profile_pic)) {
     if (is_file(__DIR__ . '/../../uploads/profiles/' . $profile_pic)) {
@@ -19,8 +19,6 @@ if (!empty($profile_pic)) {
     } elseif (is_file(__DIR__ . '/../../assets/images/' . $profile_pic)) {
         $profile_pic_url = '../assets/images/' . $profile_pic;
     }
-} else {
-    $profile_pic_url = '../assets/images/default_profile.svg';
 }
 ?>
 <!DOCTYPE html>
@@ -34,6 +32,9 @@ if (!empty($profile_pic)) {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <?php if (!empty($settings['favicon'])): ?>
+        <link rel="icon" type="image/x-icon" href="../assets/images/<?php echo $settings['favicon']; ?>">
+    <?php endif; ?>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -41,7 +42,13 @@ if (!empty($profile_pic)) {
                 extend: {
                     fontFamily: { 'inter': ['Inter', 'sans-serif'] },
                     colors: {
-                        primary: { 50:'#EEF2FF',100:'#E0E7FF',200:'#C7D2FE',300:'#A5B4FC',400:'#818CF8',500:'#6366F1',600:'#4F46E5',700:'#4338CA',800:'#3730A3',900:'#312E81' },
+                        primary: { 
+                            50:'#EEF2FF',100:'#E0E7FF',200:'#C7D2FE',300:'#A5B4FC',400:'#818CF8',
+                            500:'<?php echo $settings['primary_color'] ?? "#6366F1"; ?>',
+                            600:'<?php echo $settings['primary_color'] ?? "#4F46E5"; ?>',
+                            700:'<?php echo $settings['secondary_color'] ?? "#4338CA"; ?>',
+                            800:'#3730A3',900:'#312E81' 
+                        },
                     },
                     boxShadow: {
                         'card': '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)',
@@ -69,8 +76,12 @@ if (!empty($profile_pic)) {
             <!-- Logo -->
             <div class="h-[52px] flex items-center px-4 border-b border-slate-100 flex-shrink-0">
                 <div class="flex items-center space-x-2">
-                    <div class="w-7 h-7 bg-gradient-to-br from-primary-600 to-primary-700 rounded-lg flex items-center justify-center text-white font-bold text-[11px] shadow-md">V</div>
-                    <span class="font-bold text-base tracking-tight text-slate-800">Vidya<span class="text-primary-600">Setu</span></span>
+                    <?php if (!empty($settings['logo'])): ?>
+                        <img src="../assets/images/<?php echo $settings['logo']; ?>" class="w-7 h-7 rounded-lg object-contain" alt="Logo">
+                    <?php else: ?>
+                        <div class="w-7 h-7 bg-gradient-to-br from-primary-600 to-primary-700 rounded-lg flex items-center justify-center text-white font-bold text-[11px] shadow-md">V</div>
+                    <?php endif; ?>
+                    <span class="font-bold text-base tracking-tight text-slate-800"><?php echo explode(' ', $settings['college_name'])[0]; ?><span class="text-primary-600"><?php echo substr($settings['college_name'], strlen(explode(' ', $settings['college_name'])[0])); ?></span></span>
                 </div>
                 <button id="close-sidebar" class="lg:hidden ml-auto text-slate-400 hover:text-slate-600 p-0.5">
                     <i class="fas fa-times text-sm"></i>
@@ -80,7 +91,7 @@ if (!empty($profile_pic)) {
             <!-- User Card -->
             <div class="px-3 py-2.5 border-b border-slate-100 flex-shrink-0">
                 <div class="flex items-center space-x-2 p-2 bg-slate-50 rounded-lg">
-                    <img src="<?php echo htmlspecialchars($profile_pic_url); ?>" class="w-8 h-8 rounded-lg object-cover ring-1 ring-white shadow-sm" alt="Admin">
+                    <img src="<?php echo htmlspecialchars($profile_pic_url); ?>" class="w-8 h-8 rounded-lg object-cover ring-1 ring-white shadow-sm" alt="Admin" onerror="this.src='../assets/images/default_profile.svg'">
                     <div class="min-w-0">
                         <p class="text-[12px] font-semibold text-slate-700 truncate leading-tight"><?php echo $_SESSION['full_name']; ?></p>
                         <p class="text-[10px] font-medium text-primary-600 capitalize"><?php echo $_SESSION['role']; ?></p>
@@ -265,6 +276,10 @@ if (!empty($profile_pic)) {
                         <i class="fas fa-bell text-[11px]"></i>
                         <span class="absolute top-1 right-1 w-1.5 h-1.5 bg-red-500 rounded-full ring-1 ring-white"></span>
                     </button>
+                    <!-- Mobile Logout -->
+                    <a href="../logout.php" class="md:hidden text-rose-500 hover:text-rose-700 p-1.5 rounded-md hover:bg-rose-50 transition-colors">
+                        <i class="fas fa-sign-out-alt text-[11px]"></i>
+                    </a>
                     <div class="h-6 w-px bg-slate-200 hidden sm:block mx-1"></div>
                     <div class="relative" id="profile-dropdown">
                         <button class="flex items-center space-x-2 p-1 rounded-lg hover:bg-slate-50 transition-all" id="profile-btn">
@@ -273,7 +288,9 @@ if (!empty($profile_pic)) {
                                 <p class="text-[9px] font-medium text-primary-600 capitalize"><?php echo $_SESSION['role']; ?></p>
                             </div>
                             <img src="<?php echo htmlspecialchars($profile_pic_url); ?>"
-                                class="w-7 h-7 rounded-lg object-cover ring-1 ring-slate-100" alt="Profile">
+                                class="w-7 h-7 rounded-lg object-cover ring-1 ring-slate-100" 
+                                alt="Profile"
+                                onerror="this.src='../assets/images/default_profile.svg'">
                         </button>
                         <div id="profile-menu" class="absolute right-0 top-full mt-1 w-44 bg-white rounded-lg shadow-lg border border-slate-100 opacity-0 invisible transition-all duration-150 transform translate-y-1 py-1 z-50">
                             <div class="px-3 py-2 border-b border-slate-100">

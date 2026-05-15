@@ -55,7 +55,14 @@ foreach ($documents as $d) {
                 <div class="relative w-40 h-40 mx-auto mb-10 group/img">
                     <div class="absolute -inset-2 bg-gradient-to-tr from-primary-600 to-indigo-600 rounded-[3.5rem] opacity-20 blur group-hover/img:opacity-40 transition-all"></div>
                     <?php 
-                        $pic_path = !empty($student['profile_pic']) ? "../uploads/profiles/" . $student['profile_pic'] : "../assets/images/default_profile.svg";
+                        $pic_path = '../assets/images/default_profile.svg';
+                        if (!empty($student['profile_pic'])) {
+                            if (is_file(__DIR__ . '/../../uploads/profiles/' . $student['profile_pic'])) {
+                                $pic_path = '../uploads/profiles/' . $student['profile_pic'];
+                            } elseif (is_file(__DIR__ . '/../../assets/images/' . $student['profile_pic'])) {
+                                $pic_path = '../assets/images/' . $student['profile_pic'];
+                            }
+                        }
                     ?>
                     <img id="profile_display" src="<?php echo $pic_path; ?>" class="relative w-full h-full object-cover rounded-[3rem] border-4 border-white/10 shadow-2xl" alt="Profile pic">
                     

@@ -142,6 +142,18 @@ if (isset($_GET['subject_id'])) {
     </form>
 </div>
 
+<?php if (count($attendance_records) > 0): ?>
+    <div class="mb-6 flex items-center space-x-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 p-4 rounded-2xl">
+        <div class="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center text-white shadow-sm">
+            <i class="fas fa-file-signature text-xs"></i>
+        </div>
+        <div>
+            <p class="text-[11px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-widest italic">Existing Records Synchronized</p>
+            <p class="text-[10px] text-amber-600 dark:text-amber-500/70 font-bold italic leading-none mt-1">Attendance artifacts detected for this cycle. Protocol will transition to 'Edit Mode' upon submission.</p>
+        </div>
+    </div>
+<?php endif; ?>
+
 <?php display_flash_message(); ?>
 
 <?php if ($selected_subject): ?>
@@ -165,6 +177,8 @@ if (isset($_GET['subject_id'])) {
                     <?php foreach ($students as $student): 
                         $existing = $attendance_records[$student['user_id']] ?? null;
                         $status = $existing['status'] ?? 'Present';
+                        // Legacy mapping: Late -> Present for UI pre-selection
+                        if ($status === 'Late') $status = 'Present';
                     ?>
                         <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-900/30 transition-colors">
                             <td class="py-5 px-6">
@@ -184,7 +198,6 @@ if (isset($_GET['subject_id'])) {
                                     $opts = [
                                         ['Present', 'text-emerald-600', 'bg-emerald-50 dark:bg-emerald-500/10'],
                                         ['Absent', 'text-rose-600', 'bg-rose-50 dark:bg-rose-500/10'],
-                                        ['Late', 'text-amber-600', 'bg-amber-50 dark:bg-amber-500/10'],
                                         ['Leave', 'text-blue-600', 'bg-blue-50 dark:bg-blue-500/10']
                                     ];
                                     foreach ($opts as $opt):
@@ -213,6 +226,8 @@ if (isset($_GET['subject_id'])) {
             <?php foreach ($students as $student): 
                 $existing = $attendance_records[$student['user_id']] ?? null;
                 $status = $existing['status'] ?? 'Present';
+                // Legacy mapping: Late -> Present
+                if ($status === 'Late') $status = 'Present';
             ?>
                 <div class="bg-white dark:bg-slate-800 p-5 rounded-3xl shadow-soft border border-slate-100 dark:border-slate-700">
                     <div class="flex items-center space-x-3 mb-4">
@@ -241,8 +256,9 @@ if (isset($_GET['subject_id'])) {
         </div>
 
         <div class="mt-8 flex justify-end">
-            <button type="submit" class="w-full md:w-auto px-10 py-4 bg-primary-600 text-white font-bold rounded-2xl shadow-premium hover:bg-primary-700 hover:scale-[1.02] transition-all transform active:scale-95">
-                Save Attendance
+            <button type="submit" class="w-full md:w-auto px-10 py-4 bg-primary-600 text-white font-black rounded-2xl shadow-premium hover:bg-primary-700 hover:scale-[1.02] transition-all transform active:scale-95 flex items-center justify-center space-x-3 italic">
+                <i class="fas fa-<?php echo count($attendance_records) > 0 ? 'save' : 'cloud-upload-alt'; ?>"></i>
+                <span><?php echo count($attendance_records) > 0 ? 'Update Record Matrix' : 'Finalize Attendance'; ?></span>
             </button>
         </div>
     </form>

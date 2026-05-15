@@ -38,7 +38,17 @@ $student = $stmt->fetch();
         <!-- Profile -->
         <div class="flex flex-col items-center -mt-15 relative z-20 px-8 text-center">
             <div class="w-36 h-36 rounded-[2.5rem] border-[6px] border-white dark:border-slate-800 shadow-2xl overflow-hidden mb-6 bg-white dark:bg-slate-800">
-                <img src="../assets/images/<?php echo $student['profile_pic'] ?: 'default_profile.svg'; ?>" class="w-full h-full object-cover">
+                <?php 
+                    $stu_pic_url = '../assets/images/default_profile.svg';
+                    if (!empty($student['profile_pic'])) {
+                        if (is_file(__DIR__ . '/../../uploads/profiles/' . $student['profile_pic'])) {
+                            $stu_pic_url = '../uploads/profiles/' . $student['profile_pic'];
+                        } elseif (is_file(__DIR__ . '/../../assets/images/' . $student['profile_pic'])) {
+                            $stu_pic_url = '../assets/images/' . $student['profile_pic'];
+                        }
+                    }
+                ?>
+                <img src="<?php echo $stu_pic_url; ?>" class="w-full h-full object-cover">
             </div>
             
             <h3 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight leading-none italic uppercase mb-2"><?php echo $student['full_name']; ?></h3>

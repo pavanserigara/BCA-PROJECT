@@ -45,6 +45,9 @@ $_SESSION['linked_student_name'] = $student_data['full_name'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $page_title; ?> | VidyaSetu CMS</title>
+    <?php if (!empty($settings['favicon'])): ?>
+        <link rel="icon" type="image/x-icon" href="../assets/images/<?php echo $settings['favicon']; ?>">
+    <?php endif; ?>
     
     <!-- Premium Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -63,7 +66,13 @@ $_SESSION['linked_student_name'] = $student_data['full_name'];
                 extend: {
                     fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
                     colors: {
-                        primary: { 50:'#f0fdf4', 100:'#dcfce7', 200:'#bbf7d0', 300:'#86efac', 400:'#4ade80', 500:'#22c55e', 600:'#16a34a', 700:'#15803d', 800:'#166534', 900:'#14532d' },
+                        primary: { 
+                            50:'#f0fdf4', 100:'#dcfce7', 200:'#bbf7d0', 300:'#86efac', 400:'#4ade80', 
+                            500:'<?php echo $settings['primary_color'] ?? "#22c55e"; ?>', 
+                            600:'<?php echo $settings['primary_color'] ?? "#16a34a"; ?>', 
+                            700:'<?php echo $settings['secondary_color'] ?? "#15803d"; ?>', 
+                            800:'#166534', 900:'#14532d' 
+                        },
                         slate: { 950: '#020617' }
                     },
                     boxShadow: {
@@ -98,10 +107,14 @@ $_SESSION['linked_student_name'] = $student_data['full_name'];
             
             <div class="h-24 flex items-center px-8 flex-shrink-0">
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-gradient-to-tr from-emerald-600 to-teal-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/30 font-black text-xl italic">P</div>
+                    <?php if (!empty($settings['logo'])): ?>
+                        <img src="../assets/images/<?php echo $settings['logo']; ?>" class="w-10 h-10 rounded-xl object-contain shadow-lg" alt="Logo">
+                    <?php else: ?>
+                        <div class="w-10 h-10 bg-gradient-to-tr from-primary-600 to-emerald-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary-500/30 font-black text-xl italic">V</div>
+                    <?php endif; ?>
                     <div>
-                        <h1 class="text-lg font-extrabold text-slate-800 dark:text-white leading-none tracking-tight">Vidya<span class="text-emerald-600">Setu</span></h1>
-                        <p class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">Parent Portal</p>
+                        <h1 class="text-lg font-extrabold text-slate-800 dark:text-white leading-none tracking-tight"><?php echo explode(' ', $settings['college_name'])[0]; ?><span class="text-primary-600"><?php echo substr($settings['college_name'], strlen(explode(' ', $settings['college_name'])[0])); ?></span></h1>
+                        <p class="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">Guardian Hub v2</p>
                     </div>
                 </div>
             </div>
@@ -162,7 +175,7 @@ $_SESSION['linked_student_name'] = $student_data['full_name'];
                             }
                         }
                     ?>
-                    <img src="<?php echo $s_pic_url; ?>" class="w-10 h-10 rounded-xl object-cover border border-white dark:border-slate-700 shadow-sm" alt="">
+                    <img src="<?php echo $s_pic_url; ?>" class="w-10 h-10 rounded-xl object-cover border border-white dark:border-slate-700 shadow-sm" alt="Student" onerror="this.src='../assets/images/default_profile.svg'">
                         <div>
                             <p class="text-[10px] font-black text-slate-800 dark:text-white uppercase italic leading-none mb-1"><?php echo $student_data['full_name']; ?></p>
                             <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest"><?php echo $student_data['roll_no']; ?></p>
@@ -195,12 +208,16 @@ $_SESSION['linked_student_name'] = $student_data['full_name'];
                     </div>
                 </div>
 
-                <div class="flex items-center space-x-4">
+                    <!-- Mobile Logout -->
+                    <a href="../logout.php" class="lg:hidden w-10 h-10 bg-rose-50 dark:bg-rose-500/10 rounded-xl shadow-soft text-rose-600 flex items-center justify-center border border-rose-100 dark:border-rose-500/20 active:scale-90 transition-all">
+                        <i class="fas fa-sign-out-alt text-sm"></i>
+                    </a>
+
                     <div class="hidden md:flex flex-col items-end">
                         <p class="text-xs font-black text-slate-800 dark:text-white"><?php echo $_SESSION['full_name']; ?></p>
                         <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Parent Account</p>
                     </div>
-                    <img src="../assets/images/<?php echo htmlspecialchars($profile_pic_url); ?>" class="w-10 h-10 rounded-xl object-cover border-2 border-white dark:border-slate-800 shadow-premium" alt="">
+                    <img src="<?php echo htmlspecialchars($profile_pic_url); ?>" class="w-10 h-10 rounded-xl object-cover border-2 border-white dark:border-slate-800 shadow-premium" alt="Parent" onerror="this.src='../assets/images/default_profile.svg'">
                 </div>
             </header>
 
