@@ -272,10 +272,41 @@ if (!empty($profile_pic)) {
                     <button id="mobile-search-toggle" class="md:hidden text-slate-500 hover:text-slate-700 p-1.5 rounded-md hover:bg-slate-50 transition-colors">
                         <i class="fas fa-search text-[11px]"></i>
                     </button>
-                    <button class="relative text-slate-500 hover:text-slate-700 p-1.5 rounded-md hover:bg-slate-50 transition-colors">
-                        <i class="fas fa-bell text-[11px]"></i>
-                        <span class="absolute top-1 right-1 w-1.5 h-1.5 bg-red-500 rounded-full ring-1 ring-white"></span>
-                    </button>
+                    <div class="relative" id="notification-dropdown">
+                        <button id="notification-btn" class="relative text-slate-500 hover:text-slate-700 p-1.5 rounded-md hover:bg-slate-50 transition-colors">
+                            <i class="fas fa-bell text-[11px]"></i>
+                            <span class="absolute top-1 right-1 w-1.5 h-1.5 bg-red-500 rounded-full ring-1 ring-white"></span>
+                        </button>
+                        <div id="notification-menu" class="absolute right-0 top-full mt-1 w-64 bg-white rounded-lg shadow-lg border border-slate-100 opacity-0 invisible transition-all duration-150 transform translate-y-1 py-1 z-50">
+                            <div class="px-3 py-2 border-b border-slate-100 flex items-center justify-between">
+                                <p class="text-[10px] font-bold text-slate-700 uppercase tracking-widest">Notifications</p>
+                                <span class="text-[9px] text-primary-600 font-bold cursor-pointer hover:underline">Clear All</span>
+                            </div>
+                            <div class="max-h-60 overflow-y-auto">
+                                <div class="px-3 py-2.5 hover:bg-slate-50 transition-colors border-b border-slate-50 cursor-pointer">
+                                    <div class="flex items-start space-x-3">
+                                        <div class="w-2 h-2 mt-1 bg-primary-600 rounded-full"></div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-[11px] font-semibold text-slate-700 leading-tight mb-1">New Enrollment</p>
+                                            <p class="text-[10px] text-slate-400 line-clamp-1 italic">Arjun Sharma has completed admission.</p>
+                                            <p class="text-[8px] text-slate-300 mt-1 uppercase font-bold tracking-wider">2 mins ago</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="px-3 py-2.5 hover:bg-slate-50 transition-colors border-b border-slate-50 cursor-pointer">
+                                    <div class="flex items-start space-x-3">
+                                        <div class="w-2 h-2 mt-1 bg-slate-200 rounded-full"></div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-[11px] font-semibold text-slate-700 leading-tight mb-1">Fee Payment</p>
+                                            <p class="text-[10px] text-slate-400 line-clamp-1 italic">Payment verified for VS2026102.</p>
+                                            <p class="text-[8px] text-slate-300 mt-1 uppercase font-bold tracking-wider">1 hour ago</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <a href="#" class="block text-center py-2 text-[9px] font-bold text-slate-400 hover:text-primary-600 transition-colors uppercase tracking-widest">View All Pulse</a>
+                        </div>
+                    </div>
                     <!-- Mobile Logout -->
                     <a href="../logout.php" class="md:hidden text-rose-500 hover:text-rose-700 p-1.5 rounded-md hover:bg-rose-50 transition-colors">
                         <i class="fas fa-sign-out-alt text-[11px]"></i>

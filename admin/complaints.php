@@ -73,34 +73,35 @@ $complaints = $pdo->query("SELECT c.*, u.full_name as student_name, u.email as s
                         </div>
                     </div>
                     <div>
-                        <button
-                            onclick="openResolveModal(<?php echo $c['id']; ?>, '<?php echo addslashes($c['subject']); ?>', '<?php echo addslashes($c['admin_reply']); ?>')"
-                            class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3.5 rounded-2xl font-bold flex items-center space-x-2 shadow-lg shadow-indigo-100 transition-all hover:-translate-y-0.5">
-                            <i class="fas fa-reply"></i>
-                            <span>Respond</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="text-slate-600 leading-loose text-lg mb-8 bg-slate-50/50 p-8 rounded-3xl border border-slate-100">
-                    <?php echo nl2br($c['message']); ?>
-                </div>
-
-                <?php if ($c['admin_reply']): ?>
-                    <div class="mt-8 pt-8 border-t border-indigo-50">
-                        <div class="flex items-center space-x-3 mb-4">
-                            <span class="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Admin Resolution
-                                Profile</span>
-                        </div>
-                        <div
-                            class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100 text-slate-700 italic font-medium leading-relaxed">
-                            <?php echo nl2br($c['admin_reply']); ?>
+                            <button
+                                onclick='openResolveModal(<?php echo $c["id"]; ?>, <?php echo json_encode($c["subject"]); ?>, <?php echo json_encode($c["admin_reply"]); ?>)'
+                                class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3.5 rounded-2xl font-bold flex items-center space-x-2 shadow-lg shadow-indigo-100 transition-all hover:-translate-y-0.5">
+                                <i class="fas fa-reply"></i>
+                                <span>Respond</span>
+                            </button>
                         </div>
                     </div>
-                <?php endif; ?>
-            </div>
-        <?php endforeach; ?>
-    <?php endif; ?>
+
+                    <div class="text-slate-600 leading-loose text-lg mb-8 bg-slate-50/50 p-8 rounded-3xl border border-slate-100">
+                        <?php echo nl2br($c['message']); ?>
+                    </div>
+
+                    <?php if ($c['admin_reply']): ?>
+                        <div class="mt-8 pt-8 border-t border-indigo-50">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <span class="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Admin Resolution
+                                    Profile</span>
+                            </div>
+                            <div
+                                class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100 text-slate-700 italic font-medium leading-relaxed">
+                                <?php echo nl2br($c['admin_reply']); ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
+    </div>
 </div>
 
 <!-- Resolve Modal -->
@@ -115,6 +116,7 @@ $complaints = $pdo->query("SELECT c.*, u.full_name as student_name, u.email as s
             </button>
         </div>
         <form action="complaints.php" method="POST" class="space-y-6">
+            <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
             <input type="hidden" name="resolve_complaint" value="1">
             <input type="hidden" name="complaint_id" id="modal_complaint_id">
 

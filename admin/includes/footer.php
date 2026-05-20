@@ -50,18 +50,44 @@
 
         const profileBtn = document.getElementById('profile-btn');
         const profileMenu = document.getElementById('profile-menu');
+        const notificationBtn = document.getElementById('notification-btn');
+        const notificationMenu = document.getElementById('notification-menu');
+
+        function toggleDropdown(menu) {
+            menu.classList.toggle('invisible');
+            menu.classList.toggle('opacity-0');
+            menu.classList.toggle('translate-y-1');
+        }
+
+        function closeDropdowns() {
+            if (profileMenu) profileMenu.classList.add('invisible','opacity-0','translate-y-1');
+            if (notificationMenu) notificationMenu.classList.add('invisible','opacity-0','translate-y-1');
+        }
+
         if (profileBtn && profileMenu) {
             profileBtn.addEventListener('click', e => {
                 e.stopPropagation();
-                profileMenu.classList.toggle('invisible');
-                profileMenu.classList.toggle('opacity-0');
-                profileMenu.classList.toggle('translate-y-1');
-            });
-            document.addEventListener('click', e => {
-                if (!profileMenu.contains(e.target) && !profileBtn.contains(e.target))
-                    profileMenu.classList.add('invisible','opacity-0','translate-y-1');
+                if (notificationMenu) notificationMenu.classList.add('invisible','opacity-0','translate-y-1');
+                toggleDropdown(profileMenu);
             });
         }
+
+        if (notificationBtn && notificationMenu) {
+            notificationBtn.addEventListener('click', e => {
+                e.stopPropagation();
+                if (profileMenu) profileMenu.classList.add('invisible','opacity-0','translate-y-1');
+                toggleDropdown(notificationMenu);
+            });
+        }
+
+        document.addEventListener('click', e => {
+            if (profileMenu && !profileMenu.contains(e.target) && !profileBtn.contains(e.target)) {
+                profileMenu.classList.add('invisible','opacity-0','translate-y-1');
+            }
+            if (notificationMenu && !notificationMenu.contains(e.target) && !notificationBtn.contains(e.target)) {
+                notificationMenu.classList.add('invisible','opacity-0','translate-y-1');
+            }
+        });
 
         const searchToggle = document.getElementById('mobile-search-toggle');
         const searchBar = document.getElementById('mobile-search-bar');
