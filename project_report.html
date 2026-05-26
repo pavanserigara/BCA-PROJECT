@@ -1,0 +1,1503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VidyaSetu Project Report - Viewer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --slate-50: #f8fafc;
+            --slate-100: #f1f5f9;
+            --slate-200: #e2e8f0;
+            --slate-700: #334155;
+            --slate-800: #1e293b;
+            --slate-900: #0f172a;
+            --text-main: #334155;
+            --text-heading: #0f172a;
+            --bg-body: #f1f5f9;
+            --bg-page: #ffffff;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Lora', Georgia, serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--text-main);
+            background-color: var(--bg-body);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Navigation */
+        aside {
+            width: 320px;
+            background-color: var(--slate-900);
+            color: #fff;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid rgba(255,255,255,0.1);
+            z-index: 100;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-header .logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-style: italic;
+            font-size: 20px;
+            color: #fff;
+        }
+
+        .sidebar-header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .sidebar-header p {
+            font-size: 10px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .sidebar-menu {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 16px;
+        }
+
+        .menu-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+            padding-left: 8px;
+        }
+
+        .sidebar-menu ul {
+            list-style: none;
+            margin-bottom: 24px;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            color: #cbd5e1;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            gap: 10px;
+        }
+
+        .sidebar-menu a:hover {
+            background-color: rgba(255,255,255,0.05);
+            color: #fff;
+        }
+
+        .sidebar-menu li.active a {
+            background-color: var(--primary);
+            color: #fff;
+        }
+
+        .sidebar-footer {
+            padding: 16px 24px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            font-size: 11px;
+            color: #64748b;
+            text-align: center;
+        }
+
+        /* Main Content Panel */
+        main {
+            margin-left: 320px;
+            flex-grow: 1;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Document Page Container */
+        .document-container {
+            width: 100%;
+            max-width: 850px;
+            background-color: var(--bg-page);
+            padding: 80px 70px;
+            box-shadow: var(--shadow-lg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        /* Header Options */
+        .controls-panel {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            display: flex;
+            gap: 10px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            background-color: var(--slate-100);
+            color: var(--slate-700);
+            border: 1px solid var(--slate-200);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-action:hover {
+            background-color: var(--slate-200);
+            color: var(--text-heading);
+        }
+
+        /* Document Styling */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-heading);
+            font-weight: 700;
+            margin-top: 2.2em;
+            margin-bottom: 0.6em;
+            page-break-after: avoid;
+        }
+
+        h1 { font-size: 28px; border-bottom: 2px solid var(--slate-200); padding-bottom: 10px; margin-top: 0; }
+        h2 { font-size: 22px; border-bottom: 1px solid var(--slate-100); padding-bottom: 6px; }
+        h3 { font-size: 18px; }
+        h4 { font-size: 16px; }
+
+        p {
+            margin-bottom: 1.5em;
+            text-align: justify;
+        }
+
+        /* Tables styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            page-break-inside: avoid;
+        }
+
+        th, td {
+            border: 1px solid var(--slate-200);
+            padding: 10px 14px;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--slate-100);
+            font-weight: 600;
+            color: var(--text-heading);
+        }
+
+        tr:nth-child(even) {
+            background-color: var(--slate-50);
+        }
+
+        /* Code Blocks */
+        pre {
+            background-color: var(--slate-900);
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 24px 0;
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+            border: 1px solid #2d3748;
+            page-break-inside: avoid;
+        }
+
+        code {
+            font-family: 'Fira Code', monospace;
+            background-color: var(--slate-100);
+            color: #d01717;
+            padding: 2px 6px;
+            font-size: 13px;
+            border-radius: 4px;
+        }
+
+        pre code {
+            background-color: transparent;
+            color: inherit;
+            padding: 0;
+            font-size: inherit;
+            border-radius: 0;
+        }
+
+        /* DFD ASCII layouts */
+        .dfd-container, .wireframe-container {
+            font-family: 'Fira Code', monospace;
+            background-color: var(--slate-50);
+            border: 1px solid var(--slate-200);
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 24px 0;
+            font-size: 12px;
+            line-height: 1.4;
+            color: var(--slate-800);
+            white-space: pre;
+            page-break-inside: avoid;
+        }
+
+        /* Cover Page Styling helper */
+        .cover-page-layout {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            min-height: 850px;
+            justify-content: space-between;
+            padding: 40px 0;
+        }
+
+        .cover-title {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text-heading);
+            margin: 30px 0;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 0.05em;
+        }
+
+        .cover-subtitle {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 40px;
+        }
+
+        .details-grid {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 40px;
+            text-align: left;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .details-grid div {
+            padding: 10px;
+        }
+
+        .details-grid h4 {
+            margin-top: 0;
+            color: var(--slate-700);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 5px;
+        }
+
+        .details-grid p {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-heading);
+            margin: 0;
+        }
+
+        .university-crest {
+            width: 120px;
+            height: 120px;
+            border: 2px dashed var(--slate-300);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-family: 'Inter', sans-serif;
+            color: var(--slate-700);
+            margin: 20px auto;
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background-color: var(--slate-200);
+            margin: 40px 0;
+        }
+
+        .page-break {
+            page-break-before: always;
+            margin-top: 60px;
+        }
+
+        /* Print Media styles */
+        @media print {
+            aside {
+                display: none;
+            }
+            body {
+                background-color: #fff;
+                color: #000;
+                font-family: 'Times New Roman', Times, serif;
+                font-size: 12pt;
+                line-height: 1.5;
+            }
+            main {
+                margin-left: 0;
+                padding: 0;
+            }
+            .document-container {
+                box-shadow: none;
+                border: none;
+                max-width: 100%;
+                padding: 0;
+                margin-top: 1.0in;
+                margin-bottom: 1.0in;
+                margin-left: 1.5in;
+                margin-right: 1.0in;
+            }
+            .controls-panel {
+                display: none;
+            }
+            h1, h2, h3, h4, h5, h6 {
+                font-family: 'Times New Roman', Times, serif;
+                color: #000;
+            }
+            h1 {
+                font-size: 18pt;
+                border-bottom: 1px solid #000;
+            }
+            h2 {
+                font-size: 14pt;
+                border-bottom: 1px solid #000;
+            }
+            h3 {
+                font-size: 12pt;
+            }
+            .page-break {
+                page-break-before: always;
+            }
+            pre, .dfd-container, .wireframe-container {
+                border: 1px solid #000;
+                background-color: #fff;
+                color: #000;
+                box-shadow: none;
+                font-size: 10pt;
+            }
+            code {
+                background-color: transparent;
+                color: #000;
+                border: none;
+                padding: 0;
+            }
+            table {
+                font-size: 10pt;
+            }
+            th {
+                background-color: #e2e8f0 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Table of Contents -->
+    <aside>
+        <div class="sidebar-header">
+            <div class="logo">V</div>
+            <div>
+                <h1>VidyaSetu</h1>
+                <p>College ERP Report</p>
+            </div>
+        </div>
+        <div class="sidebar-menu">
+            <div class="menu-title">Front Matter</div>
+            <ul>
+                <li class="active"><a href="#cover-page"><i class="fa-solid fa-file-invoice"></i> Cover Page</a></li>
+                <li><a href="#certificate"><i class="fa-solid fa-certificate"></i> Certificate</a></li>
+                <li><a href="#declaration"><i class="fa-solid fa-file-signature"></i> Declaration</a></li>
+                <li><a href="#acknowledgement"><i class="fa-solid fa-heart"></i> Acknowledgement</a></li>
+                <li><a href="#toc"><i class="fa-solid fa-list-ol"></i> Table of Contents</a></li>
+            </ul>
+
+            <div class="menu-title">Technical Chapters</div>
+            <ul>
+                <li><a href="#ch1"><i class="fa-solid fa-circle-1"></i> Chapter 1: Introduction</a></li>
+                <li><a href="#ch2"><i class="fa-solid fa-circle-2"></i> Chapter 2: SRS</a></li>
+                <li><a href="#ch3"><i class="fa-solid fa-circle-3"></i> Chapter 3: Architecture</a></li>
+                <li><a href="#ch4"><i class="fa-solid fa-circle-4"></i> Chapter 4: Database Design</a></li>
+                <li><a href="#ch5"><i class="fa-solid fa-circle-5"></i> Chapter 5: Source Code</a></li>
+                <li><a href="#ch6"><i class="fa-solid fa-circle-6"></i> Chapter 6: UI Wireframes</a></li>
+                <li><a href="#ch7"><i class="fa-solid fa-circle-7"></i> Chapter 7: Testing & QA</a></li>
+                <li><a href="#ch8"><i class="fa-solid fa-circle-8"></i> Chapter 8: Future Work</a></li>
+            </ul>
+        </div>
+        <div class="sidebar-footer">
+            UUCMS ID: 23BCA0045
+        </div>
+    </aside>
+
+    <!-- Main Content Panel -->
+    <main>
+        <div class="document-container">
+            <div class="controls-panel">
+                <button onclick="window.print()" class="btn-action" title="Print Document / Save as PDF">
+                    <i class="fa-solid fa-print"></i>
+                </button>
+            </div>
+
+            <!-- COVER PAGE -->
+            <div id="cover-page" class="cover-page-layout">
+                <div>
+                    <h2 style="font-family: 'Inter', sans-serif; font-weight: 800; letter-spacing: 0.1em; color: var(--slate-800);">MANGALORE UNIVERSITY</h2>
+                    <div class="university-crest">
+                        <span>Emblem Crest</span>
+                    </div>
+                </div>
+
+                <div>
+                    <h1 class="cover-title">VIDYASETU COLLEGE MANAGEMENT SYSTEM</h1>
+                    <p class="cover-subtitle">
+                        Submitted to Mangalore University in partial fulfillment of the requirements for the award of the degree of
+                        <br><strong>BACHELOR OF COMPUTER APPLICATION (BCA)</strong>
+                    </p>
+                </div>
+
+                <div class="details-grid">
+                    <div>
+                        <h4>Submitted By</h4>
+                        <p>PAVAN SERIGARA</p>
+                        <p style="font-size: 13px; font-weight: 400; color: #64748b;">UUCMS Reg. No: 23BCA0045</p>
+                    </div>
+                    <div>
+                        <h4>Under the Guidance of</h4>
+                        <p>PROF. JANE DOE</p>
+                        <p style="font-size: 13px; font-weight: 400; color: #64748b;">Project Supervisor & HOD</p>
+                    </div>
+                </div>
+
+                <div style="margin-top: 40px; font-family: 'Inter', sans-serif;">
+                    <h3 style="margin: 0; font-size: 15px; color: var(--slate-800);">DEPARTMENT OF COMPUTER SCIENCE</h3>
+                    <h3 style="margin: 2px 0 0 0; font-size: 14px; color: var(--slate-700);">CANARA COLLEGE, MANGALURU</h3>
+                    <p style="font-size: 12px; margin-top: 5px; color: #64748b; font-weight: 600;">ACADEMIC YEAR: 2025-2026</p>
+                </div>
+            </div>
+
+            <!-- CERTIFICATE -->
+            <div id="certificate" class="page-break">
+                <div style="text-align: center; margin-bottom: 40px;">
+                    <h2 style="margin: 0; font-family: 'Inter', sans-serif;">CANARA COLLEGE, MANGALURU</h2>
+                    <p style="font-family: 'Inter', sans-serif; font-size: 12px; text-transform: uppercase; color: #64748b; letter-spacing: 0.1em;">Department of Computer Science & Applications</p>
+                    <p style="font-size: 13px; font-style: italic; color: #64748b;">Motto: "To Light and To Love"</p>
+                </div>
+                <hr>
+                <h2 style="text-align: center; margin-bottom: 30px;">OFFICIAL CERTIFICATE OF COMPLETION</h2>
+                <p>This is to certify that the Mini Project work entitled <strong>"VIDYASETU COLLEGE MANAGEMENT SYSTEM"</strong> is a bonafide work carried out by <strong>PAVAN SERIGARA</strong> (bearing UUCMS Register Number: <strong>23BCA0045</strong>) in partial fulfillment of the requirements for the award of the degree of <strong>Bachelor of Computer Application (BCA)</strong> of Mangalore University during the academic year 2025-2026.</p>
+                <p>This report has been approved as it satisfies the academic requirements in respect of project work prescribed for the Bachelor of Computer Application degree.</p>
+                
+                <div style="display: flex; justify-content: space-between; margin-top: 80px; font-family: 'Inter', sans-serif;">
+                    <div>
+                        <p style="font-weight: 600; margin: 0;">Prof. Jane Doe</p>
+                        <p style="font-size: 12px; color: #64748b;">Project Guide & HOD</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="font-weight: 600; margin: 0;">Dr. Premila D'Souza</p>
+                        <p style="font-size: 12px; color: #64748b;">Principal</p>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 60px;">EXAMINER PANEL MARKS MATRIX</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Examiner</th>
+                            <th>Name</th>
+                            <th>Signature</th>
+                            <th>Marks Awarded</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Examiner 1 (Internal)</strong></td>
+                            <td>___________________________</td>
+                            <td>____________________</td>
+                            <td>______ / 100</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Examiner 2 (External)</strong></td>
+                            <td>___________________________</td>
+                            <td>____________________</td>
+                            <td>______ / 100</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p style="font-size: 13px; font-family: 'Inter', sans-serif;">Date of Examination: ____________________</p>
+            </div>
+
+            <!-- DECLARATION -->
+            <div id="declaration" class="page-break">
+                <h2 style="text-align: center; margin-bottom: 40px;">CANDIDATE DECLARATION</h2>
+                <hr>
+                <p>I, <strong>PAVAN SERIGARA</strong>, student of Bachelor of Computer Application (BCA), Canara College, Mangaluru, bearing UUCMS Register Number <strong>23BCA0045</strong>, do hereby declare that the project work entitled <strong>"VIDYASETU COLLEGE MANAGEMENT SYSTEM"</strong> submitted to Mangalore University in partial fulfillment of the requirements for the award of the degree of <strong>Bachelor of Computer Application (BCA)</strong> is a record of original work carried out by me under the guidance and supervision of <strong>Prof. Jane Doe</strong>, Head of the Department of Computer Science.</p>
+                <p>I further declare that this project is authentic, the database schemas and codebase have been developed by me, and the contents of this report have not been previously submitted in part or full for the award of any other degree, diploma, fellowship, or associate-ship of any other university or institution.</p>
+                
+                <div style="margin-top: 80px; font-family: 'Inter', sans-serif; display: flex; justify-content: space-between;">
+                    <div>
+                        <p style="margin: 0; font-size: 14px;"><strong>Place:</strong> Mangaluru</p>
+                        <p style="margin: 0; font-size: 14px;"><strong>Date:</strong> 2026-05-26</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="font-weight: 600; margin: 0;">PAVAN SERIGARA</p>
+                        <p style="font-size: 12px; color: #64748b;">UUCMS Reg No. 23BCA0045</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACKNOWLEDGEMENT -->
+            <div id="acknowledgement" class="page-break">
+                <h2 style="text-align: center; margin-bottom: 40px;">ACKNOWLEDGEMENT</h2>
+                <hr>
+                <p>We have taken efforts in the "VIDYASETU COLLEGE MANAGEMENT SYSTEM" project, however, it would not have been possible without the kind support and help of many individuals. I would like to extend my sincere thanks to all of them.</p>
+                <p>First and foremost, I wish to express my deepest sense of gratitude to the Almighty for giving me the strength, health, and wisdom to successfully complete this project.</p>
+                <p>I express my heartfelt gratitude to our Principal, <strong>Dr. Premila D'Souza</strong>, for providing the challenging opportunity to undertake this Mini Project work for the completion of our BCA course.</p>
+                <p>I express my sincere gratitude to <strong>Prof. Jane Doe</strong>, HOD of the Computer Science Department, for her valuable suggestions, encouragement, and constant supervision as our project guide, providing the necessary information and support in completing the project.</p>
+                <p>I also extend my sincere thanks to the department laboratory administrators, who helped in setting up the Apache and MySQL database environments on our local workstation, and the faculty members of the Computer Science Department for their academic support.</p>
+                <p>Lastly, I thank my family and peers for their continuous encouragement and constructive criticisms, which served as a source of strength during the project completion process.</p>
+                
+                <p style="margin-top: 60px; font-family: 'Inter', sans-serif; font-weight: 600; text-align: right;">
+                    PAVAN SERIGARA<br>
+                    <span style="font-size: 12px; color: #64748b; font-weight: 400;">Canara College, Mangaluru</span>
+                </p>
+            </div>
+
+            <!-- TABLE OF CONTENTS -->
+            <div id="toc" class="page-break">
+                <h2 style="text-align: center; margin-bottom: 40px;">TABLE OF CONTENTS</h2>
+                <hr>
+                <div style="font-family: 'Inter', sans-serif; font-size: 14px; line-height: 2.0;">
+                    <div style="font-weight: 700; margin-bottom: 10px; border-bottom: 1px solid var(--slate-200); padding-bottom: 5px;">SECTION I: FRONT MATTER</div>
+                    <div style="display: flex; justify-content: space-between;"><span>1. Cover Page</span><span>i</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>2. Official Certificate of Completion</span><span>ii</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>3. Candidate Declaration</span><span>iii</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>4. Acknowledgement</span><span>iv</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>5. Table of Contents</span><span>v</span></div>
+                    
+                    <div style="font-weight: 700; margin: 20px 0 10px 0; border-bottom: 1px solid var(--slate-200); padding-bottom: 5px;">SECTION II: TECHNICAL CHAPTERS</div>
+                    <div style="display: flex; justify-content: space-between; font-weight: 600;"><span>Chapter 1: Introduction & Core Hypothesis</span><span>1</span></div>
+                    <div style="display: flex; justify-content: space-between; font-weight: 600;"><span>Chapter 2: Software Requirements Specification (SRS)</span><span>11</span></div>
+                    <div style="display: flex; justify-content: space-between; font-weight: 600;"><span>Chapter 3: System Logical Flow & Architecture</span><span>19</span></div>
+                    <div style="display: flex; justify-content: space-between; font-weight: 600;"><span>Chapter 4: Physical Database Design</span><span>24</span></div>
+                    <div style="display: flex; justify-content: space-between; font-weight: 600;"><span>Chapter 5: Source Code Implementation Listing</span><span>35</span></div>
+                    <div style="display: flex; justify-content: space-between; font-weight: 600;"><span>Chapter 6: User Interface (UI) Wireframes</span><span>59</span></div>
+                    <div style="display: flex; justify-content: space-between; font-weight: 600;"><span>Chapter 7: Comprehensive Quality Assurance & Testing</span><span>63</span></div>
+                    <div style="display: flex; justify-content: space-between; font-weight: 600;"><span>Chapter 8: Conclusions, Outcomes & Future Work</span><span>73</span></div>
+                </div>
+            </div>
+
+            <!-- CHAPTER 1 -->
+            <div id="ch1" class="page-break">
+                <h1>CHAPTER 1: INTRODUCTION & CORE HYPOTHESIS</h1>
+                <h3>1.1 Introduction and Overview</h3>
+                <p>In the modern educational landscape, higher education institutions face an unprecedented volume of administrative, academic, and financial transactions. Historically, degree colleges affiliated with Mangalore University have relied on traditional paper registers, flat file folders, and localized spreadsheet files. These methods present significant vulnerabilities, including data fragmentation, redundancy, physical wear-and-tear, difficulty in cross-referencing records, and delayed communication between administrators, faculty members, parents, and students.</p>
+                <p>The **VidyaSetu College Management System** aims to create a comprehensive software solution for managing a college's inventory of student data, academic records, fee structures, library records, and parent-teacher communications. It is designed to streamline operations, enhance administrative efficiency, and improve the overall user experience. The system encompasses features such as student registration, academic marks entry, class scheduling, attendance tracking, and internal grievance management.</p>
+                <p>By migrating all transactional and operational activities into a single relational database (RDBMS), VidyaSetu enables real-time synchronization across departments. When a teacher marks a student absent, or when an administrative clerk records a tuition payment, the data is instantly reflected on the respective student and parent dashboards. This centralized design reduces administrative delay, eliminates redundant data entry, and ensures a single, secure source of truth.</p>
+                
+                <h3>1.2 Title of the Project</h3>
+                <p>The project is officially titled <strong>"VIDYASETU COLLEGE MANAGEMENT SYSTEM"</strong> (referred to commercially and academically as <strong>VidyaSetu ERP</strong>).</p>
+
+                <h3>1.3 Scope and Boundaries of the System</h3>
+                <p>The system is designed as a centralized, role-based administrative portal for mid-sized educational institutions.</p>
+                <h4>In-Scope Functional Modules:</h4>
+                <ul>
+                    <li>Centralized System Configuration: Management of academic years, semesters, departments, course structures, and curriculum listings.</li>
+                    <li>Role-Based Access Control (RBAC): Distinct portals and dashboards configured for administrators, faculty members, students, and parents.</li>
+                    <li>Student Lifecycle Tracking: Onboarding of students, profile verification, classroom assignments, document uploads, and academic performance history.</li>
+                    <li>Faculty Management: Tracking departmental assignments, subject allocations, qualifications, and teaching schedules.</li>
+                    <li>Academic Telemetry: Dynamic attendance capture, lesson planning, and scheduling tools.</li>
+                    <li>Assessment Management: Internal and semester marks registration, grade generation, and performance reporting.</li>
+                    <li>Financial Module: Fee structure formulation, installment tracking, and payment receipt logging.</li>
+                    <li>Library Module: Book inventory management, check-out/check-in processing, and automatic fine calculation.</li>
+                    <li>Logistics Module: Accommodation registration and transit route tracking.</li>
+                    <li>Placement Hub: Management of corporate placement schedules, recruitment eligibility verification, and application status tracking.</li>
+                    <li>Grievance Box: Internal complaint registration, tracking, and resolution logs.</li>
+                </ul>
+                <h4 style="margin-top: 15px;">Out-of-Scope System Boundaries:</h4>
+                <ul>
+                    <li>Video Content Hosting: VidyaSetu does not host or stream live video lectures. It leaves video-based learning management systems (LMS) to external platforms (such as Zoom or Microsoft Teams) but allows posting reference URLs.</li>
+                    <li>Payroll Processing: Automated employee tax configurations, provident fund deductions, and bank integrations are excluded, as these are typically handled by standalone banking modules.</li>
+                    <li>External Payment Aggregation: The initial release simulates financial transactions rather than processing actual credit card/UPI transactions, ensuring compliance with student-level sandbox environments.</li>
+                    <li>Hardware Integration: The software operates over standard network interfaces and does not interface directly with hardware tools like biometric scanners or RFID gateways.</li>
+                </ul>
+
+                <h3>1.4 Objectives of the Platform</h3>
+                <p>The core objectives of the project are:</p>
+                <ol>
+                    <li><strong>To create a user-friendly website</strong> that allows the college to reach a wider student base and manage information centrally.</li>
+                    <li><strong>To provide a 24/7 online platform</strong> for students, faculty, and administrators to browse, monitor, and update institutional data.</li>
+                    <li><strong>To develop a robust academic catalogue</strong> with detailed records of subjects, courses, marks, and student attendance profiles.</li>
+                    <li><strong>To create an intuitive and easy-to-navigate interface</strong> that bridges the communication gap between student portals and admin control systems.</li>
+                </ol>
+
+                <h3>1.5 System Features and User Capabilities</h3>
+                <p>VidyaSetu ERP divides its capabilities into specialized dashboards tailored to each user type:</p>
+                <div class="dfd-container">
+                            +----------------------+
+                            |    VidyaSetu ERP     |
+                            +----------+-----------+
+                                       |
+        +------------------+-----------+-----------+-------------------+
+        |                  |                       |                   |
+        v                  v                       v                   v
++---------------+  +---------------+       +---------------+   +---------------+
+| Admin Portal  |  | Faculty Portal|       | Student Portal|   | Parent Portal |
++---------------+  +---------------+       +---------------+   +---------------+
+| - User CRUD   |  | - Attendance  |       | - View Grades |   | - Track Dues  |
+| - Setup Fees  |  | - Enter Marks |       | - Submit Work |   | - Attendance  |
+| - Post Alerts |  | - Upload Notes|       | - Library Dues|   | - Complaints  |
++---------------+  +---------------+       +---------------+   +---------------+
+                </div>
+
+                <h3>1.6 Platform Stack Profile (Tools & Platforms Used)</h3>
+                <p><strong>Software:</strong> Front End (HTML, CSS, JavaScript); Back End (PHP, MySQL); Platform (Visual Studio Code); XAMPP local environment.</p>
+                <p><strong>Hardware Baseline:</strong> Monitor (Any Standard Monitor); Keyboard (Standard Keyboard); RAM (2 GB RAM or more); Processor (CPU Intel® Core™ i5-1035G1 or higher).</p>
+
+                <h3>1.7 Testing Tools Overview</h3>
+                <p>Manual testing with a set of real-time validation data, SQL Parameterization checks, and XSS payload inputs.</p>
+
+                <h3>1.8 Expected Outcome</h3>
+                <p>A fully functional online portal with secure user/admin logins, attendance marking modules, grade lists, fee structures, and grievance logs. Automating student management reduces manual labor and improves data consistency.</p>
+            </div>
+
+            <!-- CHAPTER 2 -->
+            <div id="ch2" class="page-break">
+                <h1>CHAPTER 2: SOFTWARE REQUIREMENTS SPECIFICATION (SRS)</h1>
+                <h3>2.1 Purpose of the Specification</h3>
+                <p>The purpose of this document is to specify each requirement of the system in detail, while helping the evaluators obtain a better understanding of the project. The document describes the project's target audience, user interfaces, hardware and software baselines, constraints, and functional targets. In short, the purpose of this SRS is to provide a detailed overview of our software product, its parameters, and goals.</p>
+
+                <h3>2.2 Scope of the Deliverable</h3>
+                <p>The validation of the process is done through this software requirement specification. If there are any changes in the software in the future, the modifications are managed through this specification sheet. The developer is responsible for keeping the documentation in line with any changes seen in the system.</p>
+
+                <h3>2.3 User Classes and Characteristics</h3>
+                <ul>
+                    <li><strong>Administrator:</strong> Requires moderate technical proficiency. Responsible for system configuration, user onboarding, and overall supervision. Full system permissions.</li>
+                    <li><strong>Teacher:</strong> Requires basic technical proficiency. Responsible for entering academic data, attendance, and managing classes. Permissions restricted to assigned subjects and students.</li>
+                    <li><strong>Student:</strong> Requires basic technical proficiency. Uses the system mainly to view data and submit requests/assignments. Read-only access to most records, with write access limited to their specific submissions and profiles.</li>
+                    <li><strong>Parent:</strong> Linked directly to student profiles. Read-only access. Monitor grades, attendance, and dues.</li>
+                </ul>
+
+                <h3>2.4 Assumptions and Dependencies</h3>
+                <p>It is assumed that the project is installed on a system that satisfies the hardware and software configurations. Users will have a valid Username and Password to access the website, and must provide correct details during registration. Administrators should be careful in updating and removing data to prevent database inconsistency.</p>
+
+                <h3>2.5 Hardware and Software Requirements</h3>
+                <p><strong>Hardware Baseline:</strong> Any standard Monitor; Standard Keyboard and Mouse; 2 GB RAM or more; CPU Intel® Core™ i5-1035G1 or higher.</p>
+                <p><strong>Software Requirements:</strong> OS (Linux/Windows 10/11); IDE (VS Code); Languages (HTML, CSS, JS, PHP); Local Server (XAMPP with PHP 8.0+ and MySQL).</p>
+
+                <h3>2.6 Functional Requirements Matrix</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Functionality</th>
+                            <th>Description</th>
+                            <th>User Type</th>
+                            <th>Input</th>
+                            <th>Output</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>User Registration</strong></td>
+                            <td>Allows new users to sign up with username, email, password, and role.</td>
+                            <td>Customer/Student</td>
+                            <td>Username, Email, Password, Role</td>
+                            <td>Confirmation of account creation.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>User Login</strong></td>
+                            <td>Enables registered users to log in.</td>
+                            <td>Customer/Student</td>
+                            <td>Username, Password</td>
+                            <td>Access to student portal dashboard.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Admin Login</strong></td>
+                            <td>Allows admin to securely access the admin panel.</td>
+                            <td>Admin</td>
+                            <td>Username, Password</td>
+                            <td>Access to admin control dashboard.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Timetable Config</strong></td>
+                            <td>Assigns subjects, classrooms, and teachers to schedules.</td>
+                            <td>Admin</td>
+                            <td>Course, Semester, Subject, Room, Time</td>
+                            <td>Updated timetable view on dashboards.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Attendance Capture</strong></td>
+                            <td>Records class participation on a selected date.</td>
+                            <td>Teacher</td>
+                            <td>Subject, Date, Status (Present/Absent)</td>
+                            <td>Saved records in database; updated student counters.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Marks Registry</strong></td>
+                            <td>Inputs evaluation scores for exams and assessments.</td>
+                            <td>Teacher</td>
+                            <td>Exam ID, Student ID, Subject, Marks</td>
+                            <td>Results displayed on student dashboards.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Fee Collection</strong></td>
+                            <td>Records fee payments and logs transactions.</td>
+                            <td>Admin</td>
+                            <td>Student ID, Amount, Receipt Number</td>
+                            <td>Receipt generated; student balance updated.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- CHAPTER 3 -->
+            <div id="ch3" class="page-break">
+                <h1>CHAPTER 3: SYSTEM LOGICAL FLOW & ARCHITECTURE</h1>
+                <h3>3.1 System Design and Architectural Narrative</h3>
+                <p>System design is the process of defining elements of a system like modules, architecture, components, and their interfaces and data for a system based on the specified requirements. It is the process of defining, developing, and designing systems that satisfy the specific needs and requirements of an educational organization. VidyaSetu ERP uses a classic three-tier system architecture designed to keep user interfaces, database operations, and application logic separate.</p>
+
+                <h3>3.2 Context Flow Diagram (CFD - Level 0 DFD)</h3>
+                <div class="dfd-container">
+                            +--------------------------+
+                            |      Administrators      |
+                            +----+---------------+-----+
+                                 |               ^
+                 Admin Setup /   |               | System Metrics,
+                 User Profiles   |               | Audit Trails
+                                 v               |
+  +------------------+      +----+---------------+-----+      +-------------------+
+  |  Students /      |=====>|                          |<====|   Faculty /       |
+  |  Parents         |<=====|    VidyaSetu College     |====>|   Teachers        |
+  +------------------+      |       Management         |      +-------------------+
+    - Submit Files          |    System ERP Engine     |        - Grade Inputs
+    - Pay Dues              |                          |        - Attendance Logs
+    - Grievances            +------------+-------------+        - Materials Posted
+                                         |
+                                         | Read/Write
+                                         | Transactions
+                                         v
+                            +------------+-------------+
+                            | MySQL Relational Database|
+                            +--------------------------+
+                </div>
+
+                <h3>3.3 Data Flow Diagram (DFD - Level 1 DFD)</h3>
+                <div class="dfd-container">
+                  +----------------------------------------------+
+                  |         1.0 USER LOGIN PROCESSING            |
+                  | Inputs: Username, Password, CSRF token       |
+                  +----------------------+-----------------------+
+                                         |
+                                         | Query User Record
+                                         v
+                                  [ users Table ]
+                                         |
+                                         | Session Established
+                                         v
+                  +----------------------------------------------+
+                  |         2.0 DASHBOARD ROUTING ENGINE         |
+                  | Checks $_SESSION['role'] & redirects user    |
+                  +----------+-------------------+---------------+
+                             |                   |
+               If role='teacher'                 If role='student'
+                             v                   v
++------------------------------+       +------------------------------+
+|   3.0 ATTENDANCE REGISTRY    |       |    4.0 STUDENT VIEWS         |
+| Records student attendance   |       | Accesses grades, attendance, |
+| for selected date & subject  |       | library, and payment histories|
++--------------+---------------+       +--------------+---------------+
+               |                                      |
+               v                                      v
+       [ attendance Table ]                    [ marks / fee Tables ]
+                </div>
+
+                <h3>3.4 Data Flow Diagram (DFD - Level 2 Attendance DFD)</h3>
+                <div class="dfd-container">
+  Teacher Dashboard
+         |
+         | selects Subject & Date
+         v
++--------+---------------------------------------+
+|  3.1 LOAD STUDENTS LIST                        |
+|  - Queries database for active course/sem      |
+|  - Retrieves students list                     |
++--------+---------------------------------------+
+         |
+         | fetches list of users
+         v
+  [ students / users Tables ]
+         |
+         | returns list
+         v
++--------+---------------------------------------+
+|  3.2 RENDER ATTENDANCE GRID FORM               |
+|  - Renders student list with checkboxes        |
+|  - Generates CSRF and Date parameters          |
++--------+---------------------------------------+
+         |
+         | submits form inputs (POST)
+         v
++--------+---------------------------------------+
+|  3.3 VALIDATE AND SANITIZE TRANSACTION         |
+|  - Verifies CSRF Token                         |
+|  - Verifies Teacher session ownership          |
++--------+---------------------------------------+
+         |
+         | verified write instruction
+         v
++--------+---------------------------------------+
+|  3.4 PERSIST REGISTRY                          |
+|  - Executes INSERT ... ON DUPLICATE KEY UPDATE|
++--------+---------------------------------------+
+         |
+         | database write query
+         v
+  [ attendance Table ]
+                </div>
+            </div>
+
+            <!-- CHAPTER 4 -->
+            <div id="ch4" class="page-break">
+                <h1>CHAPTER 4: PHYSICAL DATABASE DESIGN</h1>
+                <h3>4.1 RDBMS Context and Integrity Constraints</h3>
+                <p>The database design is a critical component of the project, providing a structured framework for storing, managing, and retrieving data efficiently. It outlines the logical and physical structure of the database, including tables, relationships, keys, and constraints. A well-designed database ensures data integrity, supports system functionality, and enhances performance.</p>
+
+                <h3>4.2 Physical Table Definitions</h3>
+                
+                <h4>1. users Table</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Field No</th>
+                            <th>Column Name</th>
+                            <th>Data Type</th>
+                            <th>Null</th>
+                            <th>Key</th>
+                            <th>Default</th>
+                            <th>Extra</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>`id`</td>
+                            <td>int(11)</td>
+                            <td>NO</td>
+                            <td>PK</td>
+                            <td>NULL</td>
+                            <td>AUTO_INCREMENT</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>`username`</td>
+                            <td>varchar(50)</td>
+                            <td>NO</td>
+                            <td>UNI</td>
+                            <td>NULL</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>`email`</td>
+                            <td>varchar(100)</td>
+                            <td>NO</td>
+                            <td>UNI</td>
+                            <td>NULL</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>`role`</td>
+                            <td>enum('admin','student','teacher','librarian','parent')</td>
+                            <td>NO</td>
+                            <td></td>
+                            <td>NULL</td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h4>2. students Table</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Field No</th>
+                            <th>Column Name</th>
+                            <th>Data Type</th>
+                            <th>Null</th>
+                            <th>Key</th>
+                            <th>Default</th>
+                            <th>Extra</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>`user_id`</td>
+                            <td>int(11)</td>
+                            <td>NO</td>
+                            <td>PK, FK</td>
+                            <td>NULL</td>
+                            <td>References `users.id` (ON DELETE CASCADE)</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>`roll_no`</td>
+                            <td>varchar(20)</td>
+                            <td>NO</td>
+                            <td>UNI</td>
+                            <td>NULL</td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h4>3. student_documents Table</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Field No</th>
+                            <th>Column Name</th>
+                            <th>Data Type</th>
+                            <th>Null</th>
+                            <th>Key</th>
+                            <th>Default</th>
+                            <th>Extra</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>`id`</td>
+                            <td>int(11)</td>
+                            <td>NO</td>
+                            <td>PK</td>
+                            <td>NULL</td>
+                            <td>AUTO_INCREMENT</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>`student_id`</td>
+                            <td>int(11)</td>
+                            <td>NO</td>
+                            <td>FK</td>
+                            <td>NULL</td>
+                            <td>References `users.id` (ON DELETE CASCADE)</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>`document_type`</td>
+                            <td>enum('aadhaar','sslc','puc','tc','photo','other')</td>
+                            <td>NO</td>
+                            <td></td>
+                            <td>NULL</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>`file_path`</td>
+                            <td>varchar(255)</td>
+                            <td>NO</td>
+                            <td></td>
+                            <td>NULL</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>`verification_status`</td>
+                            <td>enum('pending','verified','rejected')</td>
+                            <td>YES</td>
+                            <td></td>
+                            <td>'pending'</td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>4.3 Entity-Relationship (ER) Diagram Symbols Mapping</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Symbol Shape</th>
+                            <th>Representation Meaning in Schema</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Rectangle</strong></td>
+                            <td>Strong Entity (e.g., `users`, `courses`)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Double Rectangle</strong></td>
+                            <td>Weak Entity (e.g., `students`, `teachers`)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Diamond</strong></td>
+                            <td>Relationship (e.g., `marks` relation connecting exams and students)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Double Diamond</strong></td>
+                            <td>Identifying Relationship for weak entities</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Oval</strong></td>
+                            <td>Attribute</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Oval with Underlined Text</strong></td>
+                            <td>Key Attribute (Primary Identifier)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Double Oval</strong></td>
+                            <td>Multivalued Attribute</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- CHAPTER 5 -->
+            <div id="ch5" class="page-break">
+                <h1>CHAPTER 5: SOURCE CODE IMPLEMENTATION LISTING</h1>
+                
+                <h3>5.1 Database Connection Configuration (`includes/db.php`)</h3>
+                <pre><code class="language-php">&lt;?php
+define('DB_HOST', '127.0.0.1');
+define('DB_USER', 'root');
+define('DB_PASS', '');
+define('DB_NAME', 'cms_db');
+
+try {
+    $pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4", DB_USER, DB_PASS);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    die("Database connection failed: " . $e->getMessage());
+}
+?&gt;</code></pre>
+
+                <h3>5.2 Core Functions and Security Filters (`includes/functions.php`)</h3>
+                <pre><code class="language-php">&lt;?php
+session_start();
+
+function generate_csrf_token() {
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+function verify_csrf_token($token) {
+    return isset($_SESSION['csrf_token']) && $token === $_SESSION['csrf_token'];
+}
+
+function sanitize($input) {
+    return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
+}
+
+function authenticate($pdo, $username, $password) {
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ? OR email = ?");
+    $stmt->execute([$username, $username]);
+    $user = $stmt->fetch();
+    if ($user && password_verify($password, $user['password'])) {
+        if ($user['status'] === 'active') {
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['username'] = $user['username'];
+            $_SESSION['role'] = $user['role'];
+            $_SESSION['full_name'] = $user['full_name'];
+            return true;
+        }
+    }
+    return false;
+}
+?&gt;</code></pre>
+
+                <h3>5.4 Student Registration Gateway (`signup.php`)</h3>
+                <pre><code class="language-php">&lt;?php
+require_once 'includes/db.php';
+require_once 'includes/functions.php';
+
+redirect_if_logged_in();
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = sanitize($_POST['username']);
+    $email = sanitize($_POST['email']);
+    $password = $_POST['password'];
+    $confirm_password = $_POST['confirm_password'];
+    $full_name = sanitize($_POST['full_name']);
+    $role = $_POST['role'] ?? 'student';
+    $csrf_token = $_POST['csrf_token'] ?? '';
+
+    if ($role === 'admin' || $role === 'teacher') {
+        die("Administrative registration is not allowed through this channel.");
+    }
+
+    if (!verify_csrf_token($csrf_token)) {
+        $error_message = "CSRF validation failed. Please try again.";
+    } elseif ($password !== $confirm_password) {
+        $error_message = "Passwords do not match.";
+    } else {
+        try {
+            $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
+            $stmt->execute([$username, $email]);
+            if ($stmt->fetch()) {
+                $error_message = "Username or Email is already registered.";
+            } else {
+                $hashed_password = password_hash($password, PASSWORD_BCRYPT);
+                $stmt = $pdo->prepare("INSERT INTO users (username, email, password, role, full_name, status) VALUES (?, ?, ?, 'student', ?, 'active')");
+                $stmt->execute([$username, $email, $hashed_password, $full_name]);
+                $success_message = "Signup successful! You can now log in.";
+            }
+        } catch (PDOException $e) {
+            $error_message = "Signup transaction failed: " . $e->getMessage();
+        }
+    }
+}
+?&gt;</code></pre>
+
+                <h3>5.6 Student Enrollment Processing Snippet (`admin/students-add.php`)</h3>
+                <pre><code class="language-php">&lt;?php
+require_once '../includes/db.php';
+require_once '../includes/functions.php';
+require_login('admin');
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = sanitize($_POST['username']);
+    $email = sanitize($_POST['email']);
+    $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
+    $full_name = sanitize($_POST['full_name']);
+    $roll_no = sanitize($_POST['roll_no']);
+    $course_id = (int)$_POST['course_id'];
+    $semester = (int)$_POST['semester'];
+    $admission_date = sanitize($_POST['admission_date']);
+
+    try {
+        $pdo->beginTransaction();
+        $stmt = $pdo->prepare("INSERT INTO users (username, email, password, role, full_name) VALUES (?, ?, ?, 'student', ?)");
+        $stmt->execute([$username, $email, $password, $full_name]);
+        $user_id = $pdo->lastInsertId();
+
+        $stmt = $pdo->prepare("INSERT INTO students (user_id, roll_no, course_id, semester, admission_date) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$user_id, $roll_no, $course_id, $semester, $admission_date]);
+
+        $pdo->commit();
+        set_flash_message('success', 'Student profile onboarded successfully.');
+        header("Location: students-list.php");
+        exit();
+    } catch (PDOException $e) {
+        $pdo->rollBack();
+        $error_message = "Enrollment transaction failed: " . $e->getMessage();
+    }
+}
+?&gt;</code></pre>
+            </div>
+
+            <!-- CHAPTER 6 -->
+            <div id="ch6" class="page-break">
+                <h1>CHAPTER 6: USER INTERFACE (UI) WIREFRAMES</h1>
+                
+                <h3>6.1 Client Welcome Gateway (Login View)</h3>
+                <div class="wireframe-container">
++-------------------------------------------------------------------------------+
+|  V  VidyaSetu | College Management System               System Online [o]     |
+|  ---------------------------------------------------------------------------  |
+|                                                                               |
+|      The Bridge Between                     +--------------------------+      |
+|      Learning & Excellence                  |  Authentication Portal   |      |
+|                                             |  Welcome Back            |      |
+|      A unified platform to manage           |  Sign in to continue     |      |
+|      academic operations, student           |                          |      |
+|      performance, and workflows.            |  [ Username or Email ]   |      |
+|                                             |  [ Password          ]   |      |
+|                                             |                          |      |
+|      Features:                              |  [ ] Remember Session    |      |
+|      * Role-Based Access Controls           |                          |      |
+|      * Real-Time Analytics                  |  [   AUTHORIZE ACCESS   ]  |      |
+|      * Academic Scheduling                  +--------------------------+      |
+|                                                                               |
+|  ---------------------------------------------------------------------------  |
+|  (C) 2026 Canara College, Mangaluru               Support: admin@vidyasetu.com |
++-------------------------------------------------------------------------------+
+                </div>
+
+                <h3>6.2 Master Administrative Control Form</h3>
+                <div class="wireframe-container">
++-------------------------------------------------------------------------------+
+| [V] VidyaSetu ERP   |  Overview Dashboard                  Admin | Profile [V] |
++---------------------+---------------------------------------------------------+
+| [@] Dashboard       |  +----------------------------------------------------+ |
+| [#] User Accounts   |  | Good Evening, Admin                                | |
+| [$] Departments     |  | Operational telemetry status logs:                 | |
+| [%] Courses         |  +----------------------------------------------------+ |
+| [&] Subjects        |  | Students: 124  | Faculty: 18  | Departments: 4     | |
+| [*] Timetable       |  +----------------------------------------------------+ |
+| [!] Fee Structures  |  | Recent Onboardings      | Financial Status Log     | |
+| [?] Settings        |  | * Arjun Reddy (BCA)     | * Target achieved: 78%   | |
+|                     |  | * Sneha Kapoor (BBA)    | * Collected: INR 5.4M    | |
+| [<-] Logout         |  +-------------------------+--------------------------+ |
++---------------------+---------------------------------------------------------+
+                </div>
+            </div>
+
+            <!-- CHAPTER 7 -->
+            <div id="ch7" class="page-break">
+                <h1>CHAPTER 7: COMPREHENSIVE QUALITY ASSURANCE & TESTING</h1>
+                <h3>7.1 Testing Introduction & Methodologies</h3>
+                <p>Testing is the phase where errors from the earlier phases also must be tested. It is the process of examining something with the intention of finding errors. Testing a program consists of providing it with a set of test inputs and observing if it behaves as expected. If the program fails, then the conditions under which the failure occurs are noted for debugging and correction.</p>
+                
+                <h3>7.2 Unit Testing Reports</h3>
+                <p>Testing at the unit level is essential because the error isolation is accurate. Unit testing involves testing different units or modules of a system in isolation to check whether each module works properly and yields the desired outputs.</p>
+
+                <h4>Login Page Unit Test Cases:</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Testcase ID</th>
+                            <th>Test Description</th>
+                            <th>Expected Result</th>
+                            <th>Actual Result</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>TC-LOG-01</strong></td>
+                            <td>Correct admin credentials.</td>
+                            <td>Redirect to admin_dashboard.php</td>
+                            <td>Redirected to admin_dashboard.php</td>
+                            <td><strong>OK</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>TC-LOG-02</strong></td>
+                            <td>Incorrect admin password.</td>
+                            <td>Display error modal.</td>
+                            <td>Display error modal.</td>
+                            <td><strong>OK</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>TC-LOG-05</strong></td>
+                            <td>Empty username field.</td>
+                            <td>Display "Please fill in all fields"</td>
+                            <td>Display message on screen.</td>
+                            <td><strong>OK</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>TC-LOG-07</strong></td>
+                            <td>SQL injection attempt in username.</td>
+                            <td>PDO escapes input; login fails.</td>
+                            <td>Login fails securely.</td>
+                            <td><strong>OK</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h4>Signup Page Unit Test Cases:</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Testcase ID</th>
+                            <th>Test Description</th>
+                            <th>Expected Result</th>
+                            <th>Actual Result</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>TC-SIGN-01</strong></td>
+                            <td>Valid student registration.</td>
+                            <td>Signup successful message.</td>
+                            <td>Database record created; link displayed.</td>
+                            <td><strong>OK</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>TC-SIGN-02</strong></td>
+                            <td>Admin role selected in post.</td>
+                            <td>Reject registration with role error.</td>
+                            <td>Rejected registration.</td>
+                            <td><strong>OK</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>TC-SIGN-06</strong></td>
+                            <td>Duplicate username.</td>
+                            <td>Show error from db.</td>
+                            <td>Error handled correctly.</td>
+                            <td><strong>OK</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h4>Password Reset Page Unit Test Cases:</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Testcase ID</th>
+                            <th>Test Description</th>
+                            <th>Expected Result</th>
+                            <th>Actual Result</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>TC-RESET-01</strong></td>
+                            <td>Fields left empty.</td>
+                            <td>Message: "All fields are required."</td>
+                            <td>Error shown on screen.</td>
+                            <td><strong>OK</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>TC-RESET-02</strong></td>
+                            <td>New and confirm passwords do not match.</td>
+                            <td>Message: "Passwords do not match."</td>
+                            <td>Form validation rejects entry.</td>
+                            <td><strong>OK</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>7.3 Integration Testing Reports</h3>
+                <p>In integration testing, all the code modules are put together and tested for the desired outputs. The modules that were unit tested are integrated and verified as a whole.</p>
+
+                <h3>7.4 General Button Test Cases</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Testcase ID</th>
+                            <th>Test Description</th>
+                            <th>Expected Result</th>
+                            <th>Actual Result</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>TC-BTN-01</strong></td>
+                            <td>Register Button Action.</td>
+                            <td>Save info if validated, show success.</td>
+                            <td>User saved to database.</td>
+                            <td><strong>OK</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>TC-BTN-02</strong></td>
+                            <td>Login Button Action.</td>
+                            <td>Logs in user if validated.</td>
+                            <td>Redirected to home dashboard page.</td>
+                            <td><strong>ok</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>TC-BTN-03</strong></td>
+                            <td>Logout Button Action.</td>
+                            <td>Clears session and redirects.</td>
+                            <td>Logged out and redirected.</td>
+                            <td><strong>ok</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>7.5 Structural (White Box) and Interface (Black Box) Testing</h3>
+                <p>White Box testing checks access from the database server using MySQL and verifies correct query executions. Black Box testing verifies conditional loops and privileges based on user roles, showing errors on mismatch.</p>
+            </div>
+
+            <!-- CHAPTER 8 -->
+            <div id="ch8" class="page-break">
+                <h1>CHAPTER 8: CONCLUSIONS, OUTCOMES & FUTURE WORK</h1>
+                <h3>8.1 Project Conclusion & MU Regulation Conformity</h3>
+                <p>The development of the college management system satisfies the VI Semester Bachelor of Computer Application (BCA) project requirements of Mangalore University. The implementation successfully automates essential ERP features, including student/admin authentication, attendance registration, internal evaluation records, fee collection logs, and grievance resolution flows.</p>
+
+                <h3>8.2 Proposed Future Enhancements</h3>
+                <ol>
+                    <li>Automated Payment Gateways: Integrations with commercial aggregators (Razorpay/Stripe).</li>
+                    <li>Notification Subsystems: Automated SMS notifications using Twilio core endpoints.</li>
+                    <li>Predictive Analytics: Model integrations tracing student grade drops.</li>
+                    <li>Biometric Integration: Interfacing with physical biometric fingerprint scanners.</li>
+                </ol>
+
+                <h3>8.3 Bibliography</h3>
+                <ul>
+                    <li>ChatGPT by OpenAI (2026).</li>
+                    <li>W3Schools Tutorials Hub (2025).</li>
+                    <li>YouTube Educational Channels (2025).</li>
+                    <li>OWASP Top Ten Security Risk Matrix (2025).</li>
+                </ul>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        const sections = document.querySelectorAll('.page-break, #cover-page');
+        const navLi = document.querySelectorAll('aside .sidebar-menu li');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 100) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLi.forEach(li => {
+                li.classList.remove('active');
+                if (li.querySelector('a').getAttribute('href') === `#${current}`) {
+                    li.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

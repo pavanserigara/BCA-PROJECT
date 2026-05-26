@@ -1,0 +1,1745 @@
+Mangalore
+
+University
+
+A report on the project
+THE SERENE SHELF
+E-Commerce Website
+
+Submitted to Mangalore University in partial
+Fulfillment of the requirements for the
+BACHELOR OF COMPUTER APPLICATION
+
+By
+
+Neha (U05CI22S0049)
+
+Department of Computer Application
+MILAGRES COLLEGE
+KALLIANPUR – 576 114
+June 2024-2025
+
+1
+
+THE SERENE SHELF
+
+NEHA
+
+2024-2025.
+
+NEHA
+U05CI22S0049
+
+2
+
+ACKNOWLEDGEMENT
+We have taken efforts in "THE SERENE SHELF" website however, it would not
+have been possible without the kind support and help of many individuals, I
+would like to extend my sincere thanks to all of them.
+First and foremost, we would like to express our sincere gratitude to our
+principal Dr. Vincent Alva for providing us the challenging opportunity to
+undertake Mini Project work for the completion of our BCA course.
+We would like to express our gratitude to Mrs. Sushma A Shetty, HOD of BCA
+Department for her valuable suggestions and encouragement.
+We would also like to express a whole hearted gratitude to our project guide
+Mrs. Sushma A Shetty for their guidance and constant supervision as well as
+for providing necessary information and support in completing the website.
+
+Neha
+
+3
+
+INDEX
+Chapter No.
+Title
+1.
+Introduction
+• Objectives
+• Features
+• Modules
+2.
+Software Requirements Specification
+• Purpose
+• Scope
+• Overall Description
+3.
+System Design
+• Context Flow Diagram
+4.
+Database Design
+• Physical Design
+5.
+Program Code Listing
+6.
+User Interface
+7.
+Testing
+• Test Reports
+8.
+Conclusion
+• Bibliography
+
+Page No.
+5-6
+
+7-11
+
+12
+13-16
+17-32
+33-35
+36-39
+40
+
+4
+
+CHAPTER 1
+INTRODUCTION
+
+INTRODUCTION:
+This project aims to create a comprehensive software solution for managing a gift shop’s
+inventory, sales, and customer interaction. It’s designed to streamline operations, enhance
+efficiency, and improve the overall customer experience. The system will encompass features
+such as product management, sales transaction processing, inventory tracking, and
+potentially customer relationship management.
+
+•
+
+TITLE OF THE PROJECT
+“The Serene Shelf”
+
+•
+
+OVERVIEW:
+
+The Serene Shelf is a software solution designed to streamline the operations of a gift
+shop by managing inventory, processing sales transactions, and enhancing customer
+interaction. The system will offer robust features including product management, inventory
+tracking, and sales processing. Additionally, it may integrate customer relationship
+management (CRM) capabilities to help the shop engage with customers more effectively,
+ultimately improving the customer experience and operational efficiency.
+
+OBJECTIVES OF THE PROJECT:
+•
+
+To create a user-friendly website that allows the gift shop to reach a wider customer
+base.
+
+•
+
+To provide a 24/7 online platform for customers to browse and purchase gifts.
+
+•
+
+To develop a robust product catalogue with detailed descriptions and images.
+
+•
+
+To create an intuitive and easy to navigate website interface.
+
+FEATURES:
+•
+
+Clear Categorization: Easily browse gifts by recipient, occasion, or interest.
+
+•
+
+Detailed Product Descriptions: Get a comprehensive understanding of each item with
+high-quality images and thorough descriptions.
+
+5
+
+•
+
+Streamlined Checkout Process: Complete your purchase in just a few clicks with our
+secure and efficient checkout system.
+
+TOOLS/PLATFORMS USED:
+o Software:
+•
+
+Front End: HTML, CSS and JavaScript
+
+•
+
+Back End: PHP and MySQL
+
+•
+
+Platform: Visual Studio Code
+
+o
+•
+•
+•
+•
+
+Hardware:
+Any Standard Monitor
+Standard Keyboard
+2 GB RAM or More
+CPU Intel® Core™ i5-1035G1
+
+MODULES:
+•
+
+User
+
+•
+
+Admin
+
+TESTING TOOLS:
+•
+
+Manual testing with a set of real-time data.
+
+EXPECTED OUTCOME:
+•
+
+A fully functional online store with a shopping cart, secure payment gateway
+integration, and order management system.
+
+•
+
+Expanding the customer base beyond the physical store’s reach.
+
+•
+
+Responsive customer support.
+
+•
+
+Automating online sales and order processing can reduce manual labor and improve
+efficiency.
+
+6
+
+CHAPTER 2
+SOFTWARE REQUIREMENTS SPECIFICATION
+INTRODUCTION:
+A software requirement specification (SRS) is a comprehensive description on
+the intended purpose and environment for software under development. The
+SRS fully describes what the software will do and how it will be expected to
+perform.
+An SRS minimizes the time and effect required by developer to achieve desired
+goals and also minimize the development cost. A good SRS defines how an
+application will interact with systems software, other programs and human
+world in a wide variety of real-world situation.
+PURPOSE:
+The purpose of this document it to specify each requirement of the system in
+detail, while helping the client object a better understanding of the project.
+The document describes the project target audience and in user interface,
+hardware and software requirements. In short, the purpose of this SRS
+document is to provide detailed overview of our software product, its
+parameters, and goals.
+SCOPE:
+The document specifies requirements of the system. The validation of the
+process is done through software requirement specification. If there are any
+changes in the software in future, the changes are done through software
+requirement specification. First, the developer is responsible in case any
+change is seen in near future. The clarification must be changed in the
+recording of the system requirement specification.
+
+OVERALL DESCRIPTION:
+o General Constraints:
+• Login and password are used for identification of user.
+• Admin must be educated enough to use system.
+7
+
+ASSUMPTIONS:
+• It is assumed that the project is being installed in the system which
+satisfies hardware and software configuration.
+• Users will be having valid Email and Password to access the website.
+Users should provide correct details about them.
+• Admin should be careful in updating and removing any data knowingly or
+unknowingly which will lead to inconsistency of the database.
+
+SYSTEM REQUIREMENT:
+o Hardware:
+• Any standard Monitor
+• Standard Keyboard
+• 2 GB RAM or more
+• CPU Intel® Core™ i5-1035G1
+
+o Software:
+• Visual Code with HTML, CSS, PHP, XAMPP
+
+8
+
+FUNCTIONAL REQUIREMENTS:
+
+Functionality
+User Registration
+
+Description
+Allows new
+users to sign
+up
+with
+username,
+password,
+email, and
+join date.
+Enables
+registered
+User Login
+users to log
+in.
+Allows admin
+to securely
+Admin Login
+access the
+admin panel.
+Lets’ users
+browse and
+Browse Products
+view
+available
+products.
+Displays
+View
+Product details of a
+Details
+selected
+product.
+Allows users
+to
+add
+products to
+Add to Cart
+their
+cart
+with
+a
+specific
+quantity.
+Lets’ users
+update
+Manage Cart
+quantities or
+remove
+products
+
+User Type
+
+Input
+
+Output
+
+Customer
+
+Username,
+Password,
+Email
+
+Confirmation of
+account creation
+
+Customer
+
+Username,
+Password
+
+Access to user
+dashboard
+
+Admin
+
+Username,
+Password
+
+Access to admin
+dashboard
+
+Customer
+
+Search/filter
+Product listing
+criteria
+
+Customer
+
+Product ID
+
+Customer
+
+Product added
+Product ID,
+to
+cart
+Quantity
+confirmation
+
+Customer
+
+Cart item
+Updated cart
+updates
+
+Product
+page
+
+info
+
+9
+
+Add to Wishlist
+
+Manage Wishlist
+
+Place Order
+
+View Orders
+
+Add New Product
+
+Edit/Delete Product
+
+View All Users
+
+from
+their
+cart.
+Enables users
+to
+save
+products for
+future
+reference.
+Allows users
+to
+remove
+items from
+their
+wish
+list.
+Users
+can
+place
+an
+order with
+items from
+their cart.
+Displays list
+of
+past
+orders
+placed by the
+user.
+
+Customer
+
+Product ID
+
+Product added
+to wish list
+
+Customer
+
+Product ID
+
+Wishlist updated
+
+Customer
+
+Cart
+contents,
+shipping
+info
+
+Order
+confirmation
+
+Customer
+
+User ID
+
+Order history
+
+Product
+name,
+description,
+image,
+price,
+quantity
+
+Product
+successfully
+added
+
+Admin can
+add
+new
+Admin
+products to
+the shop.
+Admin can
+update
+or
+remove
+Admin
+products
+from
+the
+shop.
+Admin can
+view a list of
+Admin
+registered
+users.
+
+Product ID,
+Product
+updated
+updated/deleted
+details
+
+User list
+
+10
+
+View
+Carts/Wish
+lists/Orders
+
+Logout
+
+Admin can
+view
+User individual
+user carts, Admin
+User ID
+wish
+lists,
+and
+order
+history.
+Allows
+users/admins
+Customer/Admin
+to securely
+log out.
+
+Display user data
+
+Return
+to
+login/home page
+
+11
+
+CHAPTER 3
+SYSTEM DESIGN
+
+SYSTEM DESIGN:
+System design is the process of defining elements of a system like
+modules, architecture, components and their interfaces and data for a
+system based on the specified requirements. It is the process of defining,
+developing and designing systems which satisfies the specific needs and
+requirements of a business or organization.
+CONTEXT FLOW DIAGRAM (CFD):
+• CFD are used to describe the detailed logic of a business process or
+a business rule.
+• The Context Flow Diagram is a one in which the entire system is
+treated as a single process.
+• It lists all the major inputs and outputs for the system.
+• It will show the flow of control through the different program.
+Register, Login, Search,
+Cart, Order, Payment
+
+User
+
+Manage Users
+Gift Shop
+
+Admin
+
+Automation
+Confirmation
+
+Add, Edit, Delete, View
+
+Database
+
+12
+
+CHAPTER 4
+DATABASE DESIGN
+
+INTRODUCTION:
+The database design is a critical component of the project, providing a
+structured framework for storing, managing, and retrieving data efficiently. It
+outlines the logical and physical structure of the database, including tables,
+relationships, keys, and constraints. A well-designed database ensures data
+integrity, supports system functionality, and enhances performance. This
+section presents the schema, data flow, and rationale behind the chosen design
+to align with the project’s requirements and scalability needs.
+
+PHYSICAL DESIGN:
+Database Name: serene_shelf
+
+cart
+
+13
+
+orders
+
+order_items
+
+products
+
+users
+
+wishlist
+
+14
+
+ENTITY RELATIONSHIP DIAGRAM TABLE WITH SYMBOL MEANINGS:
+
+Symbol
+
+Meaning
+Entity
+
+Weak Entity
+
+Relationship
+
+Identifying Relationship
+
+Attribute
+
+Key Attribute
+
+Multivalued Attribute
+
+Composite Attribute
+
+1
+
+E1
+
+R
+
+N
+
+E2
+
+(Min, Max)
+R
+
+E
+
+Cardinality ratio 1: N for E1:E2 in R
+
+Structured constraint (Min, Max) on
+participation of E in R
+
+15
+
+ER DIAGRAM:
+
+price
+
+qty
+
+cart
+
+img
+
+title
+id
+add
+to
+cart
+
+img
+
+title
+
+N
+1
+
+admin
+
+1
+ma
+nag
+e
+
+shop
+
+1
+
+N
+
+products
+
+has
+price
+
+N
+
+con
+tain
+s
+password
+
+username
+
+address
+
+1
+payment
+
+1
+
+1
+ma
+ke
+
+user
+
+ma
+ke
+
+orders
+
+price
+id
+username
+
+16
+
+CHAPTER 5
+PROGRAM CODE LISTING
+login.php
+<?php
+session_start();
+include 'db.php';
+$username = trim($_POST['username']);
+$password = trim($_POST['password']);
+$role = trim($_POST['role']);
+// Admin login (hardcoded)
+if ($role === 'admin') {
+$admin_username = 'admin';
+$admin_password = 'admin123';
+if ($username === $admin_username && $password === $admin_password) {
+$_SESSION['username'] = $admin_username;
+$_SESSION['role'] = 'admin';
+header("Location: admin_dashboard.php");
+exit;
+} else {
+echo "
+<div id='errorModal' class='modal'>
+<div class='modal-content'>
+<span class='close'>&times;</span>
+<h2>Invalid Admin Credentials</h2>
+<button onclick='window.location.href=\"login.html\"'>Try Again</button>
+</div>
+</div>
+<script>
+var modal = document.getElementById('errorModal');
+var span = document.getElementsByClassName('close')[0];
+modal.style.display = 'block';
+span.onclick = function() {
+
+17
+
+modal.style.display = 'none';
+}
+window.onclick = function(event) {
+if (event.target == modal) {
+modal.style.display = 'none';
+}
+}
+</script>
+<style>
+.modal {
+display: none;
+position: fixed;
+z-index: 1;
+left: 0;
+top: 0;
+width: 100%;
+height: 100%;
+overflow: auto;
+background-color: rgba(0, 0, 0, 0.4);
+}
+
+.close:hover,
+.close:focus {
+color: black;
+text-decoration: none;
+}
+button {
+background-color: #000;
+color: white;
+border: none;
+padding: 1rem 2rem;
+font-size: 1rem;
+cursor: pointer;
+border-radius: 4px;
+
+18
+
+transition: background-color 0.3s;
+}
+button:hover {
+background-color: #333;
+}
+</style>";
+exit;
+}
+}
+$sql = "SELECT * FROM users WHERE username='$username' AND password='$password' AND
+role='user'";
+$result = $conn->query($sql);
+if ($result->num_rows === 1) {
+$user = $result->fetch_assoc(); // get user row as assoc array
+$_SESSION['username'] = $username;
+$_SESSION['role'] = 'user';
+$_SESSION['user_id'] = $user['id']; // store user id in session
+header("Location: home.html");
+exit;
+} else {
+echo "
+<div id='errorModal' class='modal'>
+<div class='modal-content'>
+<span class='close'>&times;</span>
+<h2>Invalid User Credentials</h2>
+<button onclick='window.location.href=\"login.html\"'>Try Again</button>
+</div>
+</div>
+<script>
+var modal = document.getElementById('errorModal');
+var span = document.getElementsByClassName('close')[0];
+modal.style.display = 'block';
+span.onclick = function() {
+modal.style.display = 'none';
+}
+
+19
+
+window.onclick = function(event) {
+if (event.target == modal) {
+modal.style.display = 'none';
+}
+}
+</script>
+<style>
+.modal {
+display: none;
+position: fixed;
+z-index: 1;
+left: 0;
+top: 0;
+width: 100%;
+height: 100%;
+overflow: auto;
+background-color: rgba(0, 0, 0, 0.4);
+}
+button {
+background-color: #000;
+color: white;
+border: none;
+padding: 1rem 2rem;
+font-size: 1rem;
+cursor: pointer;
+border-radius: 4px;
+transition: background-color 0.3s;
+}
+button:hover {
+background-color: #333;
+}
+</style>";
+exit;
+}
+
+20
+
+$conn->close();
+?>
+
+signup.php
+<?php
+include 'db.php';
+
+$username = $_POST['username'];
+$password = $_POST['password'];
+$role = $_POST['role'];
+if ($role === 'admin') {
+die("Admin registration is not allowed.");
+}
+
+// Prevent empty fields or SQL injection
+$username = trim($conn->real_escape_string($username));
+$password = trim($conn->real_escape_string($password));
+$role = trim($conn->real_escape_string($role));
+
+// Insert into database
+$sql = "INSERT INTO users (username, password, role) VALUES ('$username', '$password', '$role')";
+
+if ($conn->query($sql) === TRUE) {
+echo "Signup successful! <a href='login.html'>Login now</a>";
+} else {
+echo "Error: " . $conn->error;
+}
+
+$conn->close();
+?>
+
+shop.php
+<?php
+
+21
+
+$conn = new mysqli("localhost", "root", "", "serene_shelf");
+if ($conn->connect_error) {
+die("Connection failed: " . $conn->connect_error);
+}
+$search = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
+$category = isset($_GET['category']) ? $conn->real_escape_string($_GET['category']) : '';
+$sql = "SELECT * FROM products WHERE 1=1";
+if (!empty($search)) {
+$sql .= " AND (name LIKE '%$search%' OR description LIKE '%$search%')";
+}
+if (!empty($category)) {
+$sql .= " AND category = '$category'";
+}
+$sql .= " ORDER BY id DESC";
+$result = $conn->query($sql);
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Serene Shelf | Shop</title>
+<style>
+html, body {
+height: 100%;
+margin: 0;
+font-family: 'Helvetica Neue', sans-serif;
+background-color: #ffffff;
+color: #222;
+display: flex;
+flex-direction: column;
+}
+header {
+background-color: #000;
+
+22
+
+color: white;
+padding: 1rem 2rem;
+display: flex;
+justify-content: space-between;
+align-items: center;
+flex-wrap: wrap;
+}
+header h1 {
+font-size: 1.4rem;
+margin: 0;
+letter-spacing: 1px;
+}
+nav {
+display: flex;
+gap: 1.2rem;
+flex-wrap: wrap;
+margin-top: 0.3rem;
+}
+.cart-form input[type="number"] {
+background: white;
+border: 2px solid black;
+color: black;
+padding: 6px 10px;
+border-radius: 6px;
+font-size: 1rem;
+width: 60px;
+text-align: center;
+outline: none;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>The Serene Shelf</h1>
+
+23
+
+<nav>
+<a href="home.html">Home</a>
+<a href="about.html">About</a>
+<a href="contact.html">Contact</a>
+<a href="wishlist.php">Wishlist</a>
+<a href="cart.php">Cart</a>
+<a href="profile.php">Profile</a>
+</nav>
+</header>
+<main>
+<form method="GET" class="filter-form">
+<input type="text" name="search" placeholder="
+htmlspecialchars($search) ?>" />
+
+Search for Products." value="<?=
+
+<select name="category">
+<option value="">All Categories</option>
+<option value="books" <?= $category === 'books' ? 'selected' : '' ?>>Books</option>
+<option value="decor" <?= $category === 'decor' ? 'selected' : '' ?>>Decor</option>
+<option value="wellness" <?= $category === 'wellness' ? 'selected' : '' ?>>Wellness</option>
+<option value="stationary" <?= $category === 'stationary' ? 'selected' : '' ?>>Stationary</option>
+<option value="gifts" <?= $category === 'gifts' ? 'selected' : '' ?>>Gifts</option>
+</select>
+<button type="submit" class="button-outline">Search</button>
+</form>
+<section class="products">
+<?php if ($result && $result->num_rows > 0): ?>
+<?php while ($product = $result->fetch_assoc()): ?>
+<div class="product-card">
+<img src="uploads/<?= htmlspecialchars($product['image']) ?>" alt="<?=
+htmlspecialchars($product['name']) ?>" />
+<h3><?= htmlspecialchars($product['name']) ?></h3>
+<p><?= htmlspecialchars($product['description']) ?></p>
+<div class="price">₹<?= number_format($product['price'], 2) ?></div>
+<form action="add_to_wishlist.php" method="post">
+<input type="hidden" name="product_id" value="<?= $product['id'] ?>">
+<button type="submit">
+
+Add to Wishlist</button>
+
+24
+
+</form>
+<form method="POST" action="add_to_cart.php" class="cart-form">
+<input type="hidden" name="product_id" value="<?= $product['id'] ?>">
+<input type="number" name="quantity" value="1" min="1">
+<button type="submit">
+
+Add to Cart</button>
+
+</form>
+</div>
+<?php endwhile; ?>
+<?php else: ?>
+<p>No products found.</p>
+<?php endif; ?>
+</section>
+</main>
+<footer class="footer">
+&copy; 2025 The Serene Shelf. All rights reserved.
+</footer>
+</body>
+</html>
+<?php $conn->close(); ?>
+
+admin_dashboard.php
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin Dashboard | The Serene Shelf</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
+rel="stylesheet">
+<style>
+:root {
+--primary: #000;
+--hover: #222;
+--accent: #f9f9f9;
+--danger: #d32f2f;
+
+25
+
+--text: #333;
+--bg: #f4f4f4;
+--border: #ddd;
+}
+
+*{
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+
+body {
+font-family: 'Inter', sans-serif;
+background-color: var(--bg);
+color: var(--text);
+}
+
+header {
+background-color: var(--primary);
+color: #fff;
+padding: 1rem 2rem;
+display: flex;
+justify-content: space-between;
+align-items: center;
+box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+header h1 {
+font-size: 1.6rem;
+font-weight: 600;
+}
+
+nav a {
+color: #fff;
+
+26
+
+margin-left: 1.5rem;
+text-decoration: none;
+font-weight: 500;
+transition: color 0.3s;
+}
+nav a:hover {
+color: #aaa;
+}
+.dashboard {
+padding: 3rem 2rem;
+max-width: 1200px;
+margin: auto;
+form {
+background-color: #fff;
+padding: 2rem;
+border-radius: 12px;
+box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+transition: transform 0.2s ease;
+}
+form:hover {
+transform: translateY(-5px);
+}
+form h2 {
+font-size: 1.3rem;
+margin-bottom: 1.2rem;
+color: var(--primary);
+}
+label {
+font-weight: 600;
+font-size: 0.95rem;
+display: block;
+margin-bottom: 6px;
+margin-top: 1rem;
+}
+
+27
+
+button {
+margin-top: 1rem;
+padding: 0.75rem 1.2rem;
+border: none;
+border-radius: 8px;
+font-weight: 600;
+cursor: pointer;
+font-size: 1rem;
+transition: background-color 0.3s ease;
+}
+.manage-btn {
+display: block;
+margin: 3rem auto 2rem;
+padding: 14px 32px;
+background-color: var(--primary);
+color: #fff;
+text-align: center;
+font-weight: 600;
+border-radius: 10px;
+text-decoration: none;
+font-size: 1rem;
+box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+transition: background-color 0.3s;
+}
+.links a:hover {
+border-color: var(--primary);
+}
+#successMessage {
+background-color: #e9f6ea;
+color: #1a3d1f;
+border-left: 5px solid #2e7d32;
+padding: 1rem;
+margin: 1.5rem auto;
+width: 90%;
+
+28
+
+max-width: 600px;
+border-radius: 8px;
+text-align: center;
+font-size: 0.95rem;
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+@media (max-width: 600px) {
+header {
+flex-direction: column;
+align-items: flex-start;
+}
+nav {
+margin-top: 0.75rem;
+}
+}
+</style>
+</head>
+<body>
+<?php if (isset($_GET['message'])): ?>
+<div id="successMessage">
+<?= htmlspecialchars($_GET['message']) ?>
+</div>
+<script>
+setTimeout(() => {
+const msg = document.getElementById("successMessage");
+if (msg) {
+msg.style.opacity = "0";
+setTimeout(() => msg.style.display = "none", 1000);
+}
+}, 4000);
+</script>
+<?php endif; ?>
+
+<header>
+
+29
+
+<h1>Admin Dashboard</h1>
+<nav>
+<a href="home.html">View Site</a>
+<a href="logout.php">Logout</a>
+</nav>
+</header>
+
+<div class="dashboard">
+<h2>Welcome, Admin</h2>
+<div class="actions">
+
+<!-- Add Product -->
+<form action="admin_add_product.php" method="POST" enctype="multipart/form-data">
+<h2>Add Product</h2>
+<label>Product Name</label>
+<input type="text" name="name" required>
+
+<label>Description</label>
+<textarea name="description" rows="3" required></textarea>
+
+<label>Price (₹)</label>
+<input type="number" name="price" step="0.01" required>
+
+<label>Category</label>
+<select name="category" required>
+<option value="" disabled selected>Select Category</option>
+<option>Books</option>
+<option>Decor</option>
+<option>Wellness</option>
+<option>Stationery</option>
+<option>Gifts</option>
+</select>
+
+<label>Product Image</label>
+
+30
+
+<input type="file" name="image" accept="image/*" required>
+
+<button type="submit" name="submit">Add</button>
+</form>
+
+<!-- Edit Product -->
+<form action="admin_edit_product.php" method="POST" enctype="multipart/form-data">
+<h2>Edit Product</h2>
+<label>Product ID</label>
+<input type="number" name="id" required>
+
+<label>New Name</label>
+<input type="text" name="name" required>
+
+<label>New Description</label>
+<textarea name="description" rows="3" required></textarea>
+
+<label>New Price (₹)</label>
+<input type="number" name="price" step="0.01" required>
+
+<label>New Category</label>
+<select name="category" required>
+<option value="" disabled selected>Select Category</option>
+<option>Books</option>
+<option>Decor</option>
+<option>Wellness</option>
+<option>Stationery</option>
+<option>Gifts</option>
+</select>
+
+<label>New Image (optional)</label>
+<input type="file" name="image" accept="image/*">
+
+<button type="submit" name="submit">Update</button>
+
+31
+
+</form>
+
+<!-- Delete Product -->
+<form action="admin_delete_product.php" method="POST">
+<h2>Delete Product</h2>
+<label>Product ID</label>
+<input type="number" name="id" required>
+<button type="submit" name="submit" class="danger">Delete</button>
+</form>
+</div>
+
+<a href="admin_product_list.php" class="manage-btn">View & Manage Products</a>
+
+<div class="links">
+<a href="admin_view_wishlists.php">View All Wishlists</a>
+<a href="admin_view_carts.php">View All Carts</a>
+<a href="admin_orders.php">View All Orders</a>
+</div>
+</div>
+
+</body>
+</html>
+
+32
+
+CHAPTER 6
+USER INTERFACE
+
+33
+
+34
+
+35
+
+CHAPTER 7
+TESTING
+INTRODUCTION:
+Testing is the phase where errors from the earlier phase also must be tested. It
+is the process of examining something with intension of finding the errors.
+Testing a program that consists of providing the program with the set of test
+inputs and observing if the program behaves as expected. If the program fails,
+then the condition under which a failure occurs is noted for debugging and
+correction.
+
+TEST REPORTS:
+
+UNIT TESTING:
+Testing at the unit level is very much essential because the error is accurate.
+Unit testing is testing of different units or modules of a system in isolation
+Testing is done to check whether each module in the software works properly
+so that it gives desired outputs to the given inputs.
+
+Login Page:
+Testcase Test Description
+ID
+1
+Correct admin
+credentials
+2
+Incorrect admin
+password
+3
+
+4
+
+Valid user
+credentials from
+database
+Invalid user
+password
+
+Expected Result
+
+Actual Result
+
+Remarks
+
+Redirect to
+admin_dashboard.php
+Display message
+“Invalid admin
+credentials”
+Redirect home.html
+
+Redirect to
+OK
+admin_dashboard.php
+Display message
+OK
+“Invalid admin
+credentials”
+Redirect home.html
+OK
+
+Display
+message”Enter user
+credentials”
+
+Display
+message”Enter user
+credentials”
+
+OK
+
+36
+
+5
+
+6
+
+7
+
+8
+
+Empty user name Display
+field
+message”Enter
+username”
+Empty password Display
+field
+message”Enter
+password”
+SQL injection
+Reject login and show
+attempt in
+error
+username
+Role mismatch
+Display
+(user tries to
+message“Invalid
+login as admin)
+admin credentials”
+
+Display
+message”Enter
+username”
+Display
+message”Enter
+password”
+Reject login and show
+error
+
+OK
+
+Display
+message“Invalid
+admin credentials”
+
+OK
+
+OK
+
+OK
+
+Signup Page:
+Testcase ID
+1
+
+Test Description
+Valid user
+registration
+
+Expected Result
+Message: ”Signup
+successful!” and link
+to login
+
+2
+
+Admin role
+selected during
+signup
+Empty username
+filed
+
+Message “admin
+registration is not
+allowed
+Display error or
+prevent submission
+
+4
+
+Empty password
+filed
+
+Display error or
+prevent submission
+
+5
+
+Username with
+SQL injection(‘
+OR 1=1--)
+Duplicate
+username
+
+Prevented and
+escaped input
+
+3
+
+6
+
+7
+
+Invalid role(eg.
+Hacker)
+
+8
+
+All field blank
+
+Actual Result
+Message:
+“Signup
+successful!” and
+link to login
+Message “admin
+registration is
+not allowed
+Display error or
+prevent
+submission
+Display error or
+prevent
+submission
+Prevented and
+escaped input
+
+Display error from db Display error
+(eg.”duplicate entry”) from db
+(eg.”duplicate
+entry”)
+Either rejected or
+Either rejected
+inserted based on
+or inserted
+role validation
+based on role
+validation
+Prevent submission
+Prevent
+submission
+
+Remarks
+OK
+
+OK
+
+OK
+
+OK
+
+OK
+
+OK
+
+Caution
+
+OK
+
+37
+
+Password Reset Page:
+Testcase ID
+1
+
+Test
+Description
+Fields left
+empty
+
+2
+
+New and
+confirm
+password do
+not match
+
+3
+
+Incorrect
+current
+password
+
+4
+
+Valid current
+password and
+matching new
+one
+
+Expected Result Actual Result
+
+Remarks
+
+Message: "All
+fields are
+required."
+Message: "New
+password and
+confirmation do
+not match."
+
+Message: "All
+fields are
+required."
+Message: "New
+password and
+confirmation do
+not match."
+
+OK
+
+Message:
+"Current
+password is
+incorrect."
+Message:
+"Password
+changed
+successfully."
+
+Message:
+"Current
+password is
+incorrect."
+Message:
+"Password
+changed
+successfully."
+
+OK
+
+OK
+
+OK
+
+INTEGRATION TESTING:
+In the Integration testing all the code modules are put together and tested and
+tested for desired outputs. The modules unit tested are integrated and tested.
+All the modules are combined in the testing step. The entire program is tested
+as the whole. The integration testing is carried out using integrated test plans
+prepared in the design phase of the system development as guide. All the
+errors found in the system are corrected for the next testing steps. The
+modules which are tested show expected results.
+
+General Test Case for registration Button:
+Testcase ID
+1
+
+Test
+Description
+Register Button
+
+Expected Result Actual Result
+
+Remarks
+
+Register
+information in
+the database if
+all unit testing
+satisfied.
+display proper
+message Else
+the error
+
+OK
+
+User
+registration
+process is
+completed
+
+38
+
+General Test case for Login Button:
+Testcase ID
+1
+
+Test
+Description
+Login Button
+
+Expected Result Actual Result
+
+Remarks
+
+Logs in the user User will logged
+if all unit testing in Home page
+is satisfied. Else
+display the
+proper error
+message”
+
+ok
+
+General Test case for Logout Button:
+Testcase ID
+1
+
+Test
+Description
+Logout Button
+
+Expected Result Actual Result
+User will be
+logged out and
+session will be
+abandoned
+
+Remarks
+
+User will be
+ok
+logged out from
+home page
+
+WHITE BOX TESTING:
+This is one of the testing methods. This will be tested at the outside environment, which
+means accessing the server. 1.e. Accessing data from the database. This will check whether
+data is retrieved correctly or not will be seen. The main error in white box testing will be
+occurred due to the database connectivity Here MySQL is used as backend database. Here
+for the project some tables are created. In the programs they have to be clearly specified.
+
+BLACK BOX TESTING:
+This is another important test method will check only internal code loops, conditional loops
+will be checked. In the code if he is a particular user then only the user will get some
+privileges. So here comparison testing has been done. If there is any error has occurred an
+error message will be raised. modification in code.
+
+SYSTEM TESTING:
+In the system testing entire system is tested as whole with all forms, code, modules and class
+modules. After the integration testing the whole system is tested in different environments
+and it is found that the system has performed well without any runtime errors. Hence, after
+the testing it is concluded that the system will work fine in all environments.
+
+39
+
+CHAPTER 8
+CONCLUSION
+The development of the gift shop project, The Serene Shelf, marks a significant
+step toward providing a seamless and user-friendly online shopping
+experience. This project successfully implements essential e-commerce
+features, including user and admin authentication, product browsing, cart and
+wish list management, and order placement functionality. The admin panel
+allows efficient management of inventory and monitoring of customer
+interactions, ensuring smooth operation and scalability.
+Throughout the project, technologies such as HTML, CSS, PHP, and MySQL were
+effectively integrated to build a dynamic and responsive website. The system
+architecture promotes modularity and maintainability, allowing future
+enhancements like payment integration, advanced search filters, or customer
+feedback systems.
+In conclusion, this project not only fulfills its core objectives but also lays a
+strong foundation for expanding the platform into a fully-featured e-commerce
+solution that can adapt to growing business needs and customer expectations.
+
+BIBLIOGRAPHY:
+• ChatGPT
+• W3Schools
+• YouTube
+
+40
+
+
